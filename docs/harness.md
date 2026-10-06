@@ -7,7 +7,7 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 - **Xcode MCP** (`xcrun mcpbridge`, project-scoped in `.mcp.json`) and **XcodeBuildMCP** for builds, simulators, UI automation and screenshots.
 - **GitHub Spec Kit** for spec-driven development; tasks become GitHub Issues.
 - **GitHub**: public repo, squash-only merging, a ruleset on `main` (PR only, green CI, no force push or deletion), secret scanning and push protection.
-- **Figma** as a showcase; design is exported once into `docs/design/`.
+- **Figma** as a showcase only. The design was exported once into `docs/design/`, which is now the source of truth; agents do not call Figma tools because the Starter MCP limit is exhausted.
 - **fastlane** for screenshots, metadata and TestFlight (added later).
 
 ## Task cycle and gates
@@ -56,3 +56,4 @@ One row per merged PR. Count defects by where they were caught. No speed-up clai
 | PR | Feature | Tests added | Caught by tests | Caught by reviewer | Caught on device | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | #1 | Bootstrap harness | 1 (placeholder) | 1 (CI build) | 4 | — (no device testing) | CI on Xcode 26.6 caught the Xcode 27 project format (110, from `validationLevel`) that the runner cannot open. Reviewer found: Swift 5 app targets, missing screens export, missing `healthkit.access`, two copies of the permission texts. The Figma MCP limit blocked the screen export (frames exported manually). |
+| #2 | README and harness metrics (docs) | 0 | 0 (CI green) | 1 major + 11 minor | — (docs only) | The major finding was the ruleset's required check names not matching the CI check names; Denys fixed it in the repository settings. Of the minor findings, 4 were fixed before merge, 6 were deferred (README wording, listed in the PR) and 1 was raised to Denys (Dependabot and email-privacy settings). |

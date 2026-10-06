@@ -1,6 +1,6 @@
 # ITF rules notes — scoring source of truth
 
-Status: **Draft** — Denys approves before the scoring engine spec relies on it.
+Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
 
 ## Source
 - **Edition:** ITF *Rules of Tennis* 2026 (English). The © line says 2025, and the PDF was last modified on 2025-12-23. Changes to the rules take effect on 1 January of the following year.
@@ -42,16 +42,16 @@ The Tests column is filled in by the engine feature.
 | ST-01 | Rule 6 | Rule | Two main set methods exist, Advantage set and Tie-break set, and the method is announced in advance. With tie-break sets, it must also be announced whether the final set is a tie-break set or an advantage set. | Set method is part of the match setup and is fixed for the match. | |
 | ST-02 | Rule 6(a) | Rule | Advantage set: the first to 6 games with a 2-game lead wins. There is no tie-break, and the set continues until the margin is reached. | Advantage-set mode: win at ≥6 games with a 2-game lead, no cap. MVP setup always uses tie-break sets, so this is for reference only. | |
 | ST-03 | Rule 6(b) | Rule | Tie-break set: the first to 6 games with a 2-game lead wins. At 6 games all a tie-break game is played. | For a 6-game set: win at 6–≤4 or 7–5, and play a tie-break at 6–6. A tie-break win makes the set 7–6. | |
-| ST-04 | App. VI — Short sets (1) | Rule | Short set: the first to 4 games with a 2-game lead wins, and a tie-break is played at 4 games all. The sanctioning body may instead put the tie-break at 3 games all. | For a 4-game set: win at 4–≤2 or 5–3, and play a tie-break at 4–4. MVP uses 4–4. The 3–3 option is not in MVP. | |
+| ST-04 | App. VI — Short sets (1) | Rule | Short set: the first to 4 games with a 2-game lead wins, and a tie-break is played at 4 games all. The sanctioning body may instead put the tie-break at 3 games all. | For a 4-game set: win at 4–≤2 or 5–3, and play a tie-break at 4–4. MVP uses 4–4. The 3–3 tie-break variant comes with Fast4 in v1.1. **Approved** (Denys, 2026-10-07). | |
 | ST-05 | App. VI — Short set tie-break (2) | Rule | With short sets only, a 5-point short-set tie-break may be used: first to 5, with a deciding point at 4 all. The sanctioning body decides the serving order. Ends change once, after the first four points. | Not in MVP scope. MVP short sets use the standard 7-point tie-break (TB-01). | |
-| ST-06 | — (not in source) | Not covered | The source does not define an 8-game set ("pro set"). Rule 27(g) mentions playing to 8 games all and then a tie-break, but only to correct an error. It does not define a format. | Our decision for an 8-game set: first to 8 with a 2-game lead, and a 7-point tie-break at 8–8, so the set ends 9–8. Denys must confirm. | |
+| ST-06 | — (not in source) | Not covered | The source does not define an 8-game set ("pro set"). Rule 27(g) mentions playing to 8 games all and then a tie-break, but only to correct an error. It does not define a format. | Our decision for an 8-game set: first to 8 with a 2-game lead, and a 7-point tie-break at 8–8, so the set ends 9–8. **Approved** (Denys, 2026-10-07). | |
 | ST-07 | Rule 6(b), App. VI (1) | Derived | Generalisation used by the app: for a set length of N games (4, 6 or 8), the set is won at N games with a 2-game lead, and at N–N a tie-break decides the set, which ends N+1–N. | Exact for N = 6 (Rule 6(b)) and N = 4 (App. VI). For N = 8 it rests on ST-06. | |
 
 ### Match scoring
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
 | --- | --- | --- | --- | --- | --- |
 | MT-01 | Rule 7 | Rule | A match is best of 3 sets (2 needed) or best of 5 (3 needed). | Best of 3 is in MVP. Best of 5 is roadmap v1.1. | |
-| MT-02 | — (not in source) | Not covered | The source does not describe a one-set match. | Our decision: the first player to win one set wins the match. | |
+| MT-02 | — (not in source) | Not covered | The source does not describe a one-set match. | Our decision: the first player to win one set wins the match. The "match tie-break instead of the deciding set" option (MT-03) applies only to best of 3; setup hides it for 1-set matches. **Approved** (Denys, 2026-10-07). | |
 | MT-03 | App. VI — Match tie-break (10 points) (4) | Rule | At one set all (or two sets all in best of 5), a single tie-break can replace the deciding set. The first to 10 points with a 2-point lead wins it and the match. | Optional match tie-break: at 1–1 in sets, the deciding "set" is a tie-break to 10 with a 2-point lead. It is recorded as a set won 1–0 (see MT-05). | |
 | MT-04 | App. VI — Note on match tie-break | Rule | When a match tie-break replaces the final set, the original order of service continues. | The first server of the match tie-break is the player due to serve the next game. Within it, serving follows TB-02 and TB-04. | |
 | MT-05 | — (not in source) | Not covered | The source does not say how a match tie-break appears in the score line. Common practice writes it as a set, e.g. "1–0 (10–7)". | Our decision: store it as a set with a flag and its points. Display rules go in the spec. | |
@@ -68,7 +68,7 @@ The Tests column is filled in by the engine feature.
 | EN-01 | Rule 10 | Rule | Players change ends after the 1st, 3rd and every later odd game of each set. | Emit a change-of-ends event when the games played in the current set is odd. | |
 | EN-02 | Rule 10 | Rule | Players also change ends at the end of a set, unless that set had an even total of games. Then they change after the first game of the next set. | At the end of a set, change ends if the set's total games is odd. If it is even, the change comes after game 1 of the next set, which EN-01 already covers. | |
 | EN-03 | Rule 10 + Rule 5(b) | Derived | A tie-break set ends with an odd total (e.g. 7–6 = 13 games), so the players change ends between sets. | Follows from EN-02. Test it explicitly. | |
-| EN-04 | — (not in source) | Not covered | The source does not say whether ends change before a match tie-break that replaces the final set. | Our decision: apply EN-02 with the match tie-break counted as the first "game" of the new set. Within it, change every 6 points (TB-05). Denys must confirm. | |
+| EN-04 | — (not in source) | Not covered | The source does not say whether ends change before a match tie-break that replaces the final set. | Our decision: apply EN-02 with the match tie-break counted as the first "game" of the new set. Within it, change every 6 points (TB-05). A set won in a tie-break counts as 13 games (odd), so ends change after it, before the match tie-break (EN-03); the engine spec must include this as an explicit test case. **Approved** (Denys, 2026-10-07). | |
 
 ### Correcting errors (reference)
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
@@ -78,9 +78,9 @@ The Tests column is filled in by the engine feature.
 ### Derived concepts
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
 | --- | --- | --- | --- | --- | --- |
-| BP-01 | — (not in source) | Not covered | The Rules of Tennis do not define "break point". | Our definition, derived from GM-01, GM-02 and NA-01: in a standard (non-tie-break) game, a point where the receiver wins the game if they win it. Examples: 30–40, 0–40, 15–40, the receiver's advantage, and the No-Ad deciding point (which counts as a break point for the receiver). | |
-| BP-02 | — (not in source) | Not covered | The source does not define "converted" and "saved" break points. | Converted: the receiver wins a break point. Saved: the server wins a break point. Points inside a tie-break are never break points. | |
-| BP-03 | — (not in source) | Not covered | The source does not define a "service game held". | Held: the server wins a standard game they served. Tie-breaks are excluded. | |
+| BP-01 | — (not in source) | Not covered | The Rules of Tennis do not define "break point". | Our definition, derived from GM-01, GM-02 and NA-01: in a standard (non-tie-break) game, a point where the receiver wins the game if they win it. Examples: 30–40, 0–40, 15–40, the receiver's advantage, and the No-Ad deciding point (which counts as a break point for the receiver). **Approved** (Denys, 2026-10-07). | |
+| BP-02 | — (not in source) | Not covered | The source does not define "converted" and "saved" break points. | Converted: the receiver wins a break point. Saved: the server wins a break point. Points inside a tie-break are never break points. **Approved** (Denys, 2026-10-07). | |
+| BP-03 | — (not in source) | Not covered | The source does not define a "service game held". | Held: the server wins a standard game they served. Tie-breaks are excluded. **Approved** (Denys, 2026-10-07). | |
 
 ## Assessment levels (used by the reviewer)
 - **Full**: the spec matches the rule.

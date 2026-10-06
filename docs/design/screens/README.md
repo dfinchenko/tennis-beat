@@ -1,6 +1,6 @@
 # Screens
 
-These PNGs (@2x) were exported manually by Denys on 2026-10-06 from the Screens page of Figma file `A1oDA98m8ErPUKbIwN465y`. Each screen has a markdown spec next to it. The mock-up copy is Ukrainian; production strings come from the String Catalog and follow `docs/glossary.md`.
+These PNGs (@2x) were exported manually by Denys on 2026-10-06 from the Screens page of Figma file `A1oDA98m8ErPUKbIwN465y`. `docs/design/` is the source of truth for design: Figma is over the Starter MCP limit and is not read again. Each screen has a markdown spec next to it. The mock-up copy is Ukrainian; production strings come from the String Catalog and follow `docs/glossary.md`.
 
 | Screen | Figma frame | PNG | Spec |
 | --- | --- | --- | --- |
@@ -16,10 +16,8 @@ These PNGs (@2x) were exported manually by Denys on 2026-10-06 from the Screens 
 | iPhone 4 — Share card | 4 · Картка для шерингу (13:169) | [png](iphone-4-share-card.png) | [spec](iphone-4-share-card.md) |
 
 ## Design vs. plan/glossary gaps (for Denys)
-- **No deuce/ad side indicator on the score screen.** The plan requires one.
+- ~~No deuce/ad side indicator on the score screen.~~ Resolved 2026-10-07: a court-side pill for the server, see [watch-3-score.md](watch-3-score.md). It is still open what the pill shows on the No-Ad deciding point.
 - **No set-length (4/6/8) row on the New match screen.**
-- **Mock-up terms differ from the glossary:**
-  - "Тайбрейк" vs "Тай-брейк", and "Матч-тай-брейк" for the match tie-break.
-  - "Advantage" vs "Перевага".
+- ~~Mock-up terms differ from the glossary.~~ Resolved 2026-10-07: «Тай-брейк», «Матч-тай-брейк» and «Перевага» are approved, and the setup row is renamed «При 40:40». See [watch-1-new-match.md](watch-1-new-match.md).
 - **Controls not in the plan's MVP:** the "Подача" (server swap) control on the watch, and Active kcal on the summary screens.
 - **Inconsistent address form:** informal "ти" in the mock-ups vs formal "ви" in the Info.plist permission texts.

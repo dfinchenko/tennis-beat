@@ -62,6 +62,6 @@ Doubles; manual-input stats (first/second serve, aces, double faults); opponent 
 - watchOS app bundle ID: `com.dfinchenko.TennisBeat.watchkitapp`
 
 ## Design
-- Figma (showcase, do not read with Figma read tools): https://www.figma.com/design/A1oDA98m8ErPUKbIwN465y
+- Figma (showcase only; agents do not call Figma tools — the Starter MCP limit is exhausted): https://www.figma.com/design/A1oDA98m8ErPUKbIwN465y
 - Interactive prototype: https://claude.ai/artifact/PHMLfPVteBT4kumJEa2At8
-- Agents use the export in `docs/design/`. Figma text styles use Inter as a stand-in; production uses system SF (SF Compact on watch, `.rounded` design for numbers). Each style description names the production font.
+- Agents use the export in `docs/design/`, which is the source of truth for design. Figma text styles use Inter as a stand-in; production uses system SF (SF Compact on watch, `.rounded` design for numbers). Each style description names the production font.

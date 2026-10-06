@@ -57,7 +57,7 @@ git clone https://github.com/dfinchenko/tennis-beat.git && cd tennis-beat
 **Claude Code and MCP servers.** The servers are declared in [`.mcp.json`](.mcp.json); approve them when you first run `claude` in the repository.
 - **Xcode** (`xcrun mcpbridge`): Xcode asks you to approve the agent the first time it opens the project.
 - **XcodeBuildMCP**: telemetry is disabled through `XCODEBUILDMCP_SENTRY_DISABLED=true`.
-- **Figma**: authorize it with `/mcp` → figma. The design has already been exported to `docs/design/`. Agents use Figma only when a task explicitly asks for it, because the Starter plan caps MCP calls.
+- **Figma**: not used by agents. The Starter plan's MCP limit is exhausted, and [`docs/design/`](docs/design/) is the source of truth for design.
 
 **Spec Kit** is already set up: `.specify/`, plus `/speckit-*` skills in `.claude/skills/`. Do not run `specify init` again.
 
