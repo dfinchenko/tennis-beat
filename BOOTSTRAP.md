@@ -5,7 +5,7 @@
 ## 1. Що в пакеті
 - `CLAUDE.md` — правила для агента, Claude Code читає його автоматично.
 - `docs/product/plan.md` — план продукту англійською (копія робочого плану для агентів).
-- `docs/constitution-input.md` — принципи для `/speckit.constitution`.
+- `docs/constitution-input.md` — принципи для `/speckit-constitution`.
 - `docs/glossary.md` — терміни EN/PL/UK (чернетка, затверджуєш ти).
 - `docs/rules/itf-notes.md` — каркас нотаток з правил ITF, агент заповнить.
 - `docs/harness.md` — опис харнесу, чекліст на пристрої, журнал метрик.
@@ -50,9 +50,9 @@ File → New → Project → вкладка **watchOS** → **App** → Next:
 
 ## 6. Spec Kit
 ```bash
-specify init --here --ai claude
+specify init --here --integration claude
 ```
-Якщо спитає про непорожню папку — погоджуйся: файли пакета він не перезаписує, лише додає `.specify/` і команди `/speckit.*`.
+Якщо спитає про непорожню папку — погоджуйся: файли пакета він не перезаписує, лише додає `.specify/` і скіли `/speckit-*` (у `.claude/skills/`).
 
 ## 7. Перша сесія Claude Code
 Запусти `claude` у корені репозиторію і встав промпт нижче.
@@ -63,7 +63,7 @@ docs/constitution-input.md, docs/glossary.md and docs/harness.md first.
 
 Bootstrap task — work in a git worktree on branch chore/bootstrap:
 
-1. Run /speckit.constitution using docs/constitution-input.md as the input.
+1. Run /speckit-constitution using docs/constitution-input.md as the input.
 2. Xcode project (already created from the template): set minimum iOS 26 and watchOS 26;
    add the HealthKit capability to both targets and the Workout Processing background mode
    to the watch target; add NSHealthShareUsageDescription and NSHealthUpdateUsageDescription
@@ -94,7 +94,7 @@ Bootstrap task — work in a git worktree on branch chore/bootstrap:
 
 ## 9. Друга сесія: перший spec
 ```text
-/speckit.specify Scoring engine in Packages/TennisCore. A match is an ordered list of Codable
+/speckit-specify Scoring engine in Packages/TennisCore. A match is an ordered list of Codable
 events (point won by me/opponent, plus setup: format, first server). Match state is a pure
 reduction of events. Formats: singles; 1 set or best of 3; set length 4, 6 or 8 games;
 Advantage or No-Ad; tie-break at N–N; optional match tie-break to 10 instead of the deciding
@@ -104,4 +104,4 @@ last event and must work across game/set boundaries and after the match ends. De
 points won on serve and on return, service games held, break points converted and saved.
 Every rule must reference docs/rules/itf-notes.md. No UI, HealthKit or persistence code.
 ```
-Потім ти читаєш spec, правиш, ставиш `Status: Approved`, і далі `/speckit.plan` → `/speckit.tasks` → `/speckit.analyze` → `/speckit.implement`.
+Потім ти читаєш spec, правиш, ставиш `Status: Approved`, і далі `/speckit-plan` → `/speckit-tasks` → `/speckit-analyze` → `/speckit-implement`.

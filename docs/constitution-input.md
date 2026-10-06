@@ -1,4 +1,4 @@
-# Input for /speckit.constitution
+# Input for /speckit-constitution
 
 Use these principles to generate `.specify/memory/constitution.md` for Tennis Beat.
 

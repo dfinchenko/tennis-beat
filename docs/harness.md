@@ -11,8 +11,8 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 - **fastlane** for screenshots, metadata and TestFlight (added later).
 
 ## Task cycle and gates
-1. `/speckit.specify` → Denys sets `Status: Approved` in `spec.md`. **Gate 1 (human).**
-2. `/speckit.plan`, `/speckit.tasks`, `/speckit.analyze`; `scripts/gates/check-artifacts.sh` must pass.
+1. `/speckit-specify` → Denys sets `Status: Approved` in `spec.md`. **Gate 1 (human).**
+2. `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`; `scripts/gates/check-artifacts.sh` must pass.
 3. Implementation in a dedicated worktree, tests first; hooks format on edit and run engine tests before the agent stops.
 4. Build and simulator run via XcodeBuildMCP, screenshots in the PR.
 5. `reviewer` subagent in a fresh context → `Reviewed-SHA`.
