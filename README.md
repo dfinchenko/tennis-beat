@@ -2,6 +2,8 @@
 
 A free, privacy-first tennis score keeper for Apple Watch and iPhone.
 
+Planned for v1.0:
+
 - **Scoring on the watch:** tap the top or bottom half of the screen to give the point to your opponent or to yourself. Undo is unlimited. Haptics mark games, sets and changes of ends. The match is saved as a tennis workout in Apple Health.
 - **History and stats on the iPhone:** match history and head-to-head records. Stats come from the score alone, with nothing to type in: points won on serve and on return, service games held, break points converted and saved.
 - **Free and private:**
@@ -50,7 +52,6 @@ brew tap getsentry/xcodebuildmcp && brew install xcodebuildmcp                  
 **Clone**
 ```bash
 git clone https://github.com/dfinchenko/tennis-beat.git && cd tennis-beat
-chmod +x scripts/hooks/*.sh scripts/gates/*.sh
 ```
 
 **Claude Code and MCP servers.** The servers are declared in [`.mcp.json`](.mcp.json); approve them when you first run `claude` in the repository.
@@ -86,7 +87,7 @@ To run on a device, open `TennisBeat/TennisBeat.xcodeproj`, choose your team und
 | `TennisBeat/` | Xcode project: iOS app, watchOS app and their test targets |
 | `Packages/TennisCore/` | Event-sourced scoring engine and stats (pure Swift, no UI or HealthKit) |
 | `docs/` | Product plan, ITF rules notes, glossary, design export, harness |
-| `specs/` | Spec Kit feature specs, plans and tasks |
+| `specs/` | Spec Kit feature specs, plans and tasks (created per feature) |
 | `scripts/` | Claude Code hooks and CI gates |
 | `.claude/` | Claude Code settings, the reviewer subagent and the Spec Kit skills |
 

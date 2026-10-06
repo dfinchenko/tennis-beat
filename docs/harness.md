@@ -55,4 +55,4 @@ One row per merged PR. Count defects by where they were caught. No speed-up clai
 
 | PR | Feature | Tests added | Caught by tests | Caught by reviewer | Caught on device | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| #1 | Bootstrap harness | 1 (placeholder) | 1 (CI) | 4 | 0 | CI on Xcode 26.6 caught the Xcode 27 project format (110, from `validationLevel`) that the runner cannot open. Reviewer found: Swift 5 app targets, missing screens export, missing `healthkit.access`, two copies of the permission texts. The Figma MCP limit blocked the screen export (frames exported manually). |
+| #1 | Bootstrap harness | 1 (placeholder) | 1 (CI build) | 4 | — (no device testing) | CI on Xcode 26.6 caught the Xcode 27 project format (110, from `validationLevel`) that the runner cannot open. Reviewer found: Swift 5 app targets, missing screens export, missing `healthkit.access`, two copies of the permission texts. The Figma MCP limit blocked the screen export (frames exported manually). |
