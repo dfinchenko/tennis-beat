@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import TennisCore
 
 @main
 struct TennisBeat_Watch_AppApp: App {

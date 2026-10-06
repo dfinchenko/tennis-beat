@@ -5,19 +5,61 @@ on:
   push:
     branches: [main]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# Runner image pinned to macOS 26 (ships Xcode 26.x only; see actions/runner-images).
+# The newest Xcode on the image is selected so builds use the iOS 26 SDK or newer.
+
 jobs:
   engine-tests:
-    # Bootstrap task: pin a runner image that ships Xcode 26 and select it with xcode-select.
-    runs-on: macos-latest
+    runs-on: macos-26
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
-      - name: Swift version
-        run: swift --version
-      - name: TennisCore tests
+      - name: Select newest Xcode on the image
         run: |
-          if [ -f Packages/TennisCore/Package.swift ]; then
-            swift test --package-path Packages/TennisCore
-          else
-            echo "Packages/TennisCore does not exist yet"
-          fi
+          set -euo pipefail
+          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
+          test -n "$xcode"
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+          swift --version
+      - name: TennisCore tests
+        run: swift test --package-path Packages/TennisCore
+      - name: Info.plist strings gate
+        run: scripts/gates/check-infoplist-strings.sh
+      - name: Project format gate (Xcode 26 must open the project)
+        run: scripts/gates/check-project-format.sh
+
+  app-builds:
+    runs-on: macos-26
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scheme: TennisBeat
+            destination: generic/platform=iOS Simulator
+          - scheme: TennisBeat Watch App
+            destination: generic/platform=watchOS Simulator
+    name: build (${{ matrix.scheme }})
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode on the image
+        run: |
+          set -euo pipefail
+          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
+          test -n "$xcode"
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+      - name: Build for simulator
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project TennisBeat/TennisBeat.xcodeproj \
+            -scheme "${{ matrix.scheme }}" \
+            -destination "${{ matrix.destination }}" \
+            -configuration Debug \
+            CODE_SIGNING_ALLOWED=NO

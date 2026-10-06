@@ -8,12 +8,16 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 - `.specify/memory/constitution.md` — non-negotiable principles (created from `docs/constitution-input.md`).
 - `docs/rules/itf-notes.md` — tennis rules, the source of truth for the scoring engine.
 - `docs/glossary.md` — approved EN / PL / UK terms. Never invent translations of tennis terms.
-- `docs/design/` — design export (tokens, typography, screen specs, PNGs). Do NOT call Figma read tools: the Figma Starter plan allows 6 read calls per month.
+- `docs/design/` — design export (tokens, typography, screen specs, PNGs). Do NOT call any Figma MCP tools (read tools or `use_figma`) unless Denys explicitly asks for it in the task: the Figma Starter plan caps MCP calls, and `use_figma` counts toward the cap.
 - `docs/harness.md` — how this harness works and the metrics log you must append to.
 
 ## Repo map
-- `TennisBeat/` (iOS app), `TennisBeat Watch App/` (watchOS app) — created from the Xcode template.
-- `Packages/TennisCore/` — pure Swift package: event-sourced scoring engine and derived stats. No SwiftUI, HealthKit or WatchConnectivity imports.
+- `TennisBeat/TennisBeat.xcodeproj` — Xcode project (created with Xcode 27, saved in Xcode 26.3-compatible format `objectVersion = 100` so the Xcode 26.x CI runner can open it; minimum iOS 26 / watchOS 26). Schemes: `TennisBeat`, `TennisBeat Watch App`.
+  - Never let `validationLevel` (Xcode 27-only root key) back into `project.pbxproj`: it forces format 110 and breaks CI. `scripts/gates/check-project-format.sh` enforces this.
+  - `TennisBeat/TennisBeat/` — iOS app sources; `TennisBeat/TennisBeatTests/`, `TennisBeat/TennisBeatUITests/`.
+  - `TennisBeat/TennisBeat Watch App/` — watchOS app sources; `TennisBeat/TennisBeat Watch AppTests/`, `TennisBeat/TennisBeat Watch AppUITests/`.
+  - App folders are file-system-synchronized groups: new files on disk join the target automatically. `InfoPlist.xcstrings` in each app folder is the single source of truth for Info.plist texts (permission strings) in EN/PL/UK. The `INFOPLIST_KEY_*` build settings must mirror its EN values exactly; change the catalog first, then the build setting. `scripts/gates/check-infoplist-strings.sh` enforces this in CI.
+- `Packages/TennisCore/` — pure Swift package: event-sourced scoring engine and derived stats. No SwiftUI, HealthKit or WatchConnectivity imports. Linked to both app targets.
 - `specs/NNN-feature/` — Spec Kit artifacts (`spec.md`, `plan.md`, `tasks.md`).
 - `scripts/` — hooks and gates. `.claude/agents/` — subagents.
 
@@ -22,6 +26,9 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 - Format: `swift format --in-place <file>` (runs automatically via hook)
 - App builds, simulator runs, UI screenshots: XcodeBuildMCP tools; Xcode MCP (`xcrun mcpbridge`) for previews and project settings.
 - Artifact gate: `scripts/gates/check-artifacts.sh specs/NNN-feature`
+- Info.plist strings gate: `scripts/gates/check-infoplist-strings.sh`
+- Project format gate: `scripts/gates/check-project-format.sh`
+- Spec Kit (v0.10+, skills in `.claude/skills/speckit-*`): `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`, `/speckit-implement`, `/speckit-constitution`.
 
 ## Workflow for every task
 1. Work in a dedicated git worktree and branch `feat/NNN-slug` (one agent session per worktree).
