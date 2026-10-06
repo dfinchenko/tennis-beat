@@ -30,6 +30,8 @@ jobs:
         run: swift test --package-path Packages/TennisCore
       - name: Info.plist strings gate
         run: scripts/gates/check-infoplist-strings.sh
+      - name: Project format gate (Xcode 26 must open the project)
+        run: scripts/gates/check-project-format.sh
 
   app-builds:
     runs-on: macos-26

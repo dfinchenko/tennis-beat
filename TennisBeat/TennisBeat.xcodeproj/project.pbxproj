@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 110;
+	objectVersion = 100;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -349,7 +349,7 @@
 			packageReferences = (
 				AFC0FE0130760000000A0001 /* XCLocalSwiftPackageReference "../Packages/TennisCore" */,
 			);
-			preferredProjectObjectVersion = 77;
+			preferredProjectObjectVersion = 100;
 			productRefGroup = AF8DFD6F30757FEB00B70DF0 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -995,5 +995,4 @@
 /* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = AF8DFD6630757FEB00B70DF0 /* Project object */;
-	validationLevel = 1;
 }
