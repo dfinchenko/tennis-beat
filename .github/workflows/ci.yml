@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  engine-tests:
+    # Bootstrap task: pin a runner image that ships Xcode 26 and select it with xcode-select.
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Swift version
+        run: swift --version
+      - name: TennisCore tests
+        run: |
+          if [ -f Packages/TennisCore/Package.swift ]; then
+            swift test --package-path Packages/TennisCore
+          else
+            echo "Packages/TennisCore does not exist yet"
+          fi

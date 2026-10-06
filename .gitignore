@@ -1,0 +1,28 @@
+# macOS
+.DS_Store
+
+# Xcode / Swift
+xcuserdata/
+*.xcuserstate
+DerivedData/
+build/
+.build/
+.swiftpm/
+
+# Claude Code
+.claude/settings.local.json
+.worktrees/
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Secrets — never commit
+.env
+.env.*
+*.p8
+*.p12
+*.mobileprovision
+*.cer
