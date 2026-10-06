@@ -28,6 +28,8 @@ jobs:
           swift --version
       - name: TennisCore tests
         run: swift test --package-path Packages/TennisCore
+      - name: Info.plist strings gate
+        run: scripts/gates/check-infoplist-strings.sh
 
   app-builds:
     runs-on: macos-26
