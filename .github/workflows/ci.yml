@@ -20,7 +20,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select newest Xcode on the image
         run: |
-          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | sort -V | tail -n 1)"
+          set -euo pipefail
+          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
+          test -n "$xcode"
           sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
           swift --version
@@ -43,7 +45,9 @@ jobs:
       - uses: actions/checkout@v4
       - name: Select newest Xcode on the image
         run: |
-          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | sort -V | tail -n 1)"
+          set -euo pipefail
+          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
+          test -n "$xcode"
           sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
       - name: Build for simulator
