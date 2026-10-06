@@ -1,0 +1,54 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "NSHealthShareUsageDescription": {
+      "comment": "Privacy - Health Share Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Tennis Beat reads your heart rate to show it in your match summary. Health data stays in the Health app."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tennis Beat odczytuje Twoje tętno, aby pokazać je w podsumowaniu meczu. Dane zdrowotne pozostają w aplikacji Zdrowie."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tennis Beat зчитує ваш пульс, щоб показати його в підсумку матчу. Дані про здоров’я залишаються в програмі «Здоров’я»."
+          }
+        }
+      }
+    },
+    "NSHealthUpdateUsageDescription": {
+      "comment": "Privacy - Health Update Usage Description",
+      "extractionState": "extracted_with_value",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "new",
+            "value": "Tennis Beat saves your matches as tennis workouts in the Health app."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tennis Beat zapisuje Twoje mecze jako treningi tenisowe w aplikacji Zdrowie."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tennis Beat зберігає ваші матчі як тренування з тенісу в програмі «Здоров’я»."
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
