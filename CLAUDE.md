@@ -8,7 +8,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 - `.specify/memory/constitution.md` — non-negotiable principles (created from `docs/constitution-input.md`).
 - `docs/rules/itf-notes.md` — tennis rules, the source of truth for the scoring engine.
 - `docs/glossary.md` — approved EN / PL / UK terms. Never invent translations of tennis terms.
-- `docs/design/` — design export (tokens, typography, screen specs, PNGs). Do NOT call any Figma MCP tools (read tools or `use_figma`) unless Denys explicitly asks for it in the task: the Figma Starter plan caps MCP calls, and `use_figma` counts toward the cap.
+- `docs/design/` — design export (tokens, typography, screen specs, PNGs). `docs/design/` is the source of truth for design. Do NOT call any Figma MCP tools (read tools or `use_figma`): the Figma Starter plan's MCP limit is exhausted, and `use_figma` counts toward it. Design changes are made in `docs/design/` and approved by Denys.
 - `docs/harness.md` — how this harness works and the metrics log you must append to.
 
 ## Repo map
