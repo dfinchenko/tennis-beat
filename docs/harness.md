@@ -15,7 +15,7 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 2. `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`; `scripts/gates/check-artifacts.sh` must pass.
 3. Implementation in a dedicated worktree, tests first; hooks format on edit and run engine tests before the agent stops.
 4. Build and simulator run via XcodeBuildMCP, screenshots in the PR.
-5. `reviewer` subagent in a fresh context → `Reviewed-SHA`.
+5. `reviewer` subagent in a fresh context → `Reviewed-SHA`. Each report is posted as a PR comment: verdict, SHA, numbered findings (R<review>-<n>) with severity and outcome.
 6. PR + CI. Evidence is valid only for the reviewed SHA.
 7. Denys reviews and merges. **Gate 2 (human).**
 8. Before TestFlight: device checklist below. **Gate 3 (human).**
@@ -51,9 +51,10 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 - [ ] App killed mid-match: match restored with the same score
 
 ## Metrics log
-One row per merged PR. Count defects by where they were caught. No speed-up claims without measurement.
+One row per merged PR. Count defects by where they were caught. No speed-up claims without measurement. Every number must be traceable: reviewer counts come from the reviewer-report comments on the PR (linked in Notes), CI counts from the PR's check runs.
 
 | PR | Feature | Tests added | Caught by tests | Caught by reviewer | Caught on device | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
-| #1 | Bootstrap harness | 1 (placeholder) | 1 (CI build) | 4 | — (no device testing) | CI on Xcode 26.6 caught the Xcode 27 project format (110, from `validationLevel`) that the runner cannot open. Reviewer found: Swift 5 app targets, missing screens export, missing `healthkit.access`, two copies of the permission texts. The Figma MCP limit blocked the screen export (frames exported manually). |
-| #2 | README and harness metrics (docs) | 0 | 0 (CI green) | 1 major + 11 minor | — (docs only) | The major finding was the ruleset's required check names not matching the CI check names; Denys fixed it in the repository settings. Of the minor findings, 4 were fixed before merge, 6 were deferred (README wording, listed in the PR) and 1 was raised to Denys (Dependabot and email-privacy settings). |
+| #1 | Bootstrap harness | 1 (placeholder) | 1 (CI build) | 3 blocker/major + 14 minor | — (no device testing) | [Reviewer reports](https://github.com/dfinchenko/tennis-beat/pull/1#issuecomment-6035355595) (4 reviews). The CI build failure on Xcode 26.6 (project format 110) is the reviewer's R1-2 confirmed. Fixed before merge: R1-1 (screens; Denys exported the frames), R1-2, R1-3, R1-5, R1-6, R1-7, R2-2, R2-3, R3-3. |
+| #2 | README and harness metrics (docs) | 0 | 0 (CI green) | 1 major + 11 minor | — (docs only) | [Reviewer reports](https://github.com/dfinchenko/tennis-beat/pull/2#issuecomment-6035356064) (2 reviews). R1-1 (major, ruleset check names) was fixed by Denys in GitHub settings. 4 fixed before merge (R1-2..R1-5); 6 deferred (R2-1..R2-6: 5 README items, 1 harness.md settings check); 1 raised to Denys (R1-6). |
+| #3 | Approve ITF, glossary and design decisions (docs) | 0 | 0 (CI green) | 1 major + 5 minor | — (docs only) | [Reviewer report](https://github.com/dfinchenko/tennis-beat/pull/3#issuecomment-6035356561) (1 review). None fixed before merge. R1-1 (major, No-Ad deciding point vs ITF NA-02) was decided by Denys and applied in the follow-up PR, as were R1-2, R1-3 and R1-5. R1-6 was confirmed by Denys; R1-4 is not a defect. |
