@@ -36,9 +36,9 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 3. Write failing tests first, then code. Every bug fix starts with a failing regression test.
 4. Engine tests cite the rule they check, e.g. `// ITF: Rule 5(b)` using the IDs in `docs/rules/itf-notes.md`.
 5. Build both app targets and run the affected flow in the simulator via XcodeBuildMCP; attach screenshots to the PR.
-6. Invoke the `reviewer` subagent. Do not pass it your own summary. It returns `Reviewed-SHA`.
+6. Invoke the `reviewer` subagent. Do not pass it your own summary. It returns `Reviewed-SHA`. Post each report as a PR comment with numbered findings (R<review>-<n>) and their outcomes.
 7. Open/update the PR with the `Reviewed-SHA` line. If you change anything after review, re-run tests and review: evidence is only valid for the reviewed SHA.
-8. Append a row to the metrics log in `docs/harness.md`.
+8. Append a row to the metrics log in `docs/harness.md` (for the previous merged PR); every count must be traceable to that PR's reviewer-report comments or CI runs.
 
 ## Hard rules
 - Never write code for a spec that is not `Status: Approved`. Never change acceptance criteria yourself — propose changes to Denys.

@@ -14,7 +14,9 @@ Black background.
   - **Court-side pill** (approved by Denys on 2026-10-07; not in the mock-up). A small capsule next to the server's serve icon shows which half of the court the server serves from. Only the server's zone shows it.
     - The text is «справа» / «зліва» (UK), "Right" / "Left" (EN), «z prawej» / «z lewej» (PL draft), per `docs/glossary.md`.
     - The side comes from the number of points already played in the current game, or in the current tie-break: **right** when the count is even, **left** when it is odd.
-    - Rule references: [ITF SV-03](../../rules/itf-notes.md#service-and-ends) for standard games, [ITF TB-04](../../rules/itf-notes.md#tie-break-game) for tie-breaks and match tie-breaks.
+    - **Exception, the No-Ad deciding point:** the receiver chooses the half, so the pill shows «на вибір» (UK), "Choice" (EN), «Wybór» (PL draft) instead of a side.
+    - Rule references: [ITF SV-03](../../rules/itf-notes.md#service-and-ends) for standard games, [ITF TB-04](../../rules/itf-notes.md#tie-break-game) for tie-breaks and match tie-breaks, [ITF NA-02](../../rules/itf-notes.md#game-scoring) for the deciding point.
+  - **Game status** (decided by Denys on 2026-10-07). A status line at the top shows the game state: «Рівно» / "Deuce" / «Równowaga» at deuce in Advantage games, and «Вирішальне очко» / "Deciding point" / «Punkt decydujący» at 40–40 in No-Ad games.
 - Tapping a zone scores a point for that player.
 
 ## Components
@@ -26,12 +28,13 @@ Black background.
 | Element | Text |
 | --- | --- |
 | Zone labels | Суперник · Я |
-| Court-side pill | справа · зліва (EN: Right · Left; PL: z prawej · z lewej) |
+| Court-side pill | справа · зліва · на вибір (EN: Right · Left · Choice; PL: z prawej · z lewej · Wybór) |
+| Game status | Рівно · Вирішальне очко (EN: Deuce · Deciding point; PL: Równowaga · Punkt decydujący) |
 | Example values | 42:18 · 142 · 4 2 / 6 3 · 15 / 30 |
 
 ## Notes for the spec
 - The deuce/ad side indicator the plan requires is the court-side pill above.
-- **Open question for Denys: the No-Ad deciding point.** At 40–40 in No-Ad, 6 points have been played, so the even/odd rule says "right". ITF NA-02, however, lets the receiver choose the half. The spec must decide what the pill shows there: for example, keep "right", show nothing, or show "receiver's choice".
+- No-Ad deciding point: decided by Denys on 2026-10-07. The pill shows "Choice" (ITF NA-02), and the status line shows "Deciding point".
 - VoiceOver reads the court side together with the server.
 - The server is shown with a glyph, not only colour. VoiceOver must read the server and the full score.
 - The heart-rate row is hidden when there is no Health permission.
