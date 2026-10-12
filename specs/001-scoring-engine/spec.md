@@ -14,7 +14,7 @@ The scoring engine is the part of Tennis Beat that knows the rules of tennis. Th
 
 A match is recorded as an ordered list of events: one **setup** event (the format and the first server), then one **point won** event per point (by **Me** or by the **Opponent**). Every answer is computed from that list alone. Recording the list is therefore enough to restore a match exactly after a crash or relaunch, to undo any number of points, and to recompute stats later.
 
-Every rule in this spec cites its ID in [`docs/rules/itf-notes.md`](../../docs/rules/itf-notes.md), written `[ITF: XX-00]`. Entries whose origin is *Not covered* are product decisions approved by Denys, except where the entry is still marked Draft (see Assumptions).
+Every rule in this spec cites its ID in [`docs/rules/itf-notes.md`](../../docs/rules/itf-notes.md), written `[ITF: XX-00]`. Entries whose origin is *Not covered* are product decisions approved by Denys.
 
 Out of scope: user interface, haptics, HealthKit, timing and pause, storage of the event list, and sync. The engine is used by both apps but depends on none of them.
 
@@ -135,7 +135,7 @@ Tie-breaks are scored with numbers, need a 2-point margin, and decide the set. T
 4. **Given** a match tie-break, **Then** the match-tie-break flag is on, the tie-break flag is on, and the point displays are numbers [ITF: MT-03].
 5. **Given** a match tie-break at 9–8, **When** the leader wins the point, **Then** the leader wins 10–8, which wins the match.
 6. **Given** a match tie-break at 9–9 or 10–10, **Then** it continues until a 2-point margin (e.g. 12–10).
-7. **Given** a match won by a match tie-break, **Then** the match result lists set 1, set 2 and the deciding match tie-break with its point score (e.g. 6–4, 3–6, 10–7) [ITF: MT-05, see Assumptions].
+7. **Given** a match won by a match tie-break, **Then** the match result lists set 1, set 2 and the deciding match tie-break with its point score (e.g. 6–4, 3–6, 10–7) [ITF: MT-05].
 8. **Given** a tie-break, **Then** no point in it is ever a break point [ITF: BP-02].
 
 ---
@@ -158,7 +158,7 @@ The watch reminds the players to change ends with a haptic. The engine reports, 
 6. **Given** a tie-break whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
 7. **Given** best of 3 with the match tie-break option, set 2 won 7–6 (13 games), **Then** a change of ends is reported after set 2, before the match tie-break [ITF: EN-04].
 8. **Given** best of 3 with the match tie-break option, set 2 won 6–4 (10 games), **Then** no change of ends is reported before the match tie-break. The first change comes after 6 match-tie-break points [ITF: EN-04, TB-05].
-9. **Given** the point that wins the match, **Then** no change of ends is reported (see Assumptions).
+9. **Given** the point that wins the match, **Then** no change of ends is reported [ITF: EN-05].
 
 ---
 
@@ -259,7 +259,7 @@ After the match, the iPhone shows stats derived only from the points: points won
 - **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games) [ITF: EN-01, EN-02, EN-03, EN-04].
 - **FR-021**: During a tie-break or match tie-break, a change of ends MUST be reported after every 6th point (6, 12, 18, …). When the tie-break's final point coincides with this, exactly one change of ends MUST be reported [ITF: TB-05].
 - **FR-022**: Before a match tie-break, ends MUST change only if set 2 ended with an odd total of games [ITF: EN-04].
-- **FR-023**: No change of ends MUST be reported after the point that wins the match.
+- **FR-023**: No change of ends MUST be reported after the point that wins the match [ITF: EN-05].
 
 *Stats*
 - **FR-024**: For each player the engine MUST provide points won on serve and points won on return, each as won/played, including tie-break points.
@@ -296,9 +296,9 @@ After the match, the iPhone shows stats derived only from the points: points won
 ## Assumptions
 
 - **Coin toss:** the toss is resolved by the app before the match starts. The setup records only the resulting first server [ITF: SV-01].
-- **Match tie-break in the result:** it is recorded as the deciding set, won 1–0, with its point score (e.g. "10–7"). This follows ITF MT-05, which is Not covered and still **Draft**. **Denys must approve MT-05** before this spec is approved, or replace it.
-- **No change of ends after the match-winning point** (FR-023). This is our decision, since nothing remains to be played. It is not an entry in the ITF notes; Denys may add it as one.
-- **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02.
+- **Match tie-break in the result:** it is recorded as the deciding set, won 1–0, with its point score (e.g. "10–7"). This follows ITF MT-05 (Not covered; approved by Denys on 2026-10-12).
+- **No change of ends after the match-winning point** (FR-023). This is our decision, since nothing remains to be played: ITF EN-05 (Not covered; approved by Denys on 2026-10-12).
+- **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02. Approved by Denys on 2026-10-12.
 - **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01].
 - **Out of scope:**
   - doubles;

@@ -35,6 +35,5 @@
 - The engine is a library, so its "users" are the player, through the apps. Some wording is unavoidably close to the domain model: event list, "save and restore", ITF test citations. No language, framework or API is prescribed.
 - SC-004 names "the oldest supported Apple Watch" as the reference device for the performance target. This is a product constraint, not an implementation choice.
 - The spec cites every ITF ID it relies on, and all of them exist in `docs/rules/itf-notes.md`.
-- **Open for Denys before `Status: Approved`:**
-  - MT-05 (how a match tie-break appears in the result) is still Draft in the ITF notes.
-  - FR-023 (no change of ends after the match-winning point) is a new product decision that has no ITF-note entry yet.
+- Decisions taken by Denys on 2026-10-12: MT-05 approved; FR-023 approved and recorded as ITF EN-05 (Not covered — our decision); FR-024 approved.
+- `Status: Approved` is set by Denys only.
