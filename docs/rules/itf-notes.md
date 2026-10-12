@@ -1,6 +1,6 @@
 # ITF rules notes — scoring source of truth
 
-Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
+Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07, and MT-05 and EN-05 on 2026-10-12; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
 
 ## Source
 - **Edition:** ITF *Rules of Tennis* 2026 (English). The © line says 2025, and the PDF was last modified on 2025-12-23. Changes to the rules take effect on 1 January of the following year.
@@ -54,7 +54,7 @@ The Tests column is filled in by the engine feature.
 | MT-02 | — (not in source) | Not covered | The source does not describe a one-set match. | Our decision: the first player to win one set wins the match. The "match tie-break instead of the deciding set" option (MT-03) applies only to best of 3; setup hides it for 1-set matches. **Approved** (Denys, 2026-10-07). | |
 | MT-03 | App. VI — Match tie-break (10 points) (4) | Rule | At one set all (or two sets all in best of 5), a single tie-break can replace the deciding set. The first to 10 points with a 2-point lead wins it and the match. | Optional match tie-break: at 1–1 in sets, the deciding "set" is a tie-break to 10 with a 2-point lead. It is recorded as a set won 1–0 (see MT-05). | |
 | MT-04 | App. VI — Note on match tie-break | Rule | When a match tie-break replaces the final set, the original order of service continues. | The first server of the match tie-break is the player due to serve the next game. Within it, serving follows TB-02 and TB-04. | |
-| MT-05 | — (not in source) | Not covered | The source does not say how a match tie-break appears in the score line. Common practice writes it as a set, e.g. "1–0 (10–7)". | Our decision: store it as a set with a flag and its points. Display rules go in the spec. | |
+| MT-05 | — (not in source) | Not covered | The source does not say how a match tie-break appears in the score line. Common practice writes it as a set, e.g. "1–0 (10–7)". | Our decision: the match tie-break is the deciding set, won 1–0. It is stored as a set with a match-tie-break flag and its point score, and results show that point score, e.g. 6–4, 3–6, 10–7. **Approved** (Denys, 2026-10-12). | |
 | MT-06 | App. VI — Match tie-break (7 points) (3) | Rule | Alternative: a 7-point match tie-break. | Not in MVP scope. | |
 | MT-07 | App. VI — Final set tie-break (10 points) (5) | Rule | Alternative: in the final set, at 6 games all, play a 10-point tie-break. | Not in MVP scope. | |
 
@@ -69,6 +69,7 @@ The Tests column is filled in by the engine feature.
 | EN-02 | Rule 10 | Rule | Players also change ends at the end of a set, unless that set had an even total of games. Then they change after the first game of the next set. | At the end of a set, change ends if the set's total games is odd. If it is even, the change comes after game 1 of the next set, which EN-01 already covers. | |
 | EN-03 | Rule 10 + Rule 5(b) | Derived | A tie-break set ends with an odd total (e.g. 7–6 = 13 games), so the players change ends between sets. | Follows from EN-02. Test it explicitly. | |
 | EN-04 | — (not in source) | Not covered | The source does not say whether ends change before a match tie-break that replaces the final set. | Our decision: apply EN-02 with the match tie-break counted as the first "game" of the new set. Within it, change every 6 points (TB-05). A set won in a tie-break has 2N+1 games for set length N (e.g. 7–6 = 13, 5–4 = 9, 9–8 = 17), which is always odd, so ends change after it, before the match tie-break (EN-03); the engine spec must include this as an explicit test case. **Approved** (Denys, 2026-10-07). | |
+| EN-05 | — (not in source) | Not covered — our decision | The source does not say whether ends change after the point that ends the match. | Our decision: no change of ends is reported after the match-winning point, even where EN-01, EN-02 or TB-05 would call for one, since nothing remains to be played. **Approved** (Denys, 2026-10-12). | |
 
 ### Correcting errors (reference)
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
