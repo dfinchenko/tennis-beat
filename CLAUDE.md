@@ -38,7 +38,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 5. Build both app targets and run the affected flow in the simulator via XcodeBuildMCP; attach screenshots to the PR.
 6. Invoke the `reviewer` subagent. Do not pass it your own summary. It returns `Reviewed-SHA`. Post each report as a PR comment with numbered findings (R<review>-<n>) and their outcomes.
 7. Open/update the PR with the `Reviewed-SHA` line. If you change anything after review, re-run tests and review: evidence is only valid for the reviewed SHA.
-8. Append a row to the metrics log in `docs/harness.md` (for the previous merged PR); every count must be traceable to that PR's reviewer-report comments or CI runs.
+8. Append a row to the metrics log in `docs/harness.md` for the previous merged PR (each PR's row goes into the following PR). Count each defect once, in the earliest stage that caught it (tests/hooks → simulator → reviewer → CI → device); every count must be traceable to that PR's reviewer-report comments or CI runs.
 
 ## Hard rules
 - Never write code for a spec that is not `Status: Approved`. Never change acceptance criteria yourself — propose changes to Denys.
