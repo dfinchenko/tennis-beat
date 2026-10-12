@@ -12,11 +12,17 @@
 
 The scoring engine is the part of Tennis Beat that knows the rules of tennis. The watch app tells it who won each point. The engine answers everything the score screen, haptics, history and stats need: the score, who serves and from which side of the court, when the players change ends, who won, and the match stats.
 
-A match is recorded as an ordered list of events: one **setup** event (the format and the first server), then one **point won** event per point (by **Me** or by the **Opponent**). Every answer is computed from that list alone. Recording the list is therefore enough to restore a match exactly after a crash or relaunch, to undo any number of points, and to recompute stats later.
+A match is recorded as an ordered list of events:
+- one **setup** event (the format and the first server), always first;
+- one **point won** event per point (by **Me** or by the **Opponent**), carrying the time it was recorded;
+- a **match ended early** event, when the players stop before the match is decided (court time over, injury);
+- a **first server corrected** event, when the players realise the wrong player was recorded as serving first.
+
+Every answer is computed from that list alone. Recording the list is therefore enough to restore a match exactly after a crash or relaunch, to undo any number of events, and to recompute stats later.
 
 Every rule in this spec cites its ID in [`docs/rules/itf-notes.md`](../../docs/rules/itf-notes.md), written `[ITF: XX-00]`. Entries whose origin is *Not covered* are product decisions approved by Denys.
 
-Out of scope: user interface, haptics, HealthKit, timing and pause, storage of the event list, and sync. The engine is used by both apps but depends on none of them.
+Out of scope: user interface, haptics, HealthKit, timing and pause, where the event list is stored, and sync. The engine does own the saved format of the event list, including its format version. The engine is used by both apps but depends on none of them.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -98,24 +104,29 @@ The score screen marks the server and shows a court-side pill ("Right", "Left" o
 
 ### User Story 3 - Undo any mistake, and resume after a crash (Priority: P1)
 
-A player who taps the wrong zone can undo, as many times as needed, even across game and set boundaries and after the match has ended. If the app is killed mid-match, the match comes back exactly as it was.
+A player who taps the wrong zone can undo, as many times as needed, even across game and set boundaries and after the match has ended. Undo removes the last event other than the setup: a point, an early end or a server correction. If the app is killed mid-match, the match comes back exactly as it was, and a match saved by an older version of the app still opens.
 
 **Why this priority**: Mis-taps happen on court with wet fingers. Without reliable undo, the score can't be trusted. Crash recovery is on the device checklist.
 
-**Independent Test**: For any event list, undo must give the same state as rebuilding from scratch with the last point removed, and restoring a saved event list must give the identical state.
+**Independent Test**: For any event list, undo must give the same state as rebuilding from scratch with the last non-setup event removed, and restoring a saved event list must give the identical state.
 
 **Acceptance Scenarios**:
 
-1. **Given** any match with at least one point, **When** the player undoes, **Then** the last point is removed and the state equals the state computed from the remaining events. This applies to every exposed value, including server, court side, flags, change-of-ends and stats.
+1. **Given** any match with at least one event after the setup, **When** the player undoes, **Then** the last event is removed, whatever its kind (point, early end or server correction), and the state equals the state computed from the remaining events. This applies to every exposed value, including server, court side, flags, change-of-ends and stats.
 2. **Given** Me just won set 1 6–4 and set 2 is at 0–0, **When** the player undoes, **Then** set 1 is back in progress at 5–4 with the game score before the last point, and the set-1 winner is cleared.
 3. **Given** the match has ended, **When** the player undoes, **Then** the match is back in progress at match point, the match winner is cleared, and new points can be added.
 4. **Given** a tie-break at 6–6 in points, **When** the player undoes, **Then** the tie-break score is 6–5 or 5–6 with the server and court side for that point.
 5. **Given** the first point of the match was just played, **When** the player undoes, **Then** the state is the start of the match: 0–0, the first server serving, from the right.
-6. **Given** only the setup event (no points), **When** the player undoes, **Then** nothing changes. Undo never removes the setup.
+6. **Given** only the setup event (no other events), **When** the player undoes, **Then** nothing changes. Undo never removes the setup.
 7. **Given** the last point triggered a change of ends, **When** the player undoes, **Then** the state no longer reports that change of ends.
-8. **Given** any recorded event list, **When** it is saved and restored (encoded and decoded), **Then** the restored list is identical and produces the identical state.
-9. **Given** the match has ended, **When** a further point is submitted, **Then** it is rejected and the state is unchanged.
+8. **Given** any recorded event list, **When** it is saved and restored (encoded and decoded), **Then** the restored list is identical, including the format version and every point's recorded time, and produces the identical state.
+9. **Given** the match has ended (won or ended early), **When** a further point is submitted, **Then** it is rejected and the state is unchanged.
 10. **Given** an event list without a setup event, or with a second setup event, **Then** it is rejected as invalid.
+11. **Given** the last event is a match-ended-early event, **When** the player undoes, **Then** the match is back in progress at the same score and new points can be added (Story 7).
+12. **Given** the last event is a first-server correction, **When** the player undoes, **Then** only the correction is removed: the server, court side and serve stats return to the uncorrected values, and the last point is still there (Story 8).
+13. **Given** an event list saved with the current format version, or with any older format version the engine has ever written, **When** it is restored, **Then** it is accepted and produces the state that version recorded. A saved example of every released format version is kept as a test fixture.
+14. **Given** an event list saved with a newer format version than the engine knows, **When** it is restored, **Then** it is rejected with an "unsupported version" result, the engine does not crash, and no state is produced from it.
+15. **Given** two event lists with the same events but different recorded times on the points (including times out of order), **Then** both produce the identical state and stats. Recorded times are stored and restored but never used to compute state.
 
 ---
 
@@ -187,10 +198,52 @@ After the match, the iPhone shows stats derived only from the points: points won
 6. **Given** the server trails 30–40, 15–40 or 0–40, or the receiver has advantage, **Then** the next point is a break point for the receiver.
 7. **Given** a No-Ad deciding point, **Then** it is a break point for the receiver.
 8. **Given** 0–40 on the server's serve, **When** the server wins the next three points, **Then** three break points were played and all three were saved by the server.
-9. **Given** advantage receiver, **When** the receiver wins the point, **Then** that break point is converted, and the receiver's break points converted read 1/1 for that point.
+9. **Given** advantage receiver, **When** the receiver wins the point, **Then** that break point is converted, and the receiver's break points converted and break-point opportunities each increase by 1.
 10. **Given** an Advantage game with several deuces, **Then** every advantage to the receiver counts as a separate break point.
 11. **Given** a tie-break point, **Then** it is never a break point, whatever the score.
 12. **Given** any match, **Then** each player's break points converted equal the other player's break points faced minus break points saved.
+
+---
+
+### User Story 7 - End a match early (Priority: P2)
+
+Court time runs out or a player is injured. The player ends the match early; the match is kept as unfinished, with its score and stats so far.
+
+**Why this priority**: Club matches often stop before they are decided. Without this, the match stays "in progress" forever or has to be discarded.
+
+**Independent Test**: Feed points, then a match-ended-early event, and check the status, winner, stats and the rejection of further points; then undo it.
+
+**Acceptance Scenarios**:
+
+1. **Given** a match in progress at 6–4, 3–2, 30–15, **When** a match-ended-early event is added, **Then** the match status is unfinished, there is no match winner, set 1 keeps its winner, and the score shown is 6–4, 3–2, 30–15.
+2. **Given** an unfinished match, **Then** stats count every point played before the early end. The game in progress at the early end is not counted as a service game (as for any game in progress).
+3. **Given** an unfinished match, **When** a further point is submitted, **Then** it is rejected and the state is unchanged.
+4. **Given** an unfinished match, **When** the player undoes, **Then** the early-end event is removed and the match is back in progress at the same score, server and court side.
+5. **Given** a match with no points played yet, **When** a match-ended-early event is added, **Then** it is accepted: the match is unfinished at 0–0 with empty stats.
+6. **Given** a match that has already been won, or already ended early, **When** a match-ended-early event is submitted, **Then** it is rejected and the state is unchanged.
+7. **Given** an unfinished match, **Then** no change of ends is reported for the early-end event.
+
+---
+
+### User Story 8 - Correct the first server (Priority: P2)
+
+A few games in, the players notice the wrong player was recorded as serving first. The player corrects the first server; the whole match is recomputed as if the corrected player had served first from the start.
+
+**Why this priority**: A wrong first server makes the server mark, court side and every serve stat wrong for the rest of the match. Undoing all points to fix it is not acceptable.
+
+**Independent Test**: Feed points, then a first-server-corrected event, and compare the state with a match built from scratch with the corrected first server and the same points.
+
+**Acceptance Scenarios**:
+
+1. **Given** Me recorded as first server and 2 completed games (Me won both), **When** the first server is corrected to Opponent, **Then** the state equals a match set up with Opponent serving first followed by the same points: the score is still 2–0, game 1 counts as the Opponent's service game (lost, so broken) and game 2 as Me's (held), and the Opponent serves game 3.
+2. **Given** the correction in scenario 1, **Then** points won on serve and on return, service games held, and break points are all recomputed for both players as if the Opponent had served first.
+3. **Given** any match, **When** the first server is corrected, **Then** the point displays, games, sets, set winners, match winner and change-of-ends signals are unchanged; only server-dependent values change (current server, serve and return stats, service games, break points).
+4. **Given** a correction during a tie-break, **Then** the tie-break serving rotation and the first server of the next set follow the corrected order [ITF: TB-02, TB-03].
+5. **Given** a corrected match, **When** further points are added, **Then** service continues in the corrected order.
+6. **Given** two corrections in a row (to Opponent, then back to Me), **Then** the latest correction applies, and the state equals the uncorrected match.
+7. **Given** a correction to the player who is already the first server, **Then** it is rejected and the state is unchanged.
+8. **Given** a finished or unfinished match, **When** the first server is corrected, **Then** the correction is accepted and recomputes the stats; the result and the match status are unchanged.
+9. **Given** a correction, **When** the player undoes, **Then** the correction is removed and the state equals the uncorrected match (Story 3, scenario 12).
 
 ---
 
@@ -207,17 +260,27 @@ After the match, the iPhone shows stats derived only from the points: points won
 - **Server after a tie-break set:** the next set starts with the tie-break's first receiver serving (Story 2, scenario 5), including into the match tie-break (scenario 7).
 - **Set-length boundaries:** 4–2 and 5–3 win, 4–3 continues (N = 4). 8–6 and 9–7 win, 8–7 continues (N = 8).
 - **Very long matches:** a best-of-3 match of up to 500 points restores and undoes correctly (Success Criteria).
+- **Early end:** at 0–0, mid-game, mid-tie-break; points after it are rejected; undo resumes the match (Story 7).
+- **Server correction:** after some games, during a tie-break, after the match ends, twice in a row, to the same server (Story 8).
+- **Saved format versions:** older versions restore; a newer version is rejected without a crash (Story 3, scenarios 13 and 14).
+- **Recorded times:** never affect state, even when out of order (Story 3, scenario 15).
 
 ## Requirements *(mandatory)*
 
 ### Functional Requirements
 
 *Events and state*
-- **FR-001**: A match MUST be represented as an ordered list of events. The first and only setup event fixes the format and the first server. Every following event is "point won by Me" or "point won by Opponent".
+- **FR-001**: A match MUST be represented as an ordered list of events. The first and only setup event fixes the format and the first server. Every following event is one of: "point won by Me", "point won by Opponent", "match ended early", or "first server corrected to Me / Opponent".
 - **FR-002**: Every value the engine exposes MUST be computed from the event list alone. The same event list MUST always produce the same state.
 - **FR-003**: The event list MUST be savable and restorable without loss. A restored list MUST produce the identical state.
-- **FR-004**: Undo MUST remove the last point event. The resulting state MUST equal the state computed from the shortened list. Undo with no point events MUST change nothing, and undo MUST never remove the setup.
-- **FR-005**: The engine MUST reject an event list that lacks a setup event or has more than one, a setup with an unsupported format, and any point after the match has ended. Rejected input MUST leave the state unchanged.
+- **FR-004**: Undo MUST remove the last event other than the setup: a point, a match-ended-early event or a first-server correction. The resulting state MUST equal the state computed from the shortened list. Undo with only the setup MUST change nothing, and undo MUST never remove the setup.
+- **FR-005**: The engine MUST reject:
+  - an event list that lacks a setup event or has more than one;
+  - a setup with an unsupported format;
+  - any point after the match has been won or ended early;
+  - a match-ended-early event after the match has been won or ended early;
+  - a first-server correction to the player who is already the first server.
+  Rejected input MUST leave the state unchanged.
 
 *Format*
 - **FR-006**: The setup MUST specify:
@@ -240,7 +303,8 @@ After the match, the iPhone shows stats derived only from the points: points won
 - **FR-014**: After every event the engine MUST expose:
   - the point display for each player (0/15/30/40/AD, or numbers in a tie-break);
   - games in the current set, and the completed set scores (including tie-break and match-tie-break point scores);
-  - the winner of each completed set, and the match winner once the match is over;
+  - the match status: in progress, won (with the match winner), or unfinished (ended early, no winner);
+  - the winner of each completed set;
   - the current server;
   - the serving court side;
   - flags for deuce, deciding point, tie-break and match tie-break;
@@ -268,18 +332,28 @@ After the match, the iPhone shows stats derived only from the points: points won
   - break points converted, as converted/opportunities, as the receiver;
   - break points saved, as saved/faced, as the server.
   A break point is any point in a standard game where the receiver wins the game by winning that point, including the No-Ad deciding point. Tie-break points are never break points [ITF: BP-01, BP-02].
-- **FR-027**: Stats MUST be available at any moment of the match, counting only what has happened so far, and MUST follow undo exactly.
+- **FR-027**: Stats MUST be available at any moment of the match, counting only what has happened so far, and MUST follow undo exactly. For an unfinished match they count every point played before the early end.
 
 *Traceability*
 - **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test.
+
+*Early end and server correction*
+- **FR-029**: A match-ended-early event MUST make the match unfinished: no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match.
+- **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status and change-of-ends signals MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early.
+
+*Saved format*
+- **FR-031**: The saved event list MUST carry a format version. The engine MUST restore lists saved with its own version and with every older version it has written. A list with a newer version MUST be rejected with an "unsupported version" result, without crashing and without producing a state.
+- **FR-032**: Every point event MUST carry the time it was recorded. The engine MUST store and restore it unchanged, and MUST NOT use it to compute any state or stat.
 
 ### Key Entities
 
 - **Match format**: match length (1 set or best of 3), set length (4, 6 or 8), game scoring (Advantage or No-Ad), and the match tie-break option (best of 3 only).
 - **Setup event**: the match format plus the first server (Me or Opponent). Exactly one per match, always first.
-- **Point event**: which player won the point (Me or Opponent).
-- **Match record**: the ordered list of events. It is the only thing that needs to be saved.
-- **Match state**: everything computed from the match record: score, server, court side, flags, change-of-ends signal, set scores and winners.
+- **Point event**: which player won the point (Me or Opponent), and the time it was recorded (stored, never used for state).
+- **Match-ended-early event**: marks the match as unfinished. At most one, always last.
+- **First-server-corrected event**: names the player who really served first. The latest one applies.
+- **Match record**: the format version plus the ordered list of events. It is the only thing that needs to be saved.
+- **Match state**: everything computed from the match record: score, match status (in progress, won, unfinished), server, court side, flags, change-of-ends signal, set scores and winners.
 - **Match stats**: per-player counts computed from the match record: points on serve and return, service games held, break points converted and saved.
 
 ## Success Criteria *(mandatory)*
@@ -289,8 +363,10 @@ After the match, the iPhone shows stats derived only from the points: points won
 - **SC-001**: 100% of the acceptance scenarios in this spec pass as automated tests, and each rule-based test cites its ITF note ID.
 - **SC-002**: For every prefix of at least 1,000 randomly generated valid matches (all supported formats), undo followed by re-adding the same point returns exactly the previous state. Undoing to the start returns the initial state.
 - **SC-003**: Saving and restoring the event list of any of those matches reproduces the identical state, including stats, in 100% of cases.
-- **SC-004**: For a best-of-3 match of up to 500 points, computing the full state from the saved events takes under 50 ms on the oldest supported Apple Watch. A crash-restored match shows the same score instantly to the player.
-- **SC-005**: Stats for 5 hand-scored reference matches (one per format family: 1 set, best of 3, best of 3 with match tie-break, No-Ad, set length 4 or 8) match the hand counts exactly.
+- **SC-004**: Performance has two checks:
+  - **CI:** on the macOS CI runner, a full recompute of the state and stats of a 500-point best-of-3 match from its event list takes under 50 ms (median of 10 runs). The CI test fails above this threshold.
+  - **Device checklist (Denys):** on the oldest supported Apple Watch, after the app is killed during a 500-point match and relaunched, the score screen shows the restored score without a loading indicator.
+- **SC-005**: Stats for 5 reference matches (one per format family: 1 set, best of 3, best of 3 with match tie-break, No-Ad, set length 4 or 8) match their expected counts exactly. At least one reference match is hand-scored by Denys (point sequence and expected stats counted by hand). The others are built by the agent, marked as agent-built in the test fixtures, and cross-checked by the SC-006 invariants.
 - **SC-006**: In stats, totals are consistent for every generated match. Points served by one player equal points received by the other, and break points converted plus saved equal break points faced, per player pair.
 
 ## Assumptions
@@ -299,7 +375,9 @@ After the match, the iPhone shows stats derived only from the points: points won
 - **Match tie-break in the result:** it is recorded as the deciding set, won 1–0, with its point score (e.g. "10–7"). This follows ITF MT-05 (Not covered; approved by Denys on 2026-10-12).
 - **No change of ends after the match-winning point** (FR-023). This is our decision, since nothing remains to be played: ITF EN-05 (Not covered; approved by Denys on 2026-10-12).
 - **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02. Approved by Denys on 2026-10-12.
-- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01].
+- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on. Product decision by Denys, 2026-10-12.
+- **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. Product decision by Denys, 2026-10-12.
+- **Saved format:** older versions are migrated on restore. The first released version is 1. Where and when the list is saved is the apps' concern.
 - **Out of scope:**
   - doubles;
   - best of 5;

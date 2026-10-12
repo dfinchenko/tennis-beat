@@ -49,6 +49,7 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 - [ ] iPhone far away during the match: match arrives later
 - [ ] Wet fingers / towel: no accidental points
 - [ ] App killed mid-match: match restored with the same score
+- [ ] Oldest supported watch, app killed during a 500-point match and relaunched: the restored score shows without a loading indicator (spec 001, SC-004)
 
 ## Metrics log
 One row per merged PR, added in the following PR (a PR cannot count its own review). No speed-up claims without measurement.

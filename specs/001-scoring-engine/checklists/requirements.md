@@ -36,4 +36,5 @@
 - SC-004 names "the oldest supported Apple Watch" as the reference device for the performance target. This is a product constraint, not an implementation choice.
 - The spec cites every ITF ID it relies on, and all of them exist in `docs/rules/itf-notes.md`.
 - Decisions taken by Denys on 2026-10-12: MT-05 approved; FR-023 approved and recorded as ITF EN-05 (Not covered — our decision); FR-024 approved.
+- Spec review by Denys on 2026-10-12: added early end (US7, FR-029), first-server correction (US8, FR-030), the saved format version and recorded point times (FR-031, FR-032); undo generalised (FR-004, US3); SC-004 split into a CI threshold and a device-checklist item; SC-005 reference-match provenance; US6 scenario 9 reworded. Re-validated: all items still pass.
 - `Status: Approved` is set by Denys only.
