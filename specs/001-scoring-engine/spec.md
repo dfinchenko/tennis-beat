@@ -156,8 +156,8 @@ The watch reminds the players to change ends with a haptic. The engine reports, 
 4. **Given** a set won in a tie-break, **Then** its total is 2N+1 games (7–6 = 13, 5–4 = 9, 9–8 = 17), and a change of ends is reported after it. This is an explicit test case for each set length [ITF: EN-03, EN-04].
 5. **Given** a tie-break, **When** the total number of tie-break points played reaches 6, 12, 18, … and the tie-break has not ended, **Then** a change of ends is reported [ITF: TB-05].
 6. **Given** a tie-break whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
-7. **Given** best of 3 with the match tie-break option, set 2 won in a tie-break (2N+1 games for set length N, e.g. 7–6, 5–4 or 9–8), **Then** a change of ends is reported after set 2, before the match tie-break, for each set length [ITF: EN-03, EN-04]. And with set 2 won with an even total of games (e.g. 6–4, 4–2, 8–6), no change of ends is reported before the match tie-break; the first change comes after 6 points inside it [ITF: EN-02, EN-04, TB-05].
-8. **Given** best of 3 with the match tie-break option, set 2 won 6–4 (10 games), **Then** no change of ends is reported before the match tie-break. The first change comes after 6 match-tie-break points [ITF: EN-04, TB-05].
+7. **Given** best of 3 with the match tie-break option, set 2 won in a tie-break (2N+1 games for set length N, e.g. 7–6, 5–4 or 9–8), **Then** a change of ends is reported after set 2, before the match tie-break, for each set length [ITF: EN-03, EN-04].
+8. **Given** best of 3 with the match tie-break option, set 2 won with an even total of games (e.g. 6–4, 4–2, 8–6), **Then** no change of ends is reported before the match tie-break; the first change comes after 6 match-tie-break points [ITF: EN-02, EN-04, TB-05].
 9. **Given** the point that wins the match, **Then** no change of ends is reported [ITF: EN-05].
 
 ---
