@@ -19,6 +19,7 @@ Status: **Draft** — Denys approves UK; Polish needs a native tennis player's r
 | Break point | Break point | Брейк-пойнт | |
 | Service game held | Utrzymany serwis | Утримана подача | |
 | Deuce court / Ad court | z prawej / z lewej | справа / зліва | Server's court side. The UI never says "deuce"/"ad court": EN shows "Right" / "Left" |
+| Receiver's choice (court side on the No-Ad deciding point) | wybór | на вибір | EN UI: "Choice" (PL lowercase, like the side labels). VoiceOver: "Receiver chooses the side" / «Stronę wybiera odbierający» / «Сторону обирає приймаючий». ITF NA-02 |
 | Change ends | Zmiana stron | Зміна сторін | |
 | Coin toss | Losowanie | Жеребкування | |
 | Undo | Cofnij | Скасувати | |

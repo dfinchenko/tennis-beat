@@ -1,6 +1,6 @@
 # ITF rules notes — scoring source of truth
 
-Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07; those entries are marked **Approved**. On 2026-10-12 he approved MT-05 and the new entry EN-05. Rule entries stay Draft until Denys spot-checks them against the PDF.
+Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07, and MT-05 and EN-05 on 2026-10-12; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
 
 ## Source
 - **Edition:** ITF *Rules of Tennis* 2026 (English). The © line says 2025, and the PDF was last modified on 2025-12-23. Changes to the rules take effect on 1 January of the following year.
@@ -68,7 +68,7 @@ The Tests column is filled in by the engine feature.
 | EN-01 | Rule 10 | Rule | Players change ends after the 1st, 3rd and every later odd game of each set. | Emit a change-of-ends event when the games played in the current set is odd. | |
 | EN-02 | Rule 10 | Rule | Players also change ends at the end of a set, unless that set had an even total of games. Then they change after the first game of the next set. | At the end of a set, change ends if the set's total games is odd. If it is even, the change comes after game 1 of the next set, which EN-01 already covers. | |
 | EN-03 | Rule 10 + Rule 5(b) | Derived | A tie-break set ends with an odd total (e.g. 7–6 = 13 games), so the players change ends between sets. | Follows from EN-02. Test it explicitly. | |
-| EN-04 | — (not in source) | Not covered | The source does not say whether ends change before a match tie-break that replaces the final set. | Our decision: apply EN-02 with the match tie-break counted as the first "game" of the new set. Within it, change every 6 points (TB-05). A set won in a tie-break counts as 13 games (odd), so ends change after it, before the match tie-break (EN-03); the engine spec must include this as an explicit test case. **Approved** (Denys, 2026-10-07). | |
+| EN-04 | — (not in source) | Not covered | The source does not say whether ends change before a match tie-break that replaces the final set. | Our decision: apply EN-02 with the match tie-break counted as the first "game" of the new set. Within it, change every 6 points (TB-05). A set won in a tie-break has 2N+1 games for set length N (e.g. 7–6 = 13, 5–4 = 9, 9–8 = 17), which is always odd, so ends change after it, before the match tie-break (EN-03); the engine spec must include this as an explicit test case. **Approved** (Denys, 2026-10-07). | |
 | EN-05 | — (not in source) | Not covered — our decision | The source does not say whether ends change after the point that ends the match. | Our decision: no change of ends is reported after the match-winning point, even where EN-01, EN-02 or TB-05 would call for one, since nothing remains to be played. **Approved** (Denys, 2026-10-12). | |
 
 ### Correcting errors (reference)
