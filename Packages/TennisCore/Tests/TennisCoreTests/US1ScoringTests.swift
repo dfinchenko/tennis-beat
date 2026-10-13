@@ -260,3 +260,23 @@ struct US1ScoringTests {
     }
   }
 }
+
+extension US1ScoringTests {
+  // ITF: ST-07, MT-02
+  @Test(
+    "US1 s20 a restored setup with an unsupported format is rejected",
+    arguments: [
+      #"{"matchLength":"bestOfThree","setLength":5,"gameScoring":"advantage","matchTieBreak":false}"#,
+      #"{"matchLength":"oneSet","setLength":6,"gameScoring":"advantage","matchTieBreak":true}"#,
+    ])
+  func s20(format: String) throws {
+    let json =
+      #"{"formatVersion":1,"events":[{"type":"setup","format":"# + format
+      + #","firstServer":"me"}]}"#
+    #expect(MatchCodec.decode(Data(json.utf8)) == .failure(.invalid(.invalidFormat)))
+    // Positive control: the same list with a supported format restores.
+    let valid =
+      #"{"formatVersion":1,"events":[{"type":"setup","format":{"matchLength":"oneSet","setLength":6,"gameScoring":"advantage","matchTieBreak":false},"firstServer":"me"}]}"#
+    #expect(throws: Never.self) { try MatchCodec.decode(Data(valid.utf8)).get() }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "changeOfEnds": false,
+  "completedSets": [
+    {
+      "games": [
+        6,
+        4
+      ],
+      "isMatchTieBreak": false,
+      "tieBreak": null,
+      "winner": "me"
+    }
+  ],
+  "courtSide": "right",
+  "games": [
+    1,
+    0
+  ],
+  "isDecidingPoint": false,
+  "isDeuce": false,
+  "isMatchTieBreak": false,
+  "isTieBreak": false,
+  "pointCount": 46,
+  "points": [
+    "15",
+    "15"
+  ],
+  "server": "opponent",
+  "status": "inProgress"
+}

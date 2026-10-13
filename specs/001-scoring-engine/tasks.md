@@ -160,68 +160,68 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US3 (write first, must FAIL)
 
-- [ ] T024 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s1–s6 for undo:
+- [X] T024 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s1–s6 for undo:
   - across game, set, tie-break and match-tie-break boundaries and after the match is won;
   - s6: with only the setup, `undo()` returns `nil` and changes nothing. Positive control (the stub `undo` always returns `nil`): on the same match after one point, `undo()` returns that point event.
 
   (s7 is written in T042, s11 in T054, s12 in T060.)
-- [ ] T025 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s10 and s16 (the point-after-a-win case). (s9 was written in T016.)
+- [X] T025 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s10 and s16 (the point-after-a-win case). (s9 was written in T016.)
   - `Match(events: [])` and a list starting with a point → `.missingSetup`;
   - a second setup → `.duplicateSetup`;
   - any point after the match-winning point in a restored list → `.matchNotInProgress` (`// ITF: MT-08`).
 
   (The early-end cases of s16 are written in T054.)
-- [ ] T026 [P] [US3] Create `Tests/Fixtures/saved-format/v1.json`, the saved-format fixture: setup (best of 3, Advantage, set length 6, match tie-break on, first server Me), then at least one completed set of points with non-integer `recordedAt` values. Create `v1.expected.json` with the state values the test checks. T056 and T062 extend this fixture with an early end and corrections. It is frozen from the merge of this feature onward: "Fixtures are never edited after release".
-- [ ] T027 [P] [US3] In `Tests/SavedFormatTests.swift`, write tests US3 s8, s13, s14 and s15 (`FR-031`, `FR-032`):
+- [X] T026 [P] [US3] Create `Tests/Fixtures/saved-format/v1.json`, the saved-format fixture: setup (best of 3, Advantage, set length 6, match tie-break on, first server Me), then at least one completed set of points with non-integer `recordedAt` values. Create `v1.expected.json` with the state values the test checks. T056 and T062 extend this fixture with an early end and corrections. It is frozen from the merge of this feature onward: "Fixtures are never edited after release".
+- [X] T027 [P] [US3] In `Tests/SavedFormatTests.swift`, write tests US3 s8, s13, s14 and s15 (`FR-031`, `FR-032`):
   - s8: encode, then decode, gives an equal `Match`, and `recordedAt` is bit-exact (compare `timeIntervalSinceReferenceDate.bitPattern`);
   - s13: `v1.json` restores to `v1.expected.json`;
   - s14: `"formatVersion": 2` gives `.unsupportedVersion(found: 2, supported: 1)`, with no crash. To prove that nothing else is parsed, the same result comes back for a version-2 payload whose `events` would be malformed under v1;
   - s15: the same points with shuffled or out-of-order times give an identical `state` and `stats`;
   - `"Codec malformed …"`: an unknown `type` and a missing `formatVersion` give `.malformed`.
-- [ ] T028 [P] [US3] In `Tests/US1ScoringTests.swift`, write test US1 s20 (`// ITF: ST-07`): decoding a saved list with `"setLength": 5` gives `.invalid(.invalidFormat)`, and so does a setup with `oneSet` plus `matchTieBreak: true`.
-- [ ] T029 [P] [US3] Write tests `"G1 …"`, `"G2 …"` and `"G3 …"` for the contract guarantees in `Tests/US3UndoAndRestoreTests.swift`:
+- [X] T028 [P] [US3] In `Tests/US1ScoringTests.swift`, write test US1 s20 (`// ITF: ST-07`): decoding a saved list with `"setLength": 5` gives `.invalid(.invalidFormat)`, and so does a setup with `oneSet` plus `matchTieBreak: true`.
+- [X] T029 [P] [US3] Write tests `"G1 …"`, `"G2 …"` and `"G3 …"` for the contract guarantees in `Tests/US3UndoAndRestoreTests.swift`:
   - `Match(events: m.events) == m`;
   - after `undo()`, the match equals `Match(events: dropLast)`;
   - a throwing call leaves `m` unchanged.
-- [ ] T030 [US3] Write `Tests/Support/MatchGenerator.swift` (research R8), points only for now:
+- [X] T030 [US3] Write `Tests/Support/MatchGenerator.swift` (research R8), points only for now:
   - for each seeded match, pick a random format (3 set lengths × 2 scorings × match length × the match tie-break option where valid) and a random first server;
   - generate point winners with a per-match bias in 0.3–0.7, so long deuces, tie-breaks and match tie-breaks are common;
   - stop at the match's end or at a random length;
   - expose `matches(count: 1000, seed:)` and print the seed on failure.
 
   T055 adds early ends to the generator, and T061 adds corrections.
-- [ ] T031 [US3] In `Tests/PropertyTests.swift`, write test **P-1 (incremental equals replay)**, approved by Denys on 2026-10-13 (research R2):
+- [X] T031 [US3] In `Tests/PropertyTests.swift`, write test **P-1 (incremental equals replay)**, approved by Denys on 2026-10-13 (research R2):
   - for every prefix of every generated match, compare the `Match` built by `record`ing events one by one (the incremental `step` path) with the reduction built directly by `Reducer.replay(setup:effectiveFirstServer:events:)` over the same prefix (via `@testable import`). `Match(events:)` is **not** the replay side: it records event by event (R3), so comparing against it would compare a path with itself;
   - the comparison covers every `state` field, every `stats` field and the whole cached reduction;
   - print the seed and the match index on failure.
-- [ ] T032 [US3] In `Tests/PropertyTests.swift`, write tests SC-002 and SC-003:
+- [X] T032 [US3] In `Tests/PropertyTests.swift`, write tests SC-002 and SC-003:
   - SC-002: for every prefix, undo followed by re-recording the same event returns the previous `Match`, and undoing to the start gives `Match(setup:)`;
   - SC-003: `MatchCodec` round trip equals the original, including stats, in 100% of the generated matches.
 
   The spec's wording "the same point" is backlog #6 R4-7.
-- [ ] T033 [US3] In `Tests/PerformanceTests.swift`, write test SC-004 (CI part):
+- [X] T033 [US3] In `Tests/PerformanceTests.swift`, write test SC-004 (CI part):
   - build a fixed best-of-3 event list of **exactly 500 points** with `MatchBuilder`: long deuce games plus tie-break sets, with no generator involved. Assert `points == 500` and the expected final `completedSets` and `status`;
   - time two paths, each 10 times with `ContinuousClock`: `Match(events:)` plus `stats` (validation, the incremental path), and `Reducer.replay` plus stats (the full recompute that undo and corrections run, via `@testable import`);
   - `#expect(median < .milliseconds(10))` for each path, and print both medians.
 
 ### Implementation for US3
 
-- [ ] T034 [US3] Implement validation in `Sources/Engine/Match.swift`:
+- [X] T034 [US3] Implement validation in `Sources/Engine/Match.swift`:
   - `init(events:)` validates by recording through `record(_:)` (research R3); its cache comes from the incremental `step` path. Undo and correction rebuild it with `Reducer.replay`, and P-1 (T031) keeps the two paths equal;
   - `record(.setup)` → `.duplicateSetup`;
   - an empty list, or a first event that is not `setup` → `.missingSetup`;
   - `record` mutates only on success (G3);
   - until T057 and T063, `record(.matchEndedEarly)` and `record(.firstServerCorrected)` keep the stub behaviour (no change, no throw).
-- [ ] T035 [US3] Implement `undo()` in `Sources/Engine/Match.swift`:
+- [X] T035 [US3] Implement `undo()` in `Sources/Engine/Match.swift`:
   - it removes the last event when `events.count ≥ 2` and returns it;
   - otherwise it returns `nil`;
   - afterwards it rebuilds the cached reduction with `Reducer.replay` (research R2).
-- [ ] T036 [US3] Implement `MatchCodec.encode` in `Sources/Persistence/MatchCodec.swift`, with the JSON layout exactly as in [contracts/saved-format.md](contracts/saved-format.md):
+- [X] T036 [US3] Implement `MatchCodec.encode` in `Sources/Persistence/MatchCodec.swift`, with the JSON layout exactly as in [contracts/saved-format.md](contracts/saved-format.md):
   - hand-written `Codable` for the events, with the `"type"` discriminator;
   - `recordedAt` as `timeIntervalSinceReferenceDate`;
   - the encoder uses `.sortedKeys`;
   - `encode` is `throws(EncodingError)`: catch the `JSONEncoder` error; rethrow it when it is an `EncodingError`, otherwise wrap it as `EncodingError.invalidValue(match, .init(codingPath: [], debugDescription: "\(error)", underlyingError: error))`. No force cast (contract G6).
-- [ ] T037 [US3] Implement `MatchCodec.decode` in `Sources/Persistence/MatchCodec.swift`, following the 5-step restore algorithm in saved-format.md:
+- [X] T037 [US3] Implement `MatchCodec.decode` in `Sources/Persistence/MatchCodec.swift`, following the 5-step restore algorithm in saved-format.md:
   1. decode the version only;
   2. a newer version → `.unsupportedVersion`;
   3. migrate;
@@ -229,7 +229,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   5. `Match(events:)` → `.invalid`.
 
   No `try!` and no traps (G6).
-- [ ] T038 [US3] Create `Sources/Persistence/Migrations.swift`: an ordered list of `vK → vK+1` steps over the JSON object, empty for v1, with a doc comment that states the versioning rules from saved-format.md. Make T024–T033 pass.
+- [X] T038 [US3] Create `Sources/Persistence/Migrations.swift`: an ordered list of `vK → vK+1` steps over the JSON object, empty for v1, with a doc comment that states the versioning rules from saved-format.md. Make T024–T033 pass.
 
 **Checkpoint**: All P1 stories (US1–US4) pass, and so do P-1, SC-002, SC-003 and SC-004 over point-only matches. This is the MVP engine.
 

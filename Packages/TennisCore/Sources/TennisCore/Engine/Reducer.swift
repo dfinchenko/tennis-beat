@@ -60,8 +60,7 @@ enum Reducer {
     for event in events {
       switch event {
       case .point(let winner, _): step(&reduction, winner: winner)
-      case .matchEndedEarly: reduction.endedEarly = true
-      case .setup, .firstServerCorrected: break
+      case .setup, .matchEndedEarly, .firstServerCorrected: break
       }
     }
     return reduction

@@ -17,11 +17,15 @@ public struct Match: Sendable, Hashable {
   }
 
   /// Replays `events` through `record(_:)`; throws on the first rejected event.
+  ///
+  /// Live input and restored lists share this one validation path (research R3), so the
+  /// cache comes from the incremental `step` path; P-1 checks it against `Reducer.replay`.
   public init(events: [MatchEvent]) throws(MatchError) {
     guard case .setup(let setup)? = events.first else { throw .missingSetup }
-    self.setup = setup
-    self.events = events
-    reduction = Reducer.initial(setup: setup, effectiveFirstServer: setup.firstServer)
+    self.init(setup: setup)
+    for event in events.dropFirst() {
+      try record(event)
+    }
   }
 
   public var effectiveFirstServer: Player { setup.firstServer }
@@ -33,11 +37,14 @@ public struct Match: Sendable, Hashable {
   /// Appends one event. On error, `self` is unchanged.
   public mutating func record(_ event: MatchEvent) throws(MatchError) {
     switch event {
+    case .setup:
+      throw .duplicateSetup
     case .point(let winner, _):
       guard reduction.status == .inProgress else { throw .matchNotInProgress }
       events.append(event)
       Reducer.step(&reduction, winner: winner)
-    case .setup, .matchEndedEarly, .firstServerCorrected:
+    case .matchEndedEarly, .firstServerCorrected:
+      // Stub behaviour until T057 and T063: no change, no throw.
       break
     }
   }
@@ -55,5 +62,11 @@ public struct Match: Sendable, Hashable {
   }
 
   /// Removes the last non-setup event and returns it; `nil` (no change) with only the setup.
-  @discardableResult public mutating func undo() -> MatchEvent? { nil }
+  @discardableResult public mutating func undo() -> MatchEvent? {
+    guard events.count >= 2 else { return nil }
+    let removed = events.removeLast()
+    reduction = Reducer.replay(
+      setup: setup, effectiveFirstServer: effectiveFirstServer, events: events)
+    return removed
+  }
 }
