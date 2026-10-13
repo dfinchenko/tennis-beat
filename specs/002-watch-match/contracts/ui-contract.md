@@ -12,7 +12,7 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | First server | `firstServer.me`, `firstServer.opponent`, `firstServer.coinToss` | Choice buttons |
 | Coin-toss result | `coinToss.result`, `coinToss.start` | Result text, Start |
 | Score | `undo`, `elapsed`, `score.summary` | Header and the VoiceOver summary; the status is the summary label's trailing text (the status line is hidden from VoiceOver) |
-| Score | `zone.me`, `zone.opponent` | Tap zones (buttons) |
+| Score | `zone.me`, `zone.opponent` | Tap zones (buttons; with `-uiTestExposeValues` possibly containers, so look them up with `descendants(matching: .any)`) |
 | Score | `zone.<player>.points`, `.games`, `.sets`, `.serve`, `.side` | Displayed values, visible to UI tests **only with `-uiTestExposeValues`**; `.serve` and `.side` exist only for the server |
 | Controls | `controls.undo`, `controls.pauseResume`, `controls.server`, `controls.end`, `controls.elapsed` | Controls page |
 | End confirmation | `confirm.end` | Destructive "End match" |
@@ -26,9 +26,12 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | `-coinToss me` / `-coinToss opponent` | Fixes the coin-toss result (Story 1 s9) |
 | `-uiTestExposeValues` | Zones use `.accessibilityElement(children: .contain)` so their child values are visible to XCUITest (R3-1). Never used for accessibility audits or VoiceOver checks |
 
-Without these arguments the app behaves as in production. Neither argument exists in a Release build (`#if DEBUG`).
+Without these arguments the app behaves as in production. None of these arguments exists in a Release build (`#if DEBUG`).
 
 ## 3. Displayed values (EN), as checked by UI tests
+
+The status is checked as `score.summary` label == `expectedSummary + (status.isEmpty ? "" : ". " + status)` (research R7). The drawn status line itself is covered by unit tests only.
+
 
 | Engine value | Shown |
 | --- | --- |
