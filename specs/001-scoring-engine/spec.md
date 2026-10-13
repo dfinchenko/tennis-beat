@@ -388,6 +388,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02. Approved by Denys on 2026-10-12.
 - **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on [ITF: CE-02] (Not covered; approved by Denys on 2026-10-13).
 - **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. The engine accepts an early end at 0–0, but the watch and iPhone features MUST NOT save a 0-point unfinished match to history (**note for the watch and iPhone features**) [ITF: MT-08] (Not covered; approved by Denys on 2026-10-13).
+- **Change-of-ends haptic (note for the watch feature):** the haptic fires only when a point is added and that point calls for a change of ends; never on undo, a server correction or an undone early end, even when the exposed change-of-ends value reads "change" afterwards (FR-014). Approved by Denys on 2026-10-13.
 - **Saved format:** older versions are migrated on restore. The first released version is 1. Where and when the list is saved is the apps' concern.
 - **Out of scope:**
   - doubles;
