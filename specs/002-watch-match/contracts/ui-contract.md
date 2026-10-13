@@ -11,9 +11,9 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | Picker | `picker.option.<rawValue>` | One option per value |
 | First server | `firstServer.me`, `firstServer.opponent`, `firstServer.coinToss` | Choice buttons |
 | Coin-toss result | `coinToss.result`, `coinToss.start` | Result text, Start |
-| Score | `undo`, `elapsed`, `status`, `score.summary` | Header, status line, VoiceOver summary |
+| Score | `undo`, `elapsed`, `score.summary` | Header and the VoiceOver summary; the status is the summary label's trailing text (the status line is hidden from VoiceOver) |
 | Score | `zone.me`, `zone.opponent` | Tap zones (buttons) |
-| Score | `zone.<player>.points`, `.games`, `.sets`, `.serve`, `.side` | Displayed values; `.serve` and `.side` exist only for the server |
+| Score | `zone.<player>.points`, `.games`, `.sets`, `.serve`, `.side` | Displayed values, visible to UI tests **only with `-uiTestExposeValues`**; `.serve` and `.side` exist only for the server |
 | Controls | `controls.undo`, `controls.pauseResume`, `controls.server`, `controls.end`, `controls.elapsed` | Controls page |
 | End confirmation | `confirm.end` | Destructive "End match" |
 | Summary | `summary.title`, `summary.chip.<n>`, `summary.duration`, `summary.done`, `summary.undo` | Summary (chips numbered from 1) |
@@ -24,6 +24,7 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | --- | --- |
 | `-resetFormat` | Clears `lastFormat.v1` before launch (first-use defaults, Story 1 s1) |
 | `-coinToss me` / `-coinToss opponent` | Fixes the coin-toss result (Story 1 s9) |
+| `-uiTestExposeValues` | Zones use `.accessibilityElement(children: .contain)` so their child values are visible to XCUITest (R3-1). Never used for accessibility audits or VoiceOver checks |
 
 Without these arguments the app behaves as in production. Neither argument exists in a Release build (`#if DEBUG`).
 
@@ -35,7 +36,7 @@ Without these arguments the app behaves as in production. Neither argument exist
 | `PointDisplay.advantage` | `AD` (all languages, glossary) |
 | `PointDisplay.tieBreak(n)` | `n` [ITF: TB-01] |
 | `CourtSide.right/.left/.receiversChoice` | `Right` / `Left` / `Choice` [ITF: SV-03, TB-04, NA-02] |
-| Status flags | `Match tie-break` › `Tie-break` › `Deciding point` › `Deuce` › empty; `Paused` replaces it while paused (FR-008) |
+| Status flags | `Match tie-break` › `Tie-break` › `Deciding point` › `Deuce` › empty; `Paused` replaces it while paused (FR-008). Read as the trailing text of the `score.summary` label |
 
 ## 4. Feedback per command (SC-003, FR-011, FR-012, FR-024)
 
@@ -45,7 +46,7 @@ Without these arguments the app behaves as in production. Neither argument exist
 | Point wins a game | game | "Game: <winner>", status change, if any |
 | Point wins a set | set | "Set: <winner>", status change, if any |
 | Point wins the match | match | "Match: <winner>" |
-| …and `changeOfEnds` (not the match point) | + change of ends, after ~0.8 s, cancelled by any later command | + "Change ends" |
+| …and `changeOfEnds` (not the match point) | + change of ends, after ~0.8 s; cancelled by undo, correction, pause, End or Done; played at once (not dropped) if another point is added first | + "Change ends" |
 | Undo, early end, undo of an early end, pause, resume | none | status change, if any |
 | Server correction | none | "Server: <new server>" |
 

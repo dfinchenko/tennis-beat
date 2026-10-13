@@ -81,7 +81,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 **Purpose**: The session skeleton and the root view that every screen needs.
 
 - [ ] T008 Create `App/Match/LaunchOptions.swift` (`#if DEBUG` only):
-  - parse `-resetFormat` and `-coinToss me|opponent` from `ProcessInfo.processInfo.arguments` (contract §2);
+  - parse `-resetFormat`, `-coinToss me|opponent` and `-uiTestExposeValues` (used from PR 2) from `ProcessInfo.processInfo.arguments` (contract §2);
   - in a Release build, return the production defaults.
 - [ ] T009 Create `App/Match/MatchSession.swift`: an `@Observable` main-actor class with `route: Route` (`.setup`, `.playing`, `.summary`), `match: Match?`, `clock: MatchClock?`, `isPaused`, and the injected `haptics`, `announcer` and `now`. The commands are stubs that change nothing. In this PR only `start(firstServer:)` gets a body (T019). Follow [data-model.md § MatchSession](data-model.md#matchsession-observable-main-actor) exactly.
 - [ ] T010 Replace `App/ContentView.swift` with `RootView`, which switches on `session.route`:
@@ -109,7 +109,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US1 s5: save then load round-trips all four rows, and nothing about the first server is stored;
   - US1 s6: each unknown or missing raw value falls back to its own default while the other rows keep theirs (parameterized over the four rows);
   - FR-002: `matchFormat` for 1 set with `thirdSet == .tieBreakToTen` has `matchTieBreak == false`; `// ITF: MT-02`;
-  - US1 s6: `matchFormat` is non-nil for all 24 combinations; with a `FormatChoice` stub whose `matchFormat` is nil, `MatchSession.start` keeps `route == .setup` and `match == nil` (no `try!`, no trap);
+  - US1 s6: `matchFormat` is non-nil for all 24 combinations; with a `MatchSession` whose injected `makeFormat` returns nil, `start` keeps `route == .setup` and `match == nil` (no `try!`, no trap);
   - FR-001: every one of the 2×3×2×2 combinations builds a `MatchFormat` with the expected fields; `// ITF: MT-01, MT-03, ST-04, ST-06, ST-07, GM-02, NA-01`.
 
   Use a throwaway `UserDefaults(suiteName:)` for each test.
@@ -197,9 +197,9 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T029 [P] [US3] `UnitTests/PointOutcomePropertyTests.swift`, `"FR-010 property …"`: over 500 seeded random matches in every format (SplitMix64 copied from 001's test support into `UnitTests/Support/`), each added point gives exactly one level, and the level agrees with the change in `status`, `completedSets.count` and the games total.
 - [ ] T030 [P] [US3] `UnitTests/SessionFeedbackTests.swift` (SC-003, FR-012, FR-024), with `RecordingHaptics` and `RecordingAnnouncer`, as in contract §4:
   - US3 s1–s5: the haptic sequence per added point, with change of ends after the point's haptic, including set + change of ends (a 6–3 set: set haptic, then change of ends; `// ITF: EN-02`);
-  - US3 s7: undo of a game-winning point, undo that brings back a state whose `changeOfEnds` reads true, and undo of the match point from `.summary` record **no** haptic; `// ITF: EN-05`;
+  - US3 s7: undo of a game-winning point and undo that brings back a state whose `changeOfEnds` reads true record **no** haptic (undo from `.summary` is tested in PR 4, T061);
   - Edge "change of ends on a game-winning point that is undone and played again": the haptic plays again;
-  - FR-012 (pending haptic): every command calls `cancelPending()` before anything else; `WatchHaptics` with an injected sink and a hand-driven `sleep`: a change-of-ends point, then `undo()` before the sleep returns → the sink receives only the point's haptic, and a next point before the sleep returns → no stale change of ends; positive control: without a later command the change-of-ends haptic arrives after the sleep;
+  - FR-012 (pending haptic): undo calls `cancelPending()` first, and an added point calls `flushPending()` (never `cancelPending()`). `WatchHaptics` with an injected sink and a hand-driven `sleep`: a change-of-ends point, then `undo()` before the sleep returns → the sink receives only the point's haptic; a change-of-ends point, then another point before the sleep returns → the sink receives point 1's haptic, change of ends, point 2's haptic, in that order; positive control: without a later command the change-of-ends haptic arrives after the sleep;
   - R4: each command yields at most one announcement, for example a change-of-ends game point → exactly one "Game: Me. Change ends";
   - US7 s3: announcements "Game: Me", "Set: Opponent", "Match: Me";
   - US7 s4: "Change ends" after a change-of-ends point;
@@ -218,6 +218,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US7 s1: the summary reads the server's score first, with separate Me and Opponent strings (R2-1): "30–15, I'm serving, from the right", "15–30, Opponent serving, from the left", "advantage" for AD, and "…, receiver chooses the side" on the deciding point; `// ITF: GM-01`;
   - the zone label "Me, 30. 3 games, 1 set. Serving from the right." with the hint "Add point for Me";
   - plural forms for games and sets in PL and UK (1, 2, 5, 22);
+  - US7 s8 (score): the server is marked by `isServer` (serve icon) **and** by the VoiceOver phrase "serving"/«подаю»/«serwuję»; Me and Opponent differ by label text and position (`zones` order Opponent, Me), not only colour;
   - US7 s2: at deuce the summary label ends with ". Deuce"; while paused it ends with ". Paused. Deuce"; with an empty status it has no trailing status; the status line is hidden from VoiceOver.
 - [ ] T033 [P] [US2] `UnitTests/SessionTests.swift`, scoring part:
   - US2 s2: `addPoint(for: .me)` adds exactly one point event for Me;
@@ -234,8 +235,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - FR-025 / Q9: launch once at `.xxxLarge` (`-UIPreferredContentSizeCategoryName UICTContentSizeCategoryExtraExtraExtraLarge`) and once at `UICTContentSizeCategoryAccessibilityXXXL`; the `zone.me.points` frames are equal (the score screen keeps the largest standard size);
   - SC-005: `performAccessibilityAudit()` on Score, including the `.textClipped` audit type, at both sizes.
 - [ ] T036 [US2] Link the `TennisCore` product to the `TennisBeat Watch AppUITests` target with the Xcode MCP tools, not by hand-editing. Then run `scripts/gates/check-project-format.sh` and confirm no `validationLevel` and `objectVersion = 100` (research R12).
-- [ ] T037 [US2] `UITests/Support/ScreenReader.swift`: read `zone.<player>.points/.games/.sets/.serve/.side` and `status` into a struct. Also map a TennisCore `MatchState` to the same struct with the contract §3 table: EN texts, Right/Left/Choice, and status priority.
-- [ ] T038 [US2] `UITests/ScoringUITests.swift`, SC-002. Run scripted sequences of 40–120 taps for each format:
+- [ ] T037 [US2] `UITests/Support/ScreenReader.swift`: with the app launched with `-uiTestExposeValues`, read `zone.<player>.points/.games/.sets/.serve/.side` into a struct, and the status from the trailing text of the `score.summary` label (research R7, R3-1). Also map a TennisCore `MatchState` to the same struct with the contract §3 table: EN texts, Right/Left/Choice, and status priority.
+- [ ] T038 [US2] `UITests/ScoringUITests.swift`, SC-002, launched with `-uiTestExposeValues`. First a failing guard test: without the argument `zone.me.points` is not found, and with it it is found (checks the R3-1 switch both ways). Then run scripted sequences of 40–120 taps for each format:
   - 1 set ×4, ×6, ×8;
   - best of 3 with a full third set;
   - best of 3 with a match tie-break;
@@ -248,12 +249,12 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T039 [P] [US3] `App/Match/PointOutcome.swift`: `nonisolated struct PointOutcome { winner, level, changeOfEnds }` and `static func evaluate(before:after:winner:)`, exactly as [data-model.md § PointOutcome](data-model.md#pointoutcome-value-pure).
 - [ ] T040 [P] [US3] `App/Match/Feedback.swift`:
   - the `HapticPlaying` and `Announcing` protocols;
-  - `WatchHaptics`: point `.click`, game `.directionUp`, set `.success`, match `.notification`, change of ends `.retry`, played 0.8 s after the first on a stored, cancellable `Task`, with the injected sink and `sleep`; `cancelPending()` cancels it (research R3);
+  - `WatchHaptics`: point `.click`, game `.directionUp`, set `.success`, match `.notification`, change of ends `.retry`, played 0.8 s after the first on a stored, cancellable `Task`, with the injected sink and `sleep`; `cancelPending()` cancels it and `flushPending()` plays it at once (research R3);
   - `VoiceOverAnnouncer`: posts one `AccessibilityNotification.Announcement` per command with `.high` announcement priority (research R4).
 - [ ] T041 [US2] `MatchClock.stop(at:)`, and `MatchSession`:
   - `addPoint(for:)`: guard `acceptsPoints`; keep the state before; `recordPoint(wonBy:at: now())`; on an error, return; evaluate the outcome → haptics → announcements; when `.won`, `clock.stop` and `route = .summary`;
   - `undo()` for `.playing`;
-  - every command calls `haptics.cancelPending()` first and posts at most one combined announcement (data model).
+  - `addPoint` calls `haptics.flushPending()` and `undo()` calls `haptics.cancelPending()` first; every command posts at most one combined announcement (data model).
 - [ ] T042 [P] [US2] `App/Match/ScoreScreenModel.swift`: as [data-model.md § ScoreScreenModel](data-model.md#scorescreenmodel-value-pure). All strings come from the catalog, with separate Me and Opponent summary keys (R2-1).
 - [ ] T043 [US2] `App/Score/ScoreView.swift`, `App/Score/PlayerZoneView.swift` and `App/Score/ElapsedTimeView.swift` (Watch 3):
   - the header: a 44 pt Undo circle (disabled and announced unavailable when `!canUndo`), and the elapsed time in `TimelineView(.periodic(from:by: 1))` with `.minuteSecond` or `.hourMinuteSecond` and monospaced digits;
@@ -263,7 +264,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - the serve icon (tennis-ball glyph) and the court-side pill only for the server;
   - `.dynamicTypeSize(...DynamicTypeSize.xxxLarge)` on the screen (Q9);
   - point displays up to 2 digits fit with `.minimumScaleFactor` (Edge "long tie-breaks");
-  - the identifiers from contract §1.
+  - the identifiers from contract §1;
+  - `-uiTestExposeValues` (DEBUG only, `LaunchOptions`) switches the zones from `.accessibilityElement(children: .ignore)` to `.contain`; the status line is `.accessibilityHidden(true)` in both modes (research R7, R3-1).
 - [ ] T044 [US2] `App/Score/MatchPagesView.swift`: `TabView(.page)` with a placeholder Controls page (filled in PR 3) and `ScoreView`, opening on Score. Replace the `.playing` placeholder in `RootView`. For `.summary`, add a minimal `App/Summary/SummaryView.swift` with the title Win / Loss and Done → `session.done()` (finished in PR 4). Implement `done()`.
 - [ ] T045 [US7] Add the strings for this PR to `App/Localizable.xcstrings`:
   - the status line and the court-side pill;
@@ -307,31 +309,32 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US4 s13 and Edge "early end at 0–0 or after only undone points": `endEarly()` with no point event → `match == nil`, `route == .setup`, nothing kept;
   - Edge "Pause during a tie-break" (constitution III boundary test, backlog #6): pause and resume inside a tie-break leave `isTieBreak`, the points, the server and the court side unchanged; `// ITF: TB-02, TB-04`.
 - [ ] T051 [P] [US4] `UnitTests/SessionFeedbackTests.swift`, controls part:
-  - US3 s7: pause, resume, correction and early end record no haptic;
+  - US3 s7: pause, resume, correction and early end record no haptic; pause, correction and early end call `cancelPending()` first (a pending change of ends is dropped);
   - US4 s10 / US7 s3: correction announces "Server: Opponent";
   - FR-008 / R1-3: while paused the status text is "Paused" and VoiceOver reads "Paused. Deuce".
-- [ ] T052 [P] [US4] `UITests/ControlsUITests.swift`:
+- [ ] T052 [P] [US4] `UITests/ControlsUITests.swift` (value checks launched with `-uiTestExposeValues`; the audit without it):
   - US4 s1: swipe right from Score → Controls with `controls.elapsed` and four labelled buttons; swipe back → Score;
   - US4 s2: Undo on Controls removes the last point;
   - US4 s3: Undo is disabled at 0–0;
-  - US4 s5 and FR-016: Pause → `status` reads "Paused", the zones add nothing, and the button reads Resume;
+  - US4 s5 and FR-016: Pause → the `score.summary` label ends with "Paused" (or "Paused. <state>"), the zones add nothing, and the button reads Resume;
   - US4 s6: Resume → taps score again;
   - US4 s9: Server moves `zone.*.serve` and keeps the points;
   - SC-002 (corrections): extend the `ScoringUITests` scripted sequences for every format with a server correction (via Controls) every 11th step, and check that the screen equals the engine replay after each; `// ITF: CE-02`;
   - US4 s11: End → `confirm.end` and Cancel; Cancel changes nothing;
-  - US4 s12: confirm with a point → the summary route; US4 s13: confirm at 0–0 → New match;
-  - SC-005: `performAccessibilityAudit()` (including `.textClipped`) on Controls and the End confirmation, at `.xxxLarge` and at an accessibility size.
+  - US4 s12: confirm with a point → the summary route, and the minimal summary's `summary.title` reads "Match ended early", never Win or Loss (US5 s3); US4 s13: confirm at 0–0 → New match;
+  - SC-005: `performAccessibilityAudit()` (including `.textClipped`) on Controls and the End confirmation, at `.xxxLarge` and at an accessibility size;
+  - US7 s5 (Controls): each button's accessibility label is Undo / Pause (Resume while paused) / Server / End, and Undo reports `isEnabled == false` at 0–0.
 
 ### Implementation
 
 - [ ] T053 [US4] `MatchClock.pause(at:)` and `resume(at:)`, with `stop` closing an open pause, as [data-model.md § MatchClock](data-model.md#matchclock-value).
-- [ ] T054 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4).
+- [ ] T054 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4). The minimal summary from PR 2 shows "Match ended early" for `.unfinished` (US5 s3), so `main` is right between PR 3 and PR 4 (R3-3).
 - [ ] T055 [US4] `App/Score/ControlsView.swift` (Watch 4), replacing the placeholder page:
   - `controls.elapsed` at the top;
   - a 2×2 grid of 64 pt round buttons with labels: Undo (`surface-raised`), Pause/Resume (`control-pause`), Server ⇆ (`surface-raised`), End (`control-end`, stop square);
   - End opens `.confirmationDialog("End match?")` with a destructive "End match" button;
   - a `ScrollView` so that large text never clips.
-- [ ] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", and the "Server: %@" announcement (copy table).
+- [ ] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", the "Server: %@" announcement, and "Match ended early" (for the minimal summary) (copy table).
 - [ ] T057 [US4] Update `docs/design/screens/watch-4-controls.md` (R1-9): the Server control is decided as the first-server correction [ITF: CE-02], not CE-01; Pause shows Resume while paused; End opens the "End match?" confirmation. Note "changed by spec 002".
 - [ ] T058 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
 
@@ -355,17 +358,20 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US5 s5: an early end mid-set gives "3:2*"; mid-match-tie-break gives "7:5*" (`// ITF: MT-05, MT-08`); right after a completed set with no point played, no extra chip; with points played in the first game at 0–0, "0:0*"; in a match-tie-break format, an early end at 1–1 in sets with no match tie-break point played gives no chip (the display is `tieBreak(0)`), and with one point played the chip reads "1:0*" or "0:1*" (`// ITF: MT-05`);
   - US5 s6: `isLost` for the Opponent's sets; VoiceOver "Set 2: 3–6, lost", "Set 3: 4–2, unfinished", and the match tie-break variant "Match tie-break: 10–7, won" (R2-4), in EN, PL and UK;
   - US5 s7: the duration is `clock.elapsed(at: stoppedAt)` formatted `.hourMinuteSecond`;
-  - US5 s8: the model has no heart-rate or calorie field (a compile-time shape check in the test).
+  - US5 s8: the model has no heart-rate or calorie field (a compile-time shape check in the test);
+  - US7 s8 (summary): a lost set is marked by `isLost` (dimmed) **and** by its VoiceOver text ending "lost" / «przegrany» / «програний», and the chips keep set order.
 - [ ] T061 [P] [US5] `UnitTests/SessionTests.swift`, summary part:
   - US5 s1: the match-winning point → `.summary`, and the clock is stopped;
   - US5 s9 and Edge "Undo after the match is won": `undo()` from `.summary` → `.playing` at match point, `isPaused == false`, and `elapsed` excludes the summary time; the same for an early end ("Undo of an early end");
-  - US5 s10: `done()` → `.setup`, `match == nil`, and the format is kept.
+  - US5 s10: `done()` → `.setup`, `match == nil`, and the format is kept;
+  - US3 s7 (summary part, moved from PR 2): undo of the match point and of an early end from `.summary` record **no** haptic; `// ITF: EN-05`.
 - [ ] T062 [P] [US5] `UITests/SummaryUITests.swift`:
   - play a 1-set match to Win with `-coinToss me`: `summary.title` reads "Win", the chips match, and `summary.duration` exists;
   - Undo → Score at match point;
   - End early → "Match ended early" with an "*" chip;
   - Done → New match with the format kept;
-  - SC-005: `performAccessibilityAudit()` (including `.textClipped`) on the summary at an accessibility size.
+  - SC-005: `performAccessibilityAudit()` (including `.textClipped`) on the summary at an accessibility size;
+  - US7 s5 (Summary): `summary.done` and `summary.undo` have the labels Done and Undo, and each chip's label is its full VoiceOver sentence.
 
 ### Implementation
 
@@ -377,7 +383,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - a Duration row;
   - Done (primary capsule) and Undo (secondary, under Done, Q7);
   - in a `ScrollView`, with no heart-rate or kcal rows.
-- [ ] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: "Match ended early", Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
+- [ ] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings` ("Match ended early" exists since PR 3): Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
 - [ ] T067 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
 - [ ] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
 
@@ -409,7 +415,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - Undo, the serve icon, the pill and the status line are hidden;
   - `.transaction { $0.animation = nil }`;
   - `.allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced:))` on the zones, false when dimmed (FR-021, Story 6 s3).
-- [ ] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8: confirm that no meaning is carried by colour alone (server icon + VoiceOver, lost sets by order + VoiceOver, labels + positions).
+- [ ] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8 is tested in T032 (score) and T060 (summary); here, check the remaining screens' screenshots for colour-only meaning (First server buttons differ by label and position).
 - [ ] T075 [US6] Update `docs/design/screens/watch-5-always-on.md` (R1-9): Q8 also hides the court-side pill and the status line; the header minutes use the system's abbreviated format, with no plural variations (R1-8). Note "changed by spec 002".
 - [ ] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
   - US6 s4: readable at arm's length (complete only after spec 003, Q10);
