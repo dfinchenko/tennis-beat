@@ -12,6 +12,7 @@ Status: **Draft** — Denys approves UK; Polish needs a native tennis player's r
 | Receiver | Odbierający | Приймає | |
 | Deuce | Równowaga | Рівно | |
 | Advantage | Przewaga | Перевага | UK approved. Commentators also say «більше / менше»; the UI uses «Перевага» |
+| AD (advantage in the point display) | AD | AD | Approved by Denys on 2026-10-13. The score display shows "AD" in all three languages (international scoreboard notation; «Перевага» does not fit). VoiceOver reads the full word: "advantage" / «przewaga» / «перевага» |
 | Love (0) | 0 | 0 | Never translate "love", always show 0 |
 | Tie-break | Tie-break | Тай-брейк | UK approved: «тай-брейк» with a hyphen (mock-ups' «Тайбрейк» is wrong) |
 | Match tie-break | Super tie-break | Матч-тай-брейк | UK approved |

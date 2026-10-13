@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Approved (2026-10-13, Denys)
+**Status**: Draft (review 1 fixes; waiting for Denys's approval)
 
 **Input**: User description: "Spec 002 — the match on Apple Watch. Watch match flow built on TennisCore, following docs/design/screens (setup, first server incl. coin toss, scoring, controls, Always On, summary). Setup: match length, set length 4/6/8, «При 40:40» (Перевага / Вирішальне очко), match tie-break option only for best of 3; defaults from the last match. Scoring: two full-height tap zones (opponent top, me bottom), point display, sets and games, serve icon and court-side pill (справа / зліва / на вибір), status line only for «Рівно», «Вирішальне очко», «Тай-брейк», «Матч-тай-брейк». Haptics: distinct for game, set, match; change of ends only when an added point calls for it (never on undo or correction). Controls page: undo, pause/resume (elapsed time stops), server correction, end match early with confirmation. Summary: result, set scores, duration; heart rate comes in spec 003. Always On: dimmed state as in the design. All strings via String Catalog in EN/PL/UK per docs/glossary.md; VoiceOver labels; Dynamic Type on 42 mm. Out of scope: HealthKit (003), persistence and crash recovery, sync to iPhone (004). A 0-point unfinished match is never saved. Deliver the implementation later in small PRs per screen."
 
@@ -14,7 +14,7 @@ This feature is the watch app's match flow, from choosing the format to the resu
 
 All tennis logic comes from the scoring engine (spec 001). The watch app never computes a score, a server, a court side or a change of ends itself. It sends events to the engine and shows what the engine exposes. Rule references use the IDs in [`docs/rules/itf-notes.md`](../../docs/rules/itf-notes.md), written `[ITF: XX-00]`.
 
-Screens follow the design export in [`docs/design/screens/`](../../docs/design/screens/README.md) (Watch 1–6). Where this spec departs from the export, it says so, and the design file gets the same change in the same PR once Denys approves.
+Screens follow the design export in [`docs/design/screens/`](../../docs/design/screens/README.md) (Watch 1–6). Where this spec departs from the export, it says so, and the design file gets the same change in the implementation PR for that screen.
 
 Items marked **(Qn)** were open questions; Denys accepted every proposal on 2026-10-13. They are listed under **Decisions** at the end.
 
@@ -47,7 +47,7 @@ The player opens the app, checks or changes the format, taps Start, says who ser
 7. **Given** New match, **When** the player taps Start, **Then** First server asks "Who serves first?" with three buttons: Me, Opponent, Coin toss.
 8. **Given** First server, **When** the player taps Me or Opponent, **Then** the match starts with that first server and the score screen opens at 0–0, the first server marked, court side Right.
 9. **Given** First server, **When** the player taps Coin toss, **Then** the app picks Me or Opponent at random with equal chance and shows the result (Q3); confirming it starts the match as in scenario 8.
-10. **Given** First server, **When** the player goes back, **Then** New match shows with the settings unchanged, and no match has started.
+10. **Given** First server, **When** the player goes back, **Then** New match shows with the settings unchanged, and no match has started. **Given** the coin-toss result, **When** the player goes back, **Then** First server shows again and no match has started; a new toss is made if Coin toss is tapped again.
 
 ---
 
@@ -75,7 +75,7 @@ During play the player taps the top half when the opponent wins a point and the 
 
 *Status line*
 
-8. **Given** the engine's flags, **Then** a status line shows exactly one of: "Deuce" (deuce flag), "Deciding point" (deciding-point flag), "Tie-break" (tie-break flag, not a match tie-break), "Match tie-break" (match-tie-break flag). In every other state the status line is empty. Nothing else ever appears in it [ITF: GM-02, NA-01, TB-01, MT-03].
+8. **Given** the engine's flags, **Then** a status line shows exactly one of: "Deuce" (deuce flag), "Deciding point" (deciding-point flag), "Tie-break" (tie-break flag, not a match tie-break), "Match tie-break" (match-tie-break flag). In every other state the status line is empty. The only other text that may appear in it is "Paused" (Q4, Story 4 s5): while paused, Paused replaces the game state on screen, and VoiceOver reads both ("Paused. Deuce") [ITF: GM-02, NA-01, TB-01, MT-03].
 9. **Given** advantage in an Advantage game, **Then** the status line is empty; the AD point display shows the state.
 
 *Header*
@@ -94,7 +94,7 @@ The player feels a distinct haptic when a game, a set or the match is won, and a
 
 **Why this priority**: Players don't look at the watch between points. Haptics confirm the tap and announce the moments that matter.
 
-**Independent Test**: Tap sequences that end a game, a set, the match and that call for a change of ends, and check which haptics are requested after each tap, undo and correction.
+**Independent Test**: Unit-test the outcome function (FR-010) with engine states before and after points that end a game, a set, the match, and that call for a change of ends; then check which haptics are requested after each tap, undo and correction.
 
 **Acceptance Scenarios**:
 
@@ -102,7 +102,7 @@ The player feels a distinct haptic when a game, a set or the match is won, and a
 2. **Given** an added point wins a set that does not win the match (a tie-break included), **Then** the set haptic plays, not the game haptic.
 3. **Given** an added point wins the match (a match tie-break included), **Then** the match haptic plays, and neither the set nor the game haptic.
 4. **Given** an added point that wins no game, **Then** only the point haptic plays (Q6).
-5. **Given** the engine reports that an added point calls for a change of ends, **Then** the change-of-ends haptic plays after that point's game or set haptic, so both are felt as separate patterns [ITF: EN-01, EN-02, EN-03, EN-04, TB-05].
+5. **Given** the engine reports that an added point calls for a change of ends, **Then** the change-of-ends haptic plays after that point's haptic (point, game or set), so both are felt as separate patterns. Example: the 6th point of a tie-break that does not end it plays the point haptic, then the change-of-ends haptic [ITF: EN-01, EN-02, EN-03, EN-04, TB-05].
 6. **Given** the point that wins the match, **Then** no change-of-ends haptic plays [ITF: EN-05].
 7. **Given** any undo, server correction, early end, undo of an early end, pause or resume, **Then** no game, set, match or change-of-ends haptic plays, even when the engine's exposed change-of-ends value reads "change" afterwards (spec 001, change-of-ends haptic note).
 8. **Given** game, set, match and change-of-ends haptics, **Then** each is a different pattern that Denys can tell apart on a real watch without looking (device check).
@@ -162,7 +162,7 @@ When the match is won or ended early, the summary shows the result, the set scor
 2. **Given** a won match, **Then** the title reads Win if Me won the match and Loss if the Opponent won it.
 3. **Given** a match ended early, **Then** the title reads "Match ended early" (Q5) and never Win or Loss.
 4. **Given** the summary, **Then** a chip shows each completed set as Me's games, then the Opponent's (e.g. "6:4", "3:6"). A match tie-break shows its point score (e.g. "10:7") [ITF: MT-05]. A set won in a tie-break shows "7:6" (Q11).
-5. **Given** a match ended early during a set, **Then** the unfinished set is shown as a chip with its current games, marked as unfinished by more than colour (Q5).
+5. **Given** a match ended early during a set, **Then** the unfinished set is shown as a chip with its current games and an asterisk marker (e.g. "3:2*"), and VoiceOver reads it as unfinished (Q5). **Given** it ended early during a match tie-break, **Then** the chip shows the match tie-break's point score with the marker (e.g. "7:5*") [ITF: MT-05, MT-08]. **Given** it ended early after a set was completed and before any point of the next set (or match tie-break) was played, **Then** no chip is shown for that next set.
 6. **Given** set chips, **Then** sets Me lost are dimmed, and the chip order and VoiceOver carry the same meaning ("Set 2: 3–6, lost").
 7. **Given** the summary, **Then** it shows Duration: the elapsed match time without pauses, formatted for the current language.
 8. **Given** the summary, **Then** there are no heart-rate or calorie rows in this feature (spec 003).
@@ -181,7 +181,7 @@ With the wrist down, the dimmed screen still shows the score.
 
 **Acceptance Scenarios**:
 
-1. **Given** the score screen enters the dimmed (Always On) state, **Then** it shows the same zones with darker fills, grey sets and games, point displays in dimmed player colours, and the elapsed time in whole minutes only (e.g. "42 min", with plural forms).
+1. **Given** the score screen enters the dimmed (Always On) state, **Then** it shows the same zones with darker fills, grey sets and games, point displays in dimmed player colours, and the elapsed time in whole minutes only (e.g. "42 min"), using the system's abbreviated minutes format for the current language.
 2. **Given** the dimmed state, **Then** there are no seconds, no Undo button, no animations, no serve icon, no court-side pill and no status line (Q8).
 3. **Given** the dimmed state, **When** a point is added after the wrist is raised, **Then** the full score screen is back before the tap is handled; taps are never handled in the dimmed state.
 4. **Given** the dimmed state, **Then** the point displays, sets and games stay readable at arm's length (device check).
@@ -198,7 +198,7 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 
 **Acceptance Scenarios**:
 
-1. **Given** the score screen with VoiceOver, **Then** each zone reads, as one element: the player, the point score, the games and sets, and whether that player serves and from which side, e.g. "Me, 30. Games 3, sets 1. Serving from the right." The action of the zone reads "Add point for Me". Exact wording is set in the copy table.
+1. **Given** the score screen with VoiceOver, **Then** the first element below the header is a score summary that reads the server's score first, then the server and the side, e.g. "30–15, Me serving from the right" ("advantage" for AD; on the deciding point "…, receiver chooses the side") [ITF: GM-01]. After it, each zone reads, as one element: the player, the point score, the games and sets, and whether that player serves and from which side, e.g. "Me, 30. 3 games, 1 set. Serving from the right." The action of the zone reads "Add point for Me". Exact wording is set in the copy table, with plural forms for games and sets.
 2. **Given** the status line shows a state, **Then** VoiceOver reads it as part of the score, and announces it when it appears.
 3. **Given** a game, set or match is won, or the server is corrected, **Then** VoiceOver announces it.
 4. **Given** the change-of-ends haptic plays, **Then** VoiceOver also announces "Change ends".
@@ -215,7 +215,7 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 - **Tap while the summary is opening:** a tap that lands after the match-winning point adds nothing (the engine rejects it) [ITF: MT-08].
 - **Undo after the match is won:** from the summary (Q7), the match is back at match point [spec 001, Story 3, scenario 3].
 - **Undo of an early end:** the match is back in progress at the same score, not paused, and the elapsed time continues.
-- **Server correction during a tie-break, after the match or after an early end:** accepted; on the summary it changes nothing visible [ITF: CE-02].
+- **Server correction during a tie-break or while paused:** accepted [ITF: CE-02]. The summary has no Server control, so a correction after the match ends is not offered in this feature.
 - **Pause during a tie-break:** the tie-break state, server and court side are unchanged by pause and resume.
 - **Pause, then End:** the duration excludes the pause.
 - **Early end at 0–0 or after only undone points:** if no point remains in the event list, the match is discarded without a summary (Story 4, scenario 13).
@@ -238,9 +238,9 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 - **FR-005**: The score screen MUST have two tap zones of equal height across the full width below the header: Opponent on top, Me at the bottom. A tap anywhere in a zone MUST add exactly one point for that player while the match is in progress and not paused.
 - **FR-006**: Each zone MUST show the player label, sets won, games in the current set and the point display, all taken from the engine [ITF: GM-01, GM-02, NA-01, TB-01].
 - **FR-007**: The server's zone MUST show the serve icon and the court-side pill (Right / Left / Choice) from the engine; the receiver's zone MUST show neither [ITF: SV-02, SV-03, TB-02, TB-04, NA-02].
-- **FR-008**: The status line MUST show only "Deuce", "Deciding point", "Tie-break" or "Match tie-break", from the engine's flags, and MUST be empty otherwise. In a match tie-break it shows only "Match tie-break".
+- **FR-008**: The status line MUST show only "Deuce", "Deciding point", "Tie-break" or "Match tie-break", from the engine's flags, and MUST be empty otherwise. In a match tie-break it shows only "Match tie-break". The one exception is "Paused" (FR-016): while the match is paused it replaces the game state on screen, and VoiceOver reads "Paused" followed by the game state, if any.
 - **FR-009**: The header MUST show an Undo button and the elapsed match time with monospaced digits.
-- **FR-010**: The watch app MUST NOT compute score, server, court side, winners or change of ends itself; all of them come from the engine (spec 001).
+- **FR-010**: The watch app MUST NOT compute score, server, court side, winners or change of ends itself; all of them come from the engine (spec 001). Which point, game, set and match outcome an added point produced, and whether it calls for a change of ends, MUST be derived by comparing the engine state before and after that point, in one pure function (state before, state after → point, game, set, match and change-of-ends outcomes) with its own unit tests. Haptics and announcements use only its result, so their logic is tested without UI. This comparison counts as "from the engine"; spec 001 is not changed.
 
 *Haptics*
 - **FR-011**: When an added point wins the match, the match haptic MUST play; else when it wins a set, the set haptic; else when it wins a game, the game haptic; else the point haptic (Q6). Exactly one of these plays per added point.
@@ -267,7 +267,7 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 *Accessibility and localization*
 - **FR-023**: Every user-facing string MUST come from the String Catalog in EN (source), PL and UK, follow `docs/glossary.md` and the copy table below, and use plural forms where counts appear. Durations and minutes MUST use system formatting for the current language.
 - **FR-024**: Every interactive element and every score zone MUST have a VoiceOver label and value as in Story 7. Game, set and match wins, server corrections, change of ends and status-line changes MUST be announced.
-- **FR-025**: All screens MUST support Dynamic Type up to the size agreed in Q9 on the smallest supported watch without truncating text. No information may be carried by colour alone.
+- **FR-025**: All screens MUST support Dynamic Type up to the size agreed in Q9 on the smallest supported watch without truncating text. At accessibility sizes the score screen MUST keep the largest standard size. No information may be carried by colour alone.
 - **FR-026**: The tap zones MUST each fill the full width and half the remaining height; no other control may overlap them.
 
 *Scope and privacy*
@@ -295,9 +295,19 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 | End confirmation | End match? / End match | Zakończyć mecz? / Zakończ mecz | Завершити матч? / Завершити матч | glossary-based draft; Cancel is the system button |
 | Summary titles | Win · Loss · Match ended early | Wygrana · Porażka · Mecz przerwany | Перемога · Поразка · Матч перервано | Win/Loss glossary; unfinished draft (Q5) |
 | Summary row / button | Duration · Done | Czas trwania · Gotowe | Тривалість · Готово | draft (UK from mock-up) |
-| Always On time | %d min (plural, system format) | %d min | %d хв | system formatting |
+| Always On time | %d min (system abbreviated format) | %d min | %d хв | system formatting |
 | VoiceOver: choice pill | Receiver chooses the side | Stronę wybiera odbierający | Сторону обирає приймаючий | approved 2026-10-12 |
 | VoiceOver: change ends | Change ends | Zmiana stron | Зміна сторін | glossary |
+| Point display: advantage | AD | AD | AD | decided by Denys 2026-10-13 (glossary): "AD" on screen in all languages |
+| VoiceOver: advantage | advantage | przewaga | перевага | decided by Denys 2026-10-13 (glossary) |
+| VoiceOver: score summary | %1$@–%2$@, %3$@ serving from the right / left | %1$@–%2$@, serwuje %3$@, z prawej / z lewej | %1$@–%2$@, подає %3$@, справа / зліва | draft (R1-1); server's score first |
+| VoiceOver: score summary, deciding point | %1$@–%2$@, %3$@ serving, receiver chooses the side | %1$@–%2$@, serwuje %3$@, stronę wybiera odbierający | %1$@–%2$@, подає %3$@, сторону обирає приймаючий | draft (R1-1) |
+| VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. Serving from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. Serwuje z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. Подає справа / зліва. | draft; games and sets use plural forms |
+| VoiceOver: zone action | Add point for %@ | Dodaj punkt: %@ | Додати очко: %@ | draft |
+| VoiceOver: announcements | Game: %@ · Set: %@ · Match: %@ · Server: %@ | Gem: %@ · Set: %@ · Mecz: %@ · Serwuje: %@ | Гейм: %@ · Сет: %@ · Матч: %@ · Подає: %@ | draft; %@ is the winner or the new server |
+| VoiceOver: paused | Paused. %@ | Pauza. %@ | Пауза. %@ | draft (R1-3); %@ is the game state, omitted if none |
+| VoiceOver: set chip | Set %1$d: %2$d–%3$d, won / lost / unfinished | Set %1$d: %2$d–%3$d, wygrany / przegrany / niedokończony | Сет %1$d: %2$d–%3$d, виграний / програний / незавершений | draft (Q5, R1-2) |
+| Coin-toss result button | Start | Start | Почати | same string as Start |
 
 ### Key Entities
 
@@ -334,14 +344,31 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 
 Denys accepted all proposals on 2026-10-13 ("all as proposed").
 
-- **Q1** — Set length is its own row, "Set length", second in the list. The design export gains this row.
+- **Q1** — Set length is its own row, "Set length", second in the list. The design export gains this row in the New match implementation PR.
 - **Q2** — First-use defaults: best of 3, sets of 6, Advantage, third set as a full set.
 - **Q3** — Coin toss shows the result on its own screen ("First server: Opponent") with one Start button.
 - **Q4** — While paused, "Paused" appears in the status line position and the zones are dimmed. This is the only exception to FR-008's four game states.
 - **Q5** — Unfinished match title: "Match ended early" / «Матч перервано» / «Mecz przerwany». The unfinished set is a chip with an asterisk marker, e.g. "3:2*", and VoiceOver reads "unfinished".
 - **Q6** — A light point haptic plays on every added point that wins no game.
-- **Q7** — The summary has a secondary Undo button under Done. The design export gains this button.
+- **Q7** — The summary has a secondary Undo button under Done. The design export gains this button in the Summary implementation PR.
 - **Q8** — Always On hides the serve icon, the court-side pill and the status line.
-- **Q9** — Dynamic Type on the score screen goes up to the largest standard (non-accessibility) size; the other screens support every size and scroll. The smallest target is the smallest watch watchOS 26 supports, 40 mm (Series 6 / SE); the request's 42 mm came from an outdated note (confirmed by Denys on 2026-10-13). Layout checks run on the 40 mm simulator; real-device checks run on Denys's own watch.
+- **Q9** — Dynamic Type on the score screen goes up to the largest standard (non-accessibility) size, and at accessibility sizes the score screen keeps that largest standard size; the other screens support every size and scroll. The smallest target is the smallest watch watchOS 26 supports, 40 mm (Series 6 / SE); the request's 42 mm came from an outdated note (confirmed by Denys on 2026-10-13). Layout checks run on the 40 mm simulator; real-device checks run on Denys's own watch.
 - **Q10** — Without a workout session the app may return to the watch face with the wrist down, and the match is lost if the system ends the app. Accepted for 002; spec 003 adds the workout session.
 - **Q11** — A set won in a tie-break shows "7:6", as designed.
+
+### Review 1 decisions
+
+Denys accepted all proposals for the review 1 findings on 2026-10-13 ([report](https://github.com/dfinchenko/tennis-beat/pull/15#issuecomment-6153690461)), with two notes (R1-4, R1-7).
+
+- **R1-1** — A VoiceOver score summary before the zones reads the server's score first (Story 7 s1) [ITF: GM-01].
+- **R1-2** — An early end during a match tie-break shows its point score with the marker ("7:5*"); no chip for a set with no points played (Story 5 s5).
+- **R1-3** — "Paused" is the one exception to FR-008; it replaces the game state on screen, and VoiceOver reads both.
+- **R1-4** — Point, game, set, match and change-of-ends outcomes come from one pure function over the engine states before and after a point, with its own unit tests; haptics are tested without UI (FR-010).
+- **R1-5** — A server correction after the match ends is not offered (edge cases).
+- **R1-6** — The change-of-ends haptic follows the point's haptic, whatever it is (Story 3 s5).
+- **R1-7** — Missing strings added to the copy table as drafts. The point display shows "AD" in all three languages; VoiceOver reads "advantage" / «przewaga» / «перевага» (added to `docs/glossary.md`).
+- **R1-8** — Always On minutes use the system's abbreviated format; no plural claim.
+- **R1-9** — Design export changes land in each screen's implementation PR.
+- **R1-10** — At accessibility sizes the score screen keeps the largest standard size (Q9, FR-025).
+- **R1-11** — The harness device check names the Q9 limits.
+- **R1-12** — Back from the coin-toss result returns to First server (Story 1 s10).

@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [x] No [NEEDS CLARIFICATION] markers remain (Q1–Q11 decided by Denys on 2026-10-13)
+- [x] No [NEEDS CLARIFICATION] markers remain (Q1–Q11 and review 1 findings decided by Denys on 2026-10-13)
 - [x] Requirements are testable and unambiguous (given the proposals)
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Q1–Q11 were decided by Denys on 2026-10-13 ("all as proposed"). Denys approved the spec on 2026-10-13.
+- Q1–Q11 and the review 1 findings were decided by Denys on 2026-10-13. Waiting for Denys to set `Status: Approved` again after the review 1 fixes.
 - The copy table holds draft strings for Denys's approval; PL drafts need a native tennis player's review.
