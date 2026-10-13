@@ -80,7 +80,7 @@ specs/001-scoring-engine/
 │   ├── public-api.md    # Swift API used by the apps + guarantees G1–G7
 │   └── saved-format.md  # JSON formatVersion 1 + restore algorithm
 ├── checklists/requirements.md
-└── tasks.md             # Phase 2 (/speckit-tasks), not created here
+└── tasks.md             # Phase 2 (/speckit-tasks)
 ```
 
 ### Source Code (repository root)

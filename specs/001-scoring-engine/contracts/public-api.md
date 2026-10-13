@@ -128,6 +128,7 @@ public enum RestoreError: Error, Sendable, Hashable {
 
 public enum MatchCodec {
   public static let currentFormatVersion: Int   // 1
+  /// A non-`EncodingError` failure from `JSONEncoder` is wrapped as `EncodingError.invalidValue`; never a force cast.
   public static func encode(_ match: Match) throws(EncodingError) -> Data
   public static func decode(_ data: Data) -> Result<Match, RestoreError>
 }

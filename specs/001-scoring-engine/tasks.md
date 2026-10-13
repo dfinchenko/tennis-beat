@@ -9,7 +9,7 @@ description: "Task list for the scoring engine (001)"
 **Tests**: REQUIRED. Constitution III (test first, non-negotiable) and FR-028 apply.
 - In every phase, the test tasks come first. Run them and **see them fail** before the implementation tasks of that phase start.
 - A test is written in the phase whose implementation makes it pass, even when its scenario belongs to another story. For example, US3 s7 (undo and change of ends) is written in the US5 phase. No test is ever `.disabled` to wait for later code. The only exception is the hand-scored SC-005 case, which waits for data, not code (T050, T051).
-- Every scenario has at least one `@Test`, and each `@Test` covers exactly one scenario. Its name starts with the scenario ID (`"US2 s7 …"`); use parameterized arguments for variants. A scenario's checks may be split across tests only when they land in different phases (e.g. `"US4 s10 …"` in T018 and T022). Plan-level tests use `"SC-00n …"` or `"P-1 …"`.
+- Every scenario has at least one `@Test`, and each `@Test` covers exactly one scenario. Its name starts with the scenario ID (`"US2 s7 …"`); use parameterized arguments for variants. A scenario's checks may be split across tests only when they land in different phases (e.g. `"US4 s10 …"` in T018 and T022). Plan-level tests use `"SC-00n …"` or `"P-1 …"`. Contract-guarantee tests use `"G1 …"`–`"G3 …"`, and codec tests outside a scenario use `"Codec …"`.
 - No vacuous tests: when the stub value (zero stats, a no-op mutator) would already satisfy an assertion, the test adds a positive control that fails against the stub.
 - Every rule-based test carries `// ITF: <ID>` from `docs/rules/itf-notes.md`.
 - When the full suite runs at a phase checkpoint, all earlier phases' tests stay green.
@@ -97,7 +97,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - N = 8: 8–6 and 9–7 win, 8–7 continues.
 - [ ] T016 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s15–s19 for the match (`// ITF: MT-01, MT-02, MT-03`). s19 expects `MatchFormat.init` to throw `.invalidFormat`; it fails against T006, which doesn't validate yet. (US1 s20 needs the codec and is written in T028.) Also, in `Tests/US3UndoAndRestoreTests.swift`, write test US3 s9 here, because T020 implements it: after the match-winning point, `recordPoint` throws `.matchNotInProgress` and the `Match` is unchanged.
 - [ ] T017 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s1–s6 (`// ITF: TB-01, MT-03`): numeric displays, 7–5, 6–6 → 7–6 continues, 15–13, match tie-break 10–8, and 12–10.
-- [ ] T018 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s7, s9 and s10 (`// ITF: MT-05, TB-01, ST-07, GM-02, NA-01, NA-02, TB-04`):
+- [ ] T018 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s7, s9 and s10 (`// ITF: MT-05, TB-01, ST-07, GM-02, NA-01`; NA-02 and TB-04 go on the court-side test in T022):
   - s7: `completedSets` reads 6–4, 3–6, then a match-tie-break entry with games 1–0, `tieBreak` 10–7 and `isMatchTieBreak`;
   - s9: per set length, 7–6 (7–5), 5–4 (9–7) and 9–8 (7–3);
   - s10: the flags are off at 3–3, 6–6 and 9–9 in Advantage and No-Ad matches, and the court side is never `.receiversChoice`. That last check stays red until T023, so assert it in a separate `@Test` named `"US4 s10 court side …"` and write it in T022 instead.
@@ -136,7 +136,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - s4 for each set length;
   - s5 for several tie-break scores;
   - s7 for set 2 ended by a tie-break before the match tie-break.
-- [ ] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). Positive control for the stub (always Right): s9 also checks that after one point of the new game the side is Left. s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"`: never `.receiversChoice` at equal tie-break scores.
+- [ ] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). Positive control for the stub (always Right): s9 also checks that after one point of the new game the side is Left. s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"` (`// ITF: NA-02, TB-04`): never `.receiversChoice` at equal tie-break scores.
 
 ### Implementation for US2
 
@@ -162,7 +162,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 - [ ] T024 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s1–s6 for undo:
   - across game, set, tie-break and match-tie-break boundaries and after the match is won;
-  - s6: with only the setup, `undo()` returns `nil` and changes nothing.
+  - s6: with only the setup, `undo()` returns `nil` and changes nothing. Positive control (the stub `undo` always returns `nil`): on the same match after one point, `undo()` returns that point event.
 
   (s7 is written in T042, s11 in T054, s12 in T060.)
 - [ ] T025 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s10 and s16 (the point-after-a-win case). (s9 was written in T016.)
@@ -177,9 +177,9 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - s13: `v1.json` restores to `v1.expected.json`;
   - s14: `"formatVersion": 2` gives `.unsupportedVersion(found: 2, supported: 1)`, with no crash. To prove that nothing else is parsed, the same result comes back for a version-2 payload whose `events` would be malformed under v1;
   - s15: the same points with shuffled or out-of-order times give an identical `state` and `stats`;
-  - extra: an unknown `type` and a missing `formatVersion` give `.malformed`.
+  - `"Codec malformed …"`: an unknown `type` and a missing `formatVersion` give `.malformed`.
 - [ ] T028 [P] [US3] In `Tests/US1ScoringTests.swift`, write test US1 s20 (`// ITF: ST-07`): decoding a saved list with `"setLength": 5` gives `.invalid(.invalidFormat)`, and so does a setup with `oneSet` plus `matchTieBreak: true`.
-- [ ] T029 [P] [US3] Write tests for contract guarantees G1–G3 in `Tests/US3UndoAndRestoreTests.swift`:
+- [ ] T029 [P] [US3] Write tests `"G1 …"`, `"G2 …"` and `"G3 …"` for the contract guarantees in `Tests/US3UndoAndRestoreTests.swift`:
   - `Match(events: m.events) == m`;
   - after `undo()`, the match equals `Match(events: dropLast)`;
   - a throwing call leaves `m` unchanged.
@@ -201,8 +201,8 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   The spec's wording "the same point" is backlog #6 R4-7.
 - [ ] T033 [US3] In `Tests/PerformanceTests.swift`, write test SC-004 (CI part):
   - build a fixed best-of-3 event list of **exactly 500 points** with `MatchBuilder`: long deuce games plus tie-break sets, with no generator involved. Assert `points == 500` and the expected final `completedSets` and `status`;
-  - time `Match(events:)` plus `stats` 10 times with `ContinuousClock`;
-  - `#expect(median < .milliseconds(10))`, and print the median.
+  - time two paths, each 10 times with `ContinuousClock`: `Match(events:)` plus `stats` (validation, the incremental path), and `Reducer.replay` plus stats (the full recompute that undo and corrections run, via `@testable import`);
+  - `#expect(median < .milliseconds(10))` for each path, and print both medians.
 
 ### Implementation for US3
 
@@ -220,7 +220,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - hand-written `Codable` for the events, with the `"type"` discriminator;
   - `recordedAt` as `timeIntervalSinceReferenceDate`;
   - the encoder uses `.sortedKeys`;
-  - `encode` is `throws(EncodingError)`: catch the `JSONEncoder` error and rethrow it as `EncodingError` (contract G6).
+  - `encode` is `throws(EncodingError)`: catch the `JSONEncoder` error; rethrow it when it is an `EncodingError`, otherwise wrap it as `EncodingError.invalidValue(match, .init(codingPath: [], debugDescription: "\(error)", underlyingError: error))`. No force cast (contract G6).
 - [ ] T037 [US3] Implement `MatchCodec.decode` in `Sources/Persistence/MatchCodec.swift`, following the 5-step restore algorithm in saved-format.md:
   1. decode the version only;
   2. a newer version → `.unsupportedVersion`;
@@ -243,13 +243,13 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US5 (write first, must FAIL)
 
-- [ ] T039 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s1–s4 (`// ITF: EN-01, EN-02, EN-03, EN-04`). s4 has one parameterized case per set length: 7–6 = 13, 5–4 = 9, 9–8 = 17.
+- [ ] T039 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s1–s4 (`// ITF: EN-01, EN-02, EN-03, EN-04`). Positive control for s2 (the placeholder `changeOfEnds` is always `false`): the same test asserts the change after game 1 of the next set is `true`. s4 has one parameterized case per set length: 7–6 = 13, 5–4 = 9, 9–8 = 17.
 - [ ] T040 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s5–s8 (`// ITF: TB-05, EN-03, EN-02, EN-04`):
   - s6: a 7–5 tie-break (12 points) reports exactly one change;
   - s7: one case per set length;
-  - s8: the first change comes after 6 match-tie-break points.
-- [ ] T041 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write test US5 s9 (`// ITF: EN-05`) with all four explicit cases: 1-set 6–3, 1-set 7–6, best of 3 won 2–0 with set 2 won in a tie-break, and a match tie-break won 10–8 (18 points). Also check `changeOfEnds == false` before the first point.
-- [ ] T042 [P] [US5] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s7: undoing a point that called for a change of ends exposes the previous point's value, or `false` if there is none.
+  - s8: the first change comes after 6 match-tie-break points; the test asserts that point's value is `true` (positive control), not only that earlier ones are `false`.
+- [ ] T041 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write test US5 s9 (`// ITF: EN-05`) with all four explicit cases: 1-set 6–3, 1-set 7–6, best of 3 won 2–0 with set 2 won in a tie-break, and a match tie-break won 10–8 (18 points). Also check `changeOfEnds == false` before the first point. Positive control: in each case, an earlier point of the same match reports `true` (e.g. after game 1).
+- [ ] T042 [P] [US5] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s7: undoing a point that called for a change of ends exposes the previous point's value, or `false` if there is none. Positive control: one case has a previous point whose value is `true` (e.g. undo the second point of game 2 after game 1 ended with a change), so the test fails against the always-`false` placeholder.
 
 ### Implementation for US5
 
@@ -345,10 +345,10 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - s1: 6–4, 3–2, 30–15;
   - s5: an early end at 0–0 gives empty stats;
   - s6: rejected after a win or after an early end;
-  - s7 and s8: `changeOfEnds` unchanged by the early end and by undoing it.
+  - s7 and s8: `changeOfEnds` unchanged by the early end and by undoing it. Positive control (a no-op `endEarly` keeps it unchanged too): after the early end, `status == .unfinished`; after the undo, `.inProgress`.
 
   Cover the edge cases "mid-game" and "mid-tie-break" as parameterized arguments of s1.
-- [ ] T054 [P] [US7] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s11 (undo of an early end resumes the match) and the early-end cases of US3 s16: a restored list with a point or a second early end after an early end → `.invalid(.matchNotInProgress)`.
+- [ ] T054 [P] [US7] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s11 (undo of an early end resumes the match), test `"US3 s9 ended early …"` (a point after an early end throws `.matchNotInProgress` and leaves the `Match` unchanged), and the early-end cases of US3 s16: a restored list with a point or a second early end after an early end → `.invalid(.matchNotInProgress)`.
 - [ ] T055 [US7] Extend `Tests/Support/MatchGenerator.swift`: with probability 0.1, end a match early at a random point. In `Tests/PropertyTests.swift`, write test SC-007(b): for every in-progress prefix, an early end followed by undo leaves the entire state and stats unchanged. P-1, SC-002 and SC-003 now also cover early ends.
 - [ ] T056 [US7] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `matchEndedEarly` event at the end (status `unfinished`).
 
@@ -376,14 +376,14 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 - [ ] T058 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s1–s6 (`// ITF: CE-02, TB-02, TB-03`):
   - s1: 2–0, game 1 broken, game 2 held, Opponent serves game 3;
-  - s3: compare every server-independent field, and every point's change-of-ends value, with the uncorrected match (FR-030);
+  - s3: compare every server-independent field, and every point's change-of-ends value, with the uncorrected match (FR-030). Positive control (a no-op correction leaves everything unchanged too): `server` and `effectiveFirstServer` have changed;
   - s4: a correction during a tie-break;
   - s6: two corrections equal the uncorrected match, including `changeOfEnds`. Positive control: after the first correction, the server differs.
 - [ ] T059 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s7–s11 (`// ITF: CE-02, MT-08`):
   - s7: a correction to the current first server → `.sameFirstServer`, both for the setup's first server and after a correction;
   - s8: accepted after a win and after an early end;
   - s10: an early end, then a correction, then undo twice;
-  - s11: `changeOfEnds` unchanged.
+  - s11: `changeOfEnds` unchanged. Positive control: `server` has changed after the correction.
 - [ ] T060 [P] [US8] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s12: undoing a correction restores the uncorrected server and serve stats, and the last point stays.
 - [ ] T061 [US8] Extend `Tests/Support/MatchGenerator.swift` to insert `firstServerCorrected` (to the other player) with probability ~0.02 per event, including after an early end. In `Tests/PropertyTests.swift`, write test SC-007(a): a correction followed by the reverse correction leaves the entire state and stats unchanged, for every prefix. Positive control: after the first correction, `effectiveFirstServer` has changed, and so have the serve tallies whenever at least one point has been played. P-1, SC-002, SC-003 and SC-006 now also cover corrections.
 - [ ] T062 [US8] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `firstServerCorrected` event in mid-match and another after the early end, with the expected server and stats. The fixture is now final for formatVersion 1.
