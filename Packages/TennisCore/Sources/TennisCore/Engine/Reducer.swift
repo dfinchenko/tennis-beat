@@ -1,6 +1,7 @@
 /// Everything derived from a match record: the cached value behind `Match.state` and `Match.stats`.
 struct Reduction: Sendable, Hashable {
   var score: ScoreTrack
+  var service: ServiceTrack
   var endedEarly = false
 
   var status: MatchStatus {
@@ -14,8 +15,8 @@ struct Reduction: Sendable, Hashable {
       completedSets: score.completedSets,
       games: score.games,
       points: score.pointDisplays,
-      server: .me,
-      courtSide: .right,
+      server: service.server(in: score),
+      courtSide: service.courtSide(in: score),
       isDeuce: score.isDeuce,
       isDecidingPoint: score.isDecidingPoint,
       isTieBreak: score.mode != .standard,
@@ -30,20 +31,25 @@ struct Reduction: Sendable, Hashable {
 /// What one point meant, for stats.
 struct PointContext: Sendable, Hashable {
   var winner: Player
+  var server: Player
   var outcome: ScoreTrack.Outcome
 }
 
 /// The pure reduction of a match record (research R1, R2).
 enum Reducer {
   static func initial(setup: MatchSetup, effectiveFirstServer: Player) -> Reduction {
-    Reduction(score: ScoreTrack(format: setup.format))
+    Reduction(
+      score: ScoreTrack(format: setup.format),
+      service: ServiceTrack(firstServer: effectiveFirstServer))
   }
 
   /// Applies one point. The caller has checked that the match is in progress.
   @discardableResult
   static func step(_ reduction: inout Reduction, winner: Player) -> PointContext {
+    let server = reduction.service.server(in: reduction.score)
     let outcome = reduction.score.addPoint(winner)
-    return PointContext(winner: winner, outcome: outcome)
+    reduction.service.pointPlayed(outcome)
+    return PointContext(winner: winner, server: server, outcome: outcome)
   }
 
   /// Rebuilds the reduction of `events` from scratch, ignoring setup and recorded times.

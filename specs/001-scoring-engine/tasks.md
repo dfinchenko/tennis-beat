@@ -132,15 +132,15 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US2 (write first, must FAIL)
 
-- [ ] T021 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s1–s8 for service order (`// ITF: SV-01, SV-02, SV-04, TB-02, TB-03, MT-04`). Positive control for the stub (Me serving): s1 is parameterized over both first servers, so the Opponent-first case fails against the stub.
+- [X] T021 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s1–s8 for service order (`// ITF: SV-01, SV-02, SV-04, TB-02, TB-03, MT-04`). Positive control for the stub (Me serving): s1 is parameterized over both first servers, so the Opponent-first case fails against the stub.
   - s4 for each set length;
   - s5 for several tie-break scores;
   - s7 for set 2 ended by a tie-break before the match tie-break.
-- [ ] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). Positive control for the stub (always Right): s9 also checks that after one point of the new game the side is Left. s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"` (`// ITF: NA-02, TB-04`): never `.receiversChoice` at equal tie-break scores.
+- [X] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). Positive control for the stub (always Right): s9 also checks that after one point of the new game the side is Left. s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"` (`// ITF: NA-02, TB-04`): never `.receiversChoice` at equal tie-break scores.
 
 ### Implementation for US2
 
-- [ ] T023 [US2] Implement `Sources/Engine/ServiceTrack.swift`:
+- [X] T023 [US2] Implement `Sources/Engine/ServiceTrack.swift`:
   - the standard-game server alternates (SV-02);
   - tie-break point k: the server changes "after k = 0, 2, 4, …" (TB-02);
   - the next set (or match tie-break) after a tie-break set is started by the tie-break's first receiver (TB-03, SV-04, MT-04);

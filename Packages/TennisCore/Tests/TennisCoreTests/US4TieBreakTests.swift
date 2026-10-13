@@ -157,3 +157,27 @@ struct US4TieBreakTests {
     }
   }
 }
+
+extension US4TieBreakTests {
+  // ITF: NA-02, TB-04
+  @Test(
+    "US4 s10 court side is never the receiver's choice at equal tie-break scores",
+    arguments: [GameScoring.advantage, .noAd], [false, true])
+  func s10CourtSide(scoring: GameScoring, matchTieBreak: Bool) throws {
+    var m = try Match.make(scoring: scoring, matchTieBreak: true)
+    if matchTieBreak {
+      m.winSet(.me)
+      m.winSet(.opponent)
+    } else {
+      m.reachTieBreak()
+    }
+    #expect(m.state.isTieBreak)
+    m.point(.me)
+    #expect(m.state.courtSide == .left)  // positive control against an always-Right stub
+    m.point(.opponent)
+    for _ in 0..<(matchTieBreak ? 9 : 6) {
+      #expect(m.state.courtSide == .right)
+      m.play("MO")
+    }
+  }
+}
