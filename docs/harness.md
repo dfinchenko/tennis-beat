@@ -15,7 +15,7 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 2. `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`; `scripts/gates/check-artifacts.sh` must pass.
 3. Implementation in a dedicated worktree, tests first; hooks format on edit and run engine tests before the agent stops.
 4. Build and simulator run via XcodeBuildMCP, screenshots in the PR.
-5. `reviewer` subagent in a fresh context → `Reviewed-SHA`. Each report is posted as a PR comment: verdict, SHA, numbered findings (R<review>-<n>) with severity and outcome. The reviewer also verifies the PR's **Test expectation changes** list (see below).
+5. `reviewer` subagent in a fresh context → `Reviewed-SHA`. Each report is posted as a PR comment: verdict, SHA, numbered findings (R<review>-<n>) with severity and outcome. The reviewer also verifies the feature's `test-expectation-changes.md` (see below).
 6. PR + CI. Evidence is valid only for the reviewed SHA. The PR body starts with `Reviewed-SHA: <full 40-character SHA>`; the **review-gate** CI job fails unless it equals the PR head SHA (see below).
 7. Denys reviews and merges. **Gate 2 (human).**
 8. Before TestFlight: device checklist below. **Gate 3 (human).**
@@ -23,9 +23,9 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 ## Test expectation changes
 Rule (Denys, 2026-10-13). A test's expectation is the encoded rule. Changing it after the code exists can make a test agree with a bug.
 - **Applies to:** any change to what a test asserts (expected value, expected error, or a positive control's condition) made after the code that the test checks was written. This includes code already on `main` and code written earlier in the same branch. Writing a new test before its code, renaming, or changing a point sequence while keeping every expected value is not an expectation change. If in doubt, list it.
-- **The PR body** has a section **Test expectation changes**, with one row per change: test name, old expectation → new expectation, ITF note ID (from `docs/rules/itf-notes.md`; `—` only for a non-rule property such as a stats identity, with a reason). Write "none" if there are none.
-- **Order:** the PR is opened with `Reviewed-SHA: pending` before the final review, so the reviewer reads the list itself with `gh pr view <number>` (the PR number is passed to it, never a summary).
-- **The reviewer** checks the list against the diff: every expectation change in the diff must be listed, and every listed change must agree with the cited entry in `docs/rules/itf-notes.md`. An unlisted change, or one that contradicts its note, is a blocker finding.
+- **Where:** a file in the diff, `specs/<feature>/test-expectation-changes.md`, for the feature whose tests changed. Not the PR body: the body is the implementer's summary, which the reviewer must not read.
+- **Format:** one section per PR, newest last, headed with the branch name (and the PR number once known). One row per change: test name, old expectation → new expectation, ITF note ID (from `docs/rules/itf-notes.md`; `—` only for a non-rule property such as a stats identity, with a reason). A branch that changes test files but no expectation adds a section saying "none".
+- **The reviewer** reads the file as part of the diff and checks it against the diff: every expectation change in the diff must be listed, and every listed change must agree with the cited entry in `docs/rules/itf-notes.md`. An unlisted change, or one that contradicts its note, is a blocker finding.
 
 ## Review gate and merge order
 Added after PR #7 was merged at a head no reviewer had passed: nothing on GitHub enforced `Reviewed-SHA`.
