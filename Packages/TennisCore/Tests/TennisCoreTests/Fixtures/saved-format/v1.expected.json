@@ -25,6 +25,52 @@
     "15",
     "15"
   ],
-  "server": "opponent",
+  "server": "me",
+  "stats": {
+    "me": {
+      "breakPointsConverted": [
+        6,
+        6
+      ],
+      "breakPointsSaved": [
+        0,
+        4
+      ],
+      "pointsWonOnReturn": [
+        24,
+        24
+      ],
+      "pointsWonOnServe": [
+        5,
+        22
+      ],
+      "serviceGamesHeld": [
+        1,
+        5
+      ]
+    },
+    "opponent": {
+      "breakPointsConverted": [
+        4,
+        4
+      ],
+      "breakPointsSaved": [
+        0,
+        6
+      ],
+      "pointsWonOnReturn": [
+        17,
+        22
+      ],
+      "pointsWonOnServe": [
+        0,
+        24
+      ],
+      "serviceGamesHeld": [
+        0,
+        6
+      ]
+    }
+  },
   "status": "unfinished"
 }

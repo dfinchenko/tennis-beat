@@ -61,6 +61,10 @@
       "winner": "me"
     },
     {
+      "firstServer": "opponent",
+      "type": "firstServerCorrected"
+    },
+    {
       "recordedAt": 813592872.625,
       "type": "point",
       "winner": "me"
@@ -161,6 +165,10 @@
       "winner": "opponent"
     },
     {
+      "firstServer": "me",
+      "type": "firstServerCorrected"
+    },
+    {
       "recordedAt": 813593017.625,
       "type": "point",
       "winner": "opponent"
@@ -242,6 +250,10 @@
     },
     {
       "type": "matchEndedEarly"
+    },
+    {
+      "firstServer": "opponent",
+      "type": "firstServerCorrected"
     }
   ],
   "formatVersion": 1

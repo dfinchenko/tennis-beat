@@ -4,8 +4,7 @@ import Foundation
 
 /// Seeded random valid matches for the property tests (research R8).
 ///
-/// Built in stages: points (US3), early ends (US7); first-server corrections (US8) are added
-/// in their phase.
+/// Built in stages: points (US3), early ends (US7), first-server corrections (US8).
 enum MatchGenerator {
   struct Generated {
     var index: Int
@@ -46,19 +45,33 @@ enum MatchGenerator {
     let bias = Double.random(in: 0.3...0.7, using: &rng)
     let stopAt: Int? = Bool.random(using: &rng) ? Int.random(in: 0...300, using: &rng) : nil
     var time = 813_592_800.0
+    var events = m.events
+    var firstServer = first
+    /// US8: a correction to the other player, appended to the list even before `record` supports it.
+    func maybeCorrect(_ probability: Double) {
+      guard Double.random(in: 0..<1, using: &rng) < probability else { return }
+      firstServer = firstServer.other
+      events.append(.firstServerCorrected(firstServer))
+      try? m.record(.firstServerCorrected(firstServer))
+    }
     while m.state.status == .inProgress, m.pointCount < (stopAt ?? 2_000) {
+      maybeCorrect(0.02)
       let winner: Player = Double.random(in: 0..<1, using: &rng) < bias ? .me : .opponent
       time += Double.random(in: 5...60, using: &rng)
+      let point = MatchEvent.point(
+        winner: winner, recordedAt: Date(timeIntervalSinceReferenceDate: time))
       do {
-        try m.recordPoint(wonBy: winner, at: Date(timeIntervalSinceReferenceDate: time))
+        try m.record(point)
       } catch {
         break
       }
+      events.append(point)
     }
-    var events = m.events
     // US7: one match in ten ends early at the point where it stopped.
     if m.state.status == .inProgress, Double.random(in: 0..<1, using: &rng) < 0.1 {
       events.append(.matchEndedEarly)
+      try? m.record(.matchEndedEarly)
+      maybeCorrect(0.3)  // corrections are allowed after an early end too
     }
     return events
   }

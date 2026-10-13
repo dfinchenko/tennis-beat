@@ -374,23 +374,23 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US8 (write first, must FAIL)
 
-- [ ] T058 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s1–s6 (`// ITF: CE-02, TB-02, TB-03`):
+- [X] T058 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s1–s6 (`// ITF: CE-02, TB-02, TB-03`):
   - s1: 2–0, game 1 broken, game 2 held, Opponent serves game 3;
   - s3: compare every server-independent field, and every point's change-of-ends value, with the uncorrected match (FR-030). Positive control (a no-op correction leaves everything unchanged too): `server` and `effectiveFirstServer` have changed;
   - s4: a correction during a tie-break;
   - s6: two corrections equal the uncorrected match, including `changeOfEnds`. Positive control: after the first correction, the server differs.
-- [ ] T059 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s7–s11 (`// ITF: CE-02, MT-08`):
+- [X] T059 [P] [US8] In `Tests/US8FirstServerCorrectionTests.swift`, write tests US8 s7–s11 (`// ITF: CE-02, MT-08`):
   - s7: a correction to the current first server → `.sameFirstServer`, both for the setup's first server and after a correction;
   - s8: accepted after a win and after an early end;
   - s10: an early end, then a correction, then undo twice;
   - s11: `changeOfEnds` unchanged. Positive control: `server` has changed after the correction.
-- [ ] T060 [P] [US8] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s12: undoing a correction restores the uncorrected server and serve stats, and the last point stays.
-- [ ] T061 [US8] Extend `Tests/Support/MatchGenerator.swift` to insert `firstServerCorrected` (to the other player) with probability ~0.02 per event, including after an early end. In `Tests/PropertyTests.swift`, write test SC-007(a): a correction followed by the reverse correction leaves the entire state and stats unchanged, for every prefix. Positive control: after the first correction, `effectiveFirstServer` has changed, and so have the serve tallies whenever at least one point has been played. P-1, SC-002, SC-003 and SC-006 now also cover corrections.
-- [ ] T062 [US8] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `firstServerCorrected` event in mid-match and another after the early end, with the expected server and stats. The fixture is now final for formatVersion 1.
+- [X] T060 [P] [US8] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s12: undoing a correction restores the uncorrected server and serve stats, and the last point stays.
+- [X] T061 [US8] Extend `Tests/Support/MatchGenerator.swift` to insert `firstServerCorrected` (to the other player) with probability ~0.02 per event, including after an early end. In `Tests/PropertyTests.swift`, write test SC-007(a): a correction followed by the reverse correction leaves the entire state and stats unchanged, for every prefix. Positive control: after the first correction, `effectiveFirstServer` and the current server have changed. (Implementation note: serve tallies were dropped from the control, because a swap can leave them equal, e.g. two 5-point service games won 4–1 by each side.) P-1, SC-002, SC-003 and SC-006 now also cover corrections.
+- [X] T062 [US8] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `firstServerCorrected` event in mid-match and another after the early end, with the expected server and stats. The fixture is now final for formatVersion 1.
 
 ### Implementation for US8
 
-- [ ] T063 [US8] Implement `correctFirstServer(to:)` and `record(.firstServerCorrected)` in `Sources/Engine/Match.swift`:
+- [X] T063 [US8] Implement `correctFirstServer(to:)` and `record(.firstServerCorrected)` in `Sources/Engine/Match.swift`:
   - `effectiveFirstServer` is the latest correction, otherwise the setup's first server;
   - reject with `.sameFirstServer` when the requested player equals it;
   - accepted in any status;
