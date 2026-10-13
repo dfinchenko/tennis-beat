@@ -9,3 +9,12 @@ None. All tests in this branch are new and were written before the code they che
 - `US1 s6 a format that can't be built never starts a match` gained a positive control (a buildable format does start), so it can't pass against a no-op `start`.
 
 UI-test helpers changed after the code existed. The navigation taps now go through a shared helper (`UITests/Support/XCUIApplication+Helpers.swift`) that allows one retry when the next screen doesn't appear within 3 s, because the watch simulator sometimes swallows a tap right after launch. The scroll helper also scrolls until an element's frame is on screen, because the watch simulator reports elements below the visible area as hittable. Each accessibility audit is the last step of its own test. Every assertion and expected value is unchanged.
+
+## Branch `feat/002-ui-test-stability` (UI test stabilization, #18 R1-1)
+
+None. Test harness only:
+- `XCUIApplication.launched` waits, with an explicit 20 s timeout and no fixed sleep, until the first New match row exists and is hittable before returning. `ScreenshotUITests` launches through the same helper.
+- The `TennisBeat Watch App` scheme runs the UI tests serially (`parallelizable = "NO"`), on the one simulator chosen. In parallel mode Xcode boots fresh simulator clones, and the screen recording of a failing run showed the clone still on its boot screen while the app already reported New match in its accessibility tree, so taps landed nowhere.
+- CI boots the pinned 40 mm simulator and waits for `simctl bootstatus` before testing.
+
+Every assertion and expected value is unchanged.

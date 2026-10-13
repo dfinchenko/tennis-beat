@@ -13,15 +13,11 @@ final class ScreenshotUITests: XCTestCase {
     guard let language = environment["SCREENSHOT_LANGUAGE"] else {
       throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
     }
-    var arguments = ["-resetFormat", "-coinToss", "opponent", "-AppleLanguages", "(\(language))"]
-    arguments += ["-AppleLocale", language]
+    var arguments = ["-resetFormat", "-coinToss", "opponent"]
     if let size = environment["SCREENSHOT_TEXT_SIZE"] {
       arguments += ["-UIPreferredContentSizeCategoryName", size]
     }
-    let app = XCUIApplication()
-    app.launchArguments = arguments
-    app.launch()
-
+    let app = XCUIApplication.launched(arguments, language: language)
     XCTAssertTrue(app.element("setup.start").waitForExistence(timeout: 5))
     attach(app, "1-new-match")
 

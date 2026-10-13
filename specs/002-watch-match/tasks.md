@@ -60,7 +60,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [X] T001 PR checklist step 1 for PR 1: worktree `.worktrees/002-setup`, branch `feat/002-setup`.
 - [X] T002 Add a `watch-tests` job to `.github/workflows/ci.yml` (research R12):
   - `runs-on: macos-26`, the same "Select newest Xcode" step as `app-builds`;
-  - pick the first available watchOS simulator with `xcrun simctl list devices available -j`;
+  - pick the 40 mm watchOS simulator (the layout target, Q9) with `xcrun simctl list devices available -j`, or the first available watchOS simulator if the image has none (R1-6 of #18);
   - `timeout-minutes: 45`;
   - run `xcodebuild test -project TennisBeat/TennisBeat.xcodeproj -scheme "TennisBeat Watch App" -destination "platform=watchOS Simulator,id=<udid>" CODE_SIGNING_ALLOWED=NO`.
 

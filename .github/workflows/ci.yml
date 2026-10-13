@@ -77,18 +77,29 @@ jobs:
           test -n "$xcode"
           sudo xcode-select -s "$xcode/Contents/Developer"
           xcodebuild -version
-      - name: Pick a watchOS simulator
+      - name: Pick the 40 mm watchOS simulator
         id: sim
         run: |
           set -euo pipefail
+          # The 40 mm watch is the layout target (spec 002, Q9). Fall back to the first
+          # available watchOS simulator only if the image has no 40 mm model.
           udid="$(xcrun simctl list devices available -j | python3 -c '
           import json, sys
           devices = json.load(sys.stdin)["devices"]
-          ids = [d["udid"] for runtime, ds in sorted(devices.items()) if "watchOS" in runtime for d in ds]
-          print(ids[-1] if ids else "")
+          watches = [d for runtime, ds in sorted(devices.items()) if "watchOS" in runtime for d in ds]
+          pinned = [d for d in watches if "(40mm)" in d["name"]]
+          chosen = pinned[-1:] or watches[:1]  # newest runtime first, else the first watch
+          print(chosen[0]["udid"] if chosen else "")
           ')"
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
           if [ -z "$udid" ]; then echo "::warning::No watchOS simulator on this image; running build-for-testing only (R12 fallback)."; fi
+          xcrun simctl list devices available | grep -F "$udid" || true
+      - name: Boot the simulator
+        if: steps.sim.outputs.udid != ''
+        run: |
+          # UI tests tap only after the device has finished booting (#18 R1-1).
+          xcrun simctl boot "${{ steps.sim.outputs.udid }}" || true
+          xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
       - name: Watch tests
         if: steps.sim.outputs.udid != ''
         run: |
