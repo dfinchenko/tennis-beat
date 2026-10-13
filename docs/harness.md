@@ -16,9 +16,18 @@ How Tennis Beat is built: Claude Code implements, Denys owns product decisions, 
 3. Implementation in a dedicated worktree, tests first; hooks format on edit and run engine tests before the agent stops.
 4. Build and simulator run via XcodeBuildMCP, screenshots in the PR.
 5. `reviewer` subagent in a fresh context → `Reviewed-SHA`. Each report is posted as a PR comment: verdict, SHA, numbered findings (R<review>-<n>) with severity and outcome.
-6. PR + CI. Evidence is valid only for the reviewed SHA.
+6. PR + CI. Evidence is valid only for the reviewed SHA. The PR body starts with `Reviewed-SHA: <full 40-character SHA>`; the **review-gate** CI job fails unless it equals the PR head SHA (see below).
 7. Denys reviews and merges. **Gate 2 (human).**
 8. Before TestFlight: device checklist below. **Gate 3 (human).**
+
+## Review gate and merge order
+Added after PR #7 was merged at a head no reviewer had passed: nothing on GitHub enforced `Reviewed-SHA`.
+- **review-gate** (`.github/workflows/review-gate.yml`, script `scripts/gates/check-review-gate.sh`) runs on every PR, spec PRs included. It passes only when the PR body has exactly one line `Reviewed-SHA: <40-hex SHA>` and that SHA equals the PR head. It re-runs on pushes and on PR body edits. Use `Reviewed-SHA: pending` until a review passes; the check fails on it by design.
+- Denys makes review-gate a required check in the "Protect main" ruleset.
+- **Merge order** for every PR:
+  1. Denys's approval commit comes first. For a spec PR this is the commit that sets `Status: Approved`; for any PR, Denys's requested changes are committed before the final review.
+  2. The agent runs the final review on that head, posts the report, and sets `Reviewed-SHA` to the head. Nothing is pushed after that.
+  3. Denys merges once review-gate and CI are green on that head. Any later push invalidates the review and the gate fails until a new review passes.
 
 ## Xcode project format
 - The project was created with Xcode 27 but is saved in **Xcode 26.3 format** (`objectVersion = 100`), because the CI runner image (`macos-26`) only has Xcode 26.x.
@@ -61,3 +70,6 @@ One row per merged PR, added in the following PR (a PR cannot count its own revi
 | #1 | Bootstrap harness | 1 (placeholder) | 0 | — (not recorded) | 3 blocker/major + 14 minor | 0 | — (no device testing) | [Reviewer reports](https://github.com/dfinchenko/tennis-beat/pull/1#issuecomment-6035355595) (4 reviews). The CI build failure on Xcode 26.6 (project format 110) is the same defect as the reviewer's R1-2, so it is counted once, under reviewer. Fixed before merge: R1-1 (screens; Denys exported the frames), R1-2, R1-3, R1-5, R1-6, R1-7, R2-2, R2-3, R3-3. |
 | #2 | README and harness metrics (docs) | 0 | 0 | — (docs only) | 1 major + 11 minor | 0 | — (docs only) | [Reviewer reports](https://github.com/dfinchenko/tennis-beat/pull/2#issuecomment-6035356064) (2 reviews). R1-1 (major, ruleset check names) was fixed by Denys in GitHub settings. 4 fixed before merge (R1-2..R1-5); 6 deferred (R2-1..R2-6: 5 README items, 1 harness.md settings check); 1 raised to Denys (R1-6). |
 | #3 | Approve ITF, glossary and design decisions (docs) | 0 | 0 | — (docs only) | 1 major + 5 minor | 0 | — (docs only) | [Reviewer report](https://github.com/dfinchenko/tennis-beat/pull/3#issuecomment-6035356561) (1 review). None fixed before merge. R1-1 (major, No-Ad deciding point vs ITF NA-02) was decided by Denys and applied in the follow-up PR, as were R1-2, R1-3 and R1-5. R1-6 was confirmed by Denys; R1-4 is not a defect. |
+| #4 | Docs follow-up fixes (docs) | 0 | 0 | — (docs only) | 8 minor | 0 | — (docs only) | Reviewer reports: [review 1](https://github.com/dfinchenko/tennis-beat/pull/4#issuecomment-6035429618) (`cec7f9a`, PASS, 6 minor) and [review 2](https://github.com/dfinchenko/tennis-beat/pull/4#issuecomment-6132171843) (`1786a60`, PASS, 4 minor). R2-1 restates R1-5 and R2-4 restates R1-2, so 8 unique. Fixed before merge: R1-1, R1-3, R1-4; R1-6 confirmed by Denys. Merged at the reviewed head. |
+| #5 | Spec 001 scoring engine (spec) | 0 | 0 | — (spec only) | 0 | 0 | — (spec only) | No reviewer run on the PR's own head: it was opened for Denys's review, and his review drove the changes (approvals of MT-05, EN-05, FR-024; US5 s7/s8; seven spec changes). Merged at `1f99356` while later commits were still being pushed. Reviews R1–R4 of those later commits are [posted here](https://github.com/dfinchenko/tennis-beat/pull/5#issuecomment-6146379528) and counted under #7. |
+| #7 | Spec 001 decisions and consistency fixes (spec) | 0 | 0 | — (spec only) | 13 major + 20 minor | 0 | — (spec only) | Reviews R1–R4 ([comment on #5](https://github.com/dfinchenko/tennis-beat/pull/5#issuecomment-6146379528)) and R5 ([comment](https://github.com/dfinchenko/tennis-beat/pull/7#issuecomment-6146559804)); all CHANGES_REQUESTED. Majors: R1 3, R2 3, R3 2, R4 2 fixed before merge; R5 3 fixed in #8 (open). Minors deduplicated in #6. **Merged at `92ea1c1`, a head no review passed**; this led to the review-gate. |
