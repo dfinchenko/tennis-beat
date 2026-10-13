@@ -137,7 +137,7 @@ A swipe from the score screen opens the controls page: Undo, Pause / Resume, Ser
 
 *Server correction* [ITF: CE-02]
 
-9. **Given** any moment of the match, **When** the player taps Server, **Then** the engine records a first-server correction to the other player: the whole match is recomputed as if that player had served first. The serve icon and court-side pill move as the engine says; the score does not change. There is no confirmation: Undo reverts it.
+9. **Given** a match in progress (paused or not), **When** the player taps Server, **Then** the engine records a first-server correction to the other player: the whole match is recomputed as if that player had served first. The serve icon and court-side pill move as the engine says; the score does not change. There is no confirmation: Undo reverts it.
 10. **Given** a server correction, **Then** VoiceOver announces the new server.
 
 *End match early* [ITF: MT-08]
@@ -163,7 +163,7 @@ When the match is won or ended early, the summary shows the result, the set scor
 3. **Given** a match ended early, **Then** the title reads "Match ended early" (Q5) and never Win or Loss.
 4. **Given** the summary, **Then** a chip shows each completed set as Me's games, then the Opponent's (e.g. "6:4", "3:6"). A match tie-break shows its point score (e.g. "10:7") [ITF: MT-05]. A set won in a tie-break shows "7:6" (Q11).
 5. **Given** a match ended early during a set, **Then** the unfinished set is shown as a chip with its current games and an asterisk marker (e.g. "3:2*"), and VoiceOver reads it as unfinished (Q5). **Given** it ended early during a match tie-break, **Then** the chip shows the match tie-break's point score with the marker (e.g. "7:5*") [ITF: MT-05, MT-08]. **Given** it ended early after a set was completed and before any point of the next set (or match tie-break) was played, **Then** no chip is shown for that next set.
-6. **Given** set chips, **Then** sets Me lost are dimmed, and the chip order and VoiceOver carry the same meaning ("Set 2: 3–6, lost").
+6. **Given** set chips, **Then** sets Me lost are dimmed, and the chip order and VoiceOver carry the same meaning ("Set 2: 3–6, lost"). A match tie-break chip is read as tie-break points, not games: "Match tie-break: 10–7, won" (R2-4) [ITF: MT-05].
 7. **Given** the summary, **Then** it shows Duration: the elapsed match time without pauses, formatted for the current language.
 8. **Given** the summary, **Then** there are no heart-rate or calorie rows in this feature (spec 003).
 9. **Given** the summary, **When** the player taps Undo (Q7), **Then** the last event is removed (the match-winning point or the early end), the score screen returns, and the elapsed time continues; the time spent on the summary is not counted.
@@ -198,13 +198,13 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 
 **Acceptance Scenarios**:
 
-1. **Given** the score screen with VoiceOver, **Then** the first element below the header is a score summary that reads the server's score first, then the server and the side, e.g. "30–15, Me serving from the right" ("advantage" for AD; on the deciding point "…, receiver chooses the side") [ITF: GM-01]. After it, each zone reads, as one element: the player, the point score, the games and sets, and whether that player serves and from which side, e.g. "Me, 30. 3 games, 1 set. Serving from the right." The action of the zone reads "Add point for Me". Exact wording is set in the copy table, with plural forms for games and sets.
+1. **Given** the score screen with VoiceOver, **Then** the first element below the header is a score summary that reads the server's score first, then the server and the side, e.g. "30–15, I'm serving, from the right" or "15–30, Opponent serving, from the left" ("advantage" for AD; on the deciding point "…, receiver chooses the side"). Me and Opponent have separate strings, so the phrase is grammatical in every language (R2-1) [ITF: GM-01]. After it, each zone reads, as one element: the player, the point score, the games and sets, and whether that player serves and from which side, e.g. "Me, 30. 3 games, 1 set. Serving from the right." The action of the zone reads "Add point for Me". Exact wording is set in the copy table, with plural forms for games and sets.
 2. **Given** the status line shows a state, **Then** VoiceOver reads it as part of the score, and announces it when it appears.
 3. **Given** a game, set or match is won, or the server is corrected, **Then** VoiceOver announces it.
 4. **Given** the change-of-ends haptic plays, **Then** VoiceOver also announces "Change ends".
 5. **Given** any button or row, **Then** VoiceOver reads its label and current value (e.g. "Set length, 6 games, button").
 6. **Given** the largest text size agreed in Q9 on the smallest supported watch (40 mm), **Then** no text on New match, First server, Controls or Summary is truncated or clipped (screens scroll if needed), and the score screen shows every value without truncation.
-7. **Given** the watch language is English, Polish or Ukrainian, **Then** every user-facing string is in that language, follows `docs/glossary.md`, and uses plural forms where a count appears (games, minutes). Any other language shows English.
+7. **Given** the watch language is English, Polish or Ukrainian, **Then** every user-facing string is in that language, follows `docs/glossary.md`, and uses plural forms where a count appears (games, sets). Minutes and durations use the system's formatting for the language (R1-8). Any other language shows English.
 8. **Given** any screen, **Then** no meaning is carried by colour alone: the server has the serve icon and a VoiceOver phrase, lost sets have order and VoiceOver, Me and Opponent have labels and positions.
 
 ---
@@ -300,13 +300,15 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 | VoiceOver: change ends | Change ends | Zmiana stron | Зміна сторін | glossary |
 | Point display: advantage | AD | AD | AD | decided by Denys 2026-10-13 (glossary): "AD" on screen in all languages |
 | VoiceOver: advantage | advantage | przewaga | перевага | decided by Denys 2026-10-13 (glossary) |
-| VoiceOver: score summary | %1$@–%2$@, %3$@ serving from the right / left | %1$@–%2$@, serwuje %3$@, z prawej / z lewej | %1$@–%2$@, подає %3$@, справа / зліва | draft (R1-1); server's score first |
-| VoiceOver: score summary, deciding point | %1$@–%2$@, %3$@ serving, receiver chooses the side | %1$@–%2$@, serwuje %3$@, stronę wybiera odbierający | %1$@–%2$@, подає %3$@, сторону обирає приймаючий | draft (R1-1) |
+| VoiceOver: score summary, Me serving | %1$@–%2$@, I'm serving, from the right / from the left | %1$@–%2$@, serwuję, z prawej / z lewej | %1$@–%2$@, подаю, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
+| VoiceOver: score summary, Opponent serving | %1$@–%2$@, Opponent serving, from the right / from the left | %1$@–%2$@, serwuje przeciwnik, z prawej / z lewej | %1$@–%2$@, подає суперник, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
+| VoiceOver: score summary, deciding point | %1$@–%2$@, I'm serving / Opponent serving, receiver chooses the side | %1$@–%2$@, serwuję / serwuje przeciwnik, stronę wybiera odbierający | %1$@–%2$@, подаю / подає суперник, сторону обирає приймаючий | draft, follows R2-1 |
 | VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. Serving from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. Serwuje z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. Подає справа / зліва. | draft; games and sets use plural forms |
 | VoiceOver: zone action | Add point for %@ | Dodaj punkt: %@ | Додати очко: %@ | draft |
 | VoiceOver: announcements | Game: %@ · Set: %@ · Match: %@ · Server: %@ | Gem: %@ · Set: %@ · Mecz: %@ · Serwuje: %@ | Гейм: %@ · Сет: %@ · Матч: %@ · Подає: %@ | draft; %@ is the winner or the new server |
 | VoiceOver: paused | Paused. %@ | Pauza. %@ | Пауза. %@ | draft (R1-3); %@ is the game state, omitted if none |
 | VoiceOver: set chip | Set %1$d: %2$d–%3$d, won / lost / unfinished | Set %1$d: %2$d–%3$d, wygrany / przegrany / niedokończony | Сет %1$d: %2$d–%3$d, виграний / програний / незавершений | draft (Q5, R1-2) |
+| VoiceOver: set chip, match tie-break | Match tie-break: %1$d–%2$d, won / lost / unfinished | Super tie-break: %1$d–%2$d, wygrany / przegrany / niedokończony | Матч-тай-брейк: %1$d–%2$d, виграний / програний / незавершений | draft (R2-4); Match tie-break glossary |
 | Coin-toss result button | Start | Start | Почати | same string as Start |
 
 ### Key Entities
@@ -372,3 +374,12 @@ Denys accepted all proposals for the review 1 findings on 2026-10-13 ([report](h
 - **R1-10** — At accessibility sizes the score screen keeps the largest standard size (Q9, FR-025).
 - **R1-11** — The harness device check names the Q9 limits.
 - **R1-12** — Back from the coin-toss result returns to First server (Story 1 s10).
+
+### Review 2 decisions
+
+Denys decided the review 2 findings on 2026-10-13 ([report](https://github.com/dfinchenko/tennis-beat/pull/15#issuecomment-6153834696)).
+
+- **R2-1** — The VoiceOver score summary has separate strings for Me and Opponent: EN "I'm serving, from the right" / "Opponent serving, from the left"; UK «Подаю, справа» / «Подає суперник, зліва»; PL «Serwuję, z prawej» / «Serwuje przeciwnik, z lewej» (PL draft) (Story 7 s1, copy table).
+- **R2-2** — Story 7 s7 lists games and sets as the plural counts; minutes use system formatting (R1-8).
+- **R2-3** — The Server control is available during a match in progress, paused or not (Story 4 s9), as R1-5.
+- **R2-4** — The set-chip VoiceOver string has a match tie-break variant, so "10–7" is read as tie-break points: "Match tie-break: 10–7, won" (Story 5 s6, copy table).
