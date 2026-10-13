@@ -108,7 +108,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US1 s3: `isThirdSetVisible` is false for 1 set, and `thirdSet` is kept;
   - US1 s5: save then load round-trips all four rows, and nothing about the first server is stored;
   - US1 s6: each unknown or missing raw value falls back to its own default while the other rows keep theirs (parameterized over the four rows);
-  - FR-002: `matchFormat` for 1 set with `thirdSet == .tieBreakToTen` has `matchTieBreak == false` and never throws; `// ITF: MT-02`;
+  - FR-002: `matchFormat` for 1 set with `thirdSet == .tieBreakToTen` has `matchTieBreak == false`; `// ITF: MT-02`;
+  - US1 s6: `matchFormat` is non-nil for all 24 combinations; with a `FormatChoice` stub whose `matchFormat` is nil, `MatchSession.start` keeps `route == .setup` and `match == nil` (no `try!`, no trap);
   - FR-001: every one of the 2×3×2×2 combinations builds a `MatchFormat` with the expected fields; `// ITF: MT-01, MT-03, ST-04, ST-06, ST-07, GM-02, NA-01`.
 
   Use a throwaway `UserDefaults(suiteName:)` for each test.
@@ -130,7 +131,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US1 s7: Start shows "Who serves first?" with three buttons;
   - US1 s8: Me → `score.placeholder` exists;
   - US1 s9: launch with `-coinToss opponent` → Coin toss → the result reads "First server: Opponent" → Start → `score.placeholder`;
-  - US1 s10: back from First server returns to New match unchanged; back from the result returns to First server.
+  - US1 s10: back from First server returns to New match unchanged; back from the result returns to First server;
+  - US7 s7 (other language): launch with `-AppleLanguages (de)`, and New match shows the EN strings ("New match", "Start").
 - [ ] T016 [P] [US7] `UITests/SetupAccessibilityUITests.swift`:
   - US7 s5: each row's accessibility label and value read like "Set length, 6 games";
   - SC-005: `XCUIApplication().performAccessibilityAudit()` passes on New match, the picker, First server and the coin-toss result.
@@ -181,8 +183,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T028 [P] [US3] `UnitTests/PointOutcomeTests.swift` (FR-010, FR-011, research R2). Build the states with `MatchScript`:
   - US3 s4: a point that wins no game → `.point`;
   - US3 s1: a game won, not the set → `.game`, in an Advantage game and in a No-Ad deciding point; `// ITF: GM-02, NA-01`;
-  - US3 s2: a set won 6–4, and a set won in a 7–6 tie-break → `.set`; `// ITF: ST-04, TB-01`;
-  - US3 s3: the match won in a set, and in a match tie-break 10–8 → `.match`; `// ITF: MT-03, MT-05`;
+  - US3 s2: a set won 6–4, and a set won in a 7–6 tie-break → `.set`; `// ITF: ST-03, ST-07, TB-01`;
+  - US3 s3: the match won in a set, and in a match tie-break 10–8 → `.match`; `// ITF: MT-03`;
   - US3 s5, change of ends (each case built with the engine):
     - games 1 and 3 of a set → `.game` + change (`// ITF: EN-01`);
     - a 6–3 set won → `.set` + change (`// ITF: EN-02`);
@@ -197,6 +199,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US3 s1–s5: the haptic sequence per added point, with change of ends after the point's haptic, including set + change of ends (a 6–3 set: set haptic, then change of ends; `// ITF: EN-02`);
   - US3 s7: undo of a game-winning point, undo that brings back a state whose `changeOfEnds` reads true, and undo of the match point from `.summary` record **no** haptic; `// ITF: EN-05`;
   - Edge "change of ends on a game-winning point that is undone and played again": the haptic plays again;
+  - FR-012 (pending haptic): every command calls `cancelPending()` before anything else; `WatchHaptics` with an injected sink and a hand-driven `sleep`: a change-of-ends point, then `undo()` before the sleep returns → the sink receives only the point's haptic, and a next point before the sleep returns → no stale change of ends; positive control: without a later command the change-of-ends haptic arrives after the sleep;
+  - R4: each command yields at most one announcement, for example a change-of-ends game point → exactly one "Game: Me. Change ends";
   - US7 s3: announcements "Game: Me", "Set: Opponent", "Match: Me";
   - US7 s4: "Change ends" after a change-of-ends point;
   - US7 s2: the status text is announced when it changes ("Deuce");
@@ -206,14 +210,15 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T031 [P] [US2] `UnitTests/ScoreScreenModelTests.swift`:
   - US2 s4: points 0/15/30/40/AD and tie-break numbers, games, and sets counted from `completedSets`; "0" never "love"; `// ITF: GM-01, GM-02, TB-01`;
   - US2 s5: only the server has `isServer` and a `courtSide`;
-  - US2 s6: Right / Left in EN, PL and UK (load the localized strings with `Locale(identifier:)` / `String(localized:locale:)`); `// ITF: SV-03, TB-04`;
+  - US2 s6: Right / Left in EN, PL and UK; the model is built with `Locale(identifier: "pl")` / `"uk"` and resolves strings through `LocalizedStringResource` with that `locale` (research R11); positive control: the PL and UK texts differ from EN; `// ITF: SV-03, TB-04`;
   - US2 s7: Choice on the deciding point, and VoiceOver "Receiver chooses the side"; `// ITF: NA-02`;
   - US2 s8: the status text is exactly one of Deuce / Deciding point / Tie-break / Match tie-break, and empty otherwise; a match tie-break shows only "Match tie-break"; `// ITF: GM-02, NA-01, TB-01, MT-03`;
   - US2 s9: Advantage → empty status.
 - [ ] T032 [P] [US7] `UnitTests/ScoreAccessibilityTests.swift`:
   - US7 s1: the summary reads the server's score first, with separate Me and Opponent strings (R2-1): "30–15, I'm serving, from the right", "15–30, Opponent serving, from the left", "advantage" for AD, and "…, receiver chooses the side" on the deciding point; `// ITF: GM-01`;
   - the zone label "Me, 30. 3 games, 1 set. Serving from the right." with the hint "Add point for Me";
-  - plural forms for games and sets in PL and UK (1, 2, 5, 22).
+  - plural forms for games and sets in PL and UK (1, 2, 5, 22);
+  - US7 s2: at deuce the summary label ends with ". Deuce"; while paused it ends with ". Paused. Deuce"; with an empty status it has no trailing status; the status line is hidden from VoiceOver.
 - [ ] T033 [P] [US2] `UnitTests/SessionTests.swift`, scoring part:
   - US2 s2: `addPoint(for: .me)` adds exactly one point event for Me;
   - Edge "Language changes during a match": rebuilding `ScoreScreenModel` with another `Locale` changes only the strings, and the match is unaffected;
@@ -243,12 +248,12 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T039 [P] [US3] `App/Match/PointOutcome.swift`: `nonisolated struct PointOutcome { winner, level, changeOfEnds }` and `static func evaluate(before:after:winner:)`, exactly as [data-model.md § PointOutcome](data-model.md#pointoutcome-value-pure).
 - [ ] T040 [P] [US3] `App/Match/Feedback.swift`:
   - the `HapticPlaying` and `Announcing` protocols;
-  - `WatchHaptics`: point `.click`, game `.directionUp`, set `.success`, match `.notification`, change of ends `.retry`, played 0.8 s after the first on a `Task` (research R3);
-  - `VoiceOverAnnouncer`: `AccessibilityNotification.Announcement(text).post()`.
+  - `WatchHaptics`: point `.click`, game `.directionUp`, set `.success`, match `.notification`, change of ends `.retry`, played 0.8 s after the first on a stored, cancellable `Task`, with the injected sink and `sleep`; `cancelPending()` cancels it (research R3);
+  - `VoiceOverAnnouncer`: posts one `AccessibilityNotification.Announcement` per command with `.high` announcement priority (research R4).
 - [ ] T041 [US2] `MatchClock.stop(at:)`, and `MatchSession`:
   - `addPoint(for:)`: guard `acceptsPoints`; keep the state before; `recordPoint(wonBy:at: now())`; on an error, return; evaluate the outcome → haptics → announcements; when `.won`, `clock.stop` and `route = .summary`;
   - `undo()` for `.playing`;
-  - status-change announcements after every command.
+  - every command calls `haptics.cancelPending()` first and posts at most one combined announcement (data model).
 - [ ] T042 [P] [US2] `App/Match/ScoreScreenModel.swift`: as [data-model.md § ScoreScreenModel](data-model.md#scorescreenmodel-value-pure). All strings come from the catalog, with separate Me and Opponent summary keys (R2-1).
 - [ ] T043 [US2] `App/Score/ScoreView.swift`, `App/Score/PlayerZoneView.swift` and `App/Score/ElapsedTimeView.swift` (Watch 3):
   - the header: a 44 pt Undo circle (disabled and announced unavailable when `!canUndo`), and the elapsed time in `TimelineView(.periodic(from:by: 1))` with `.minuteSecond` or `.hourMinuteSecond` and monospaced digits;
@@ -269,7 +274,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - Win / Loss / Done.
 
   Use the spec's copy table exactly.
-- [ ] T046 [US2] PR checklist steps 3–7 for PR 2. Screenshots: 0–0, 30–15 Right, deuce, No-Ad deciding point (Choice), tie-break, match tie-break, "15"-wide tie-break points at the largest size. Device checks for Denys:
+- [ ] T046 [US2] Update `docs/design/screens/watch-3-score.md` (R1-9): the status line also shows Tie-break, Match tie-break and Paused (FR-008, Q4); the VoiceOver summary element comes first, with the status in it (Story 7 s1, s2, R2-1); the heart-rate row is hidden in 002 (spec 003). Note "changed by spec 002".
+- [ ] T047 [US2] PR checklist steps 3–7 for PR 2. Screenshots: 0–0, 30–15 Right, deuce, No-Ad deciding point (Choice), tie-break, match tie-break, "15"-wide tie-break points at the largest size. Device checks for Denys:
   - US3 s8: the four haptics are told apart (R3 mapping, may change after this check);
   - SC-007: a set scored by feel, and Undo after a mis-tap in under 3 s.
 
@@ -285,25 +291,26 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T047 PR checklist step 1 for PR 3: worktree `.worktrees/002-controls`, branch `feat/002-controls`.
-- [ ] T048 [P] [US4] `UnitTests/MatchClockTests.swift`, pause part:
+- [ ] T048 PR checklist step 1 for PR 3: worktree `.worktrees/002-controls`, branch `feat/002-controls`.
+- [ ] T049 [P] [US4] `UnitTests/MatchClockTests.swift`, pause part:
   - US4 s5 and s6: `pause` freezes `elapsed`, and `resume` continues from the same value;
   - US4 s8: several pauses are all excluded;
   - Edge "Pause, then End": `stop` while paused closes the pause, and the duration excludes it;
   - SC-004: a scripted 30-minute match with 4 pauses of 1–5 minutes and random 5–40 s steps, where `elapsed` at every step differs from (wall time − pauses) by ≤ 1 s.
-- [ ] T049 [P] [US4] `UnitTests/SessionTests.swift`, controls part:
+- [ ] T050 [P] [US4] `UnitTests/SessionTests.swift`, controls part:
   - US4 s5: while paused, `acceptsPoints` is false and `addPoint` adds nothing;
   - US2 s3 (ended early): after `endEarly()`, `addPoint` adds nothing and requests no haptic; `// ITF: MT-08`;
-  - US4 s7: while paused, `undo`, `correctServer` and `endEarly` work and `isPaused` stays true (except after `endEarly`);
+  - US4 s7: while paused, `undo` and `correctServer` work and `isPaused` stays true; `endEarly` works and sets `isPaused = false`; `done()` also leaves `isPaused == false`;
+  - US2 s11 (extended): the PR 2 equivalence test's random sequences now also contain `correctServer`, `pause` and `resume`, and `ScoreScreenModel` still equals the model built from `Match(events:)` plus `isPaused`;
   - US4 s9: `correctServer()` records `.firstServerCorrected(effectiveFirstServer.other)`, and the score is unchanged while the server and side follow the engine; it also works paused and in a tie-break; `// ITF: CE-02`;
   - US4 s12: `endEarly()` with a point → `.matchEndedEarly`, the clock is stopped, `route == .summary`; `// ITF: MT-08`;
   - US4 s13 and Edge "early end at 0–0 or after only undone points": `endEarly()` with no point event → `match == nil`, `route == .setup`, nothing kept;
   - Edge "Pause during a tie-break" (constitution III boundary test, backlog #6): pause and resume inside a tie-break leave `isTieBreak`, the points, the server and the court side unchanged; `// ITF: TB-02, TB-04`.
-- [ ] T050 [P] [US4] `UnitTests/SessionFeedbackTests.swift`, controls part:
+- [ ] T051 [P] [US4] `UnitTests/SessionFeedbackTests.swift`, controls part:
   - US3 s7: pause, resume, correction and early end record no haptic;
   - US4 s10 / US7 s3: correction announces "Server: Opponent";
   - FR-008 / R1-3: while paused the status text is "Paused" and VoiceOver reads "Paused. Deuce".
-- [ ] T051 [P] [US4] `UITests/ControlsUITests.swift`:
+- [ ] T052 [P] [US4] `UITests/ControlsUITests.swift`:
   - US4 s1: swipe right from Score → Controls with `controls.elapsed` and four labelled buttons; swipe back → Score;
   - US4 s2: Undo on Controls removes the last point;
   - US4 s3: Undo is disabled at 0–0;
@@ -317,15 +324,16 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Implementation
 
-- [ ] T052 [US4] `MatchClock.pause(at:)` and `resume(at:)`, with `stop` closing an open pause, as [data-model.md § MatchClock](data-model.md#matchclock-value).
-- [ ] T053 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4).
-- [ ] T054 [US4] `App/Score/ControlsView.swift` (Watch 4), replacing the placeholder page:
+- [ ] T053 [US4] `MatchClock.pause(at:)` and `resume(at:)`, with `stop` closing an open pause, as [data-model.md § MatchClock](data-model.md#matchclock-value).
+- [ ] T054 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4).
+- [ ] T055 [US4] `App/Score/ControlsView.swift` (Watch 4), replacing the placeholder page:
   - `controls.elapsed` at the top;
   - a 2×2 grid of 64 pt round buttons with labels: Undo (`surface-raised`), Pause/Resume (`control-pause`), Server ⇆ (`surface-raised`), End (`control-end`, stop square);
   - End opens `.confirmationDialog("End match?")` with a destructive "End match" button;
   - a `ScrollView` so that large text never clips.
-- [ ] T055 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", and the "Server: %@" announcement (copy table).
-- [ ] T056 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
+- [ ] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", and the "Server: %@" announcement (copy table).
+- [ ] T057 [US4] Update `docs/design/screens/watch-4-controls.md` (R1-9): the Server control is decided as the first-server correction [ITF: CE-02], not CE-01; Pause shows Resume while paused; End opens the "End match?" confirmation. Note "changed by spec 002".
+- [ ] T058 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
 
 **Checkpoint (PR 3 merged)**: US4 is fully covered, along with US3 s7 and SC-004.
 
@@ -339,8 +347,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T057 PR checklist step 1 for PR 4: worktree `.worktrees/002-summary`, branch `feat/002-summary`.
-- [ ] T058 [P] [US5] `UnitTests/SummaryModelTests.swift`:
+- [ ] T059 PR checklist step 1 for PR 4: worktree `.worktrees/002-summary`, branch `feat/002-summary`.
+- [ ] T060 [P] [US5] `UnitTests/SummaryModelTests.swift`:
   - US5 s2: Win when Me won, Loss when the Opponent won;
   - US5 s3: "Match ended early", never Win or Loss;
   - US5 s4: chips "6:4", "3:6", a match tie-break "10:7" (`// ITF: MT-05`), and a tie-break set "7:6" (Q11);
@@ -348,11 +356,11 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US5 s6: `isLost` for the Opponent's sets; VoiceOver "Set 2: 3–6, lost", "Set 3: 4–2, unfinished", and the match tie-break variant "Match tie-break: 10–7, won" (R2-4), in EN, PL and UK;
   - US5 s7: the duration is `clock.elapsed(at: stoppedAt)` formatted `.hourMinuteSecond`;
   - US5 s8: the model has no heart-rate or calorie field (a compile-time shape check in the test).
-- [ ] T059 [P] [US5] `UnitTests/SessionTests.swift`, summary part:
+- [ ] T061 [P] [US5] `UnitTests/SessionTests.swift`, summary part:
   - US5 s1: the match-winning point → `.summary`, and the clock is stopped;
   - US5 s9 and Edge "Undo after the match is won": `undo()` from `.summary` → `.playing` at match point, `isPaused == false`, and `elapsed` excludes the summary time; the same for an early end ("Undo of an early end");
   - US5 s10: `done()` → `.setup`, `match == nil`, and the format is kept.
-- [ ] T060 [P] [US5] `UITests/SummaryUITests.swift`:
+- [ ] T062 [P] [US5] `UITests/SummaryUITests.swift`:
   - play a 1-set match to Win with `-coinToss me`: `summary.title` reads "Win", the chips match, and `summary.duration` exists;
   - Undo → Score at match point;
   - End early → "Match ended early" with an "*" chip;
@@ -361,17 +369,17 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Implementation
 
-- [ ] T061 [US5] `MatchClock.reopen(at:)`, and `MatchSession.undo()` from `.summary`: reopen, `isPaused = false`, `.playing`.
-- [ ] T062 [P] [US5] `App/Match/SummaryModel.swift`, as [data-model.md § SummaryModel](data-model.md#summarymodel-value-pure).
-- [ ] T063 [US5] `App/Summary/SummaryView.swift` (Watch 6), replacing the minimal summary:
+- [ ] T063 [US5] `MatchClock.reopen(at:)`, and `MatchSession.undo()` from `.summary`: reopen, `isPaused = false`, `.playing`.
+- [ ] T064 [P] [US5] `App/Match/SummaryModel.swift`, as [data-model.md § SummaryModel](data-model.md#summarymodel-value-pure).
+- [ ] T065 [US5] `App/Summary/SummaryView.swift` (Watch 6), replacing the minimal summary:
   - the title in Large Title `brand/ball`;
   - a chip row on `surface-raised`, with lost sets in `text-tertiary`; each chip is one VoiceOver element; the chips wrap at large sizes;
   - a Duration row;
   - Done (primary capsule) and Undo (secondary, under Done, Q7);
   - in a `ScrollView`, with no heart-rate or kcal rows.
-- [ ] T064 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: "Match ended early", Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
-- [ ] T065 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
-- [ ] T066 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
+- [ ] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: "Match ended early", Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
+- [ ] T067 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
+- [ ] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
 
 **Checkpoint (PR 4 merged)**: US5 is fully covered.
 
@@ -385,23 +393,25 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T067 PR checklist step 1 for PR 5: worktree `.worktrees/002-always-on`, branch `feat/002-always-on`.
-- [ ] T068 [P] [US6] `UnitTests/ScoreScreenModelTests.swift`, dimmed part:
+- [ ] T069 PR checklist step 1 for PR 5: worktree `.worktrees/002-always-on`, branch `feat/002-always-on`.
+- [ ] T070 [P] [US6] `UnitTests/ScoreScreenModelTests.swift`, dimmed part:
   - US6 s1: the dimmed time text is whole minutes in the abbreviated system format ("42 min", "84 min"; PL and UK via `Locale`), rounded down: 42:59 → "42 min";
+  - `ElapsedMinuteSchedule`: with a clock started at T and a 90 s pause, its entries are the dates at which `elapsed` equals 1, 2, 3… whole minutes (± 1 ms);
   - US6 s2: the dimmed model has no seconds, no Undo, no serve icon, no court-side pill and no status (Q8).
-- [ ] T069 [P] [US6] `UnitTests/AlwaysOnTests.swift`, US6 s3: `ScoreScreenModel.zonesAcceptTaps(isLuminanceReduced:)` is false when the luminance is reduced, even while `session.acceptsPoints` is true (positive control: true when not reduced). `ScoreView` passes this value to `.allowsHitTesting`.
-- [ ] T070 [P] [US7] `UITests/AccessibilityAuditUITests.swift`: the final SC-005 pass across all screens and languages (each earlier PR already audited its own screens in EN). `performAccessibilityAudit()` on every screen (New match, the picker, First server, the coin-toss result, Score, Controls, the End confirmation, Summary) in EN. Then repeat with `-AppleLanguages (pl)` and `(uk)`, and with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, failing on any clipped-text issue (US7 s6, s7).
+- [ ] T071 [P] [US6] `UnitTests/AlwaysOnTests.swift`, US6 s3: `ScoreScreenModel.zonesAcceptTaps(isLuminanceReduced:)` is false when the luminance is reduced, even while `session.acceptsPoints` is true (positive control: true when not reduced). `ScoreView` passes this value to `.allowsHitTesting`.
+- [ ] T072 [P] [US7] `UITests/AccessibilityAuditUITests.swift`: the final SC-005 pass across all screens and languages (each earlier PR already audited its own screens in EN). `performAccessibilityAudit()` on every screen (New match, the picker, First server, the coin-toss result, Score, Controls, the End confirmation, Summary) in EN. Then repeat with `-AppleLanguages (pl)` and `(uk)`, and with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, failing on any clipped-text issue (US7 s6, s7).
 
 ### Implementation
 
-- [ ] T071 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
+- [ ] T073 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
   - the dimmed fills and the point colours are lower-opacity `brand/opponent` and `brand/ball`, with sets and games in `text-secondary`;
-  - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))` with `TimelineView(.everyMinute)` (up to a minute of lag accepted, research R5);
+  - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))` in a `TimelineView` driven by `ElapsedMinuteSchedule` (research R5);
   - Undo, the serve icon, the pill and the status line are hidden;
   - `.transaction { $0.animation = nil }`;
   - `.allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced:))` on the zones, false when dimmed (FR-021, Story 6 s3).
-- [ ] T072 [US7] Fix every audit finding from T070 in the screen it concerns. US7 s8: confirm that no meaning is carried by colour alone (server icon + VoiceOver, lost sets by order + VoiceOver, labels + positions).
-- [ ] T073 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
+- [ ] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8: confirm that no meaning is carried by colour alone (server icon + VoiceOver, lost sets by order + VoiceOver, labels + positions).
+- [ ] T075 [US6] Update `docs/design/screens/watch-5-always-on.md` (R1-9): Q8 also hides the court-side pill and the status line; the header minutes use the system's abbreviated format, with no plural variations (R1-8). Note "changed by spec 002".
+- [ ] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
   - US6 s4: readable at arm's length (complete only after spec 003, Q10);
   - the harness Dynamic Type check on his watch (Q9);
   - a full match with no iPhone nearby and no network (FR-027).
@@ -425,8 +435,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 - PR 1: T011, T012, T013, T014, T015 and T016 together; then T017, T018 and T021 together.
 - PR 2: T028–T035 together; then T039, T040 and T042 together.
-- PR 3: T048–T051 together.
-- PR 4: T058–T060 together; then T062 alongside T061.
+- PR 3: T049–T052 together.
+- PR 4: T060–T062 together; then T064 alongside T063.
 
 ## Implementation strategy
 

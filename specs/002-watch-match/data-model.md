@@ -2,7 +2,7 @@
 
 **Date**: 2026-10-13 | **Spec**: [spec.md](spec.md) | **Plan**: [plan.md](plan.md)
 
-The watch app keeps no score logic. Its entities hold the engine `Match` from spec 001 ([public API](../001-scoring-engine/contracts/public-api.md)) and what the engine doesn't model: setup choices, timing, the screen route, and what is shown or read aloud. Engine types are written in `monospace` (`Match`, `MatchState`, `Player`, …). All types below live in `TennisBeat Watch App/Match/` (research R1).
+The watch app keeps no score logic. Its entities hold the engine `Match` from spec 001 ([public API](../001-scoring-engine/contracts/public-api.md)) and what the engine doesn't model: setup choices, timing, the screen route, and what is shown or read aloud. Engine types are written in `monospace` (`Match`, `MatchState`, `Player`, …). All types below live in `TennisBeat Watch App/Match/` (research R1). Every model that produces text takes a `Locale` and resolves strings through `LocalizedStringResource` (research R11).
 
 ## FormatChoice (stored)
 
@@ -15,7 +15,7 @@ The four New match rows. This is the only data the feature stores (FR-004).
 | `atFortyAll` | `advantage`, `decidingPoint` | `advantage` | `GameScoring.advantage` / `.noAd` |
 | `thirdSet` | `fullSet`, `tieBreakToTen` | `fullSet` | `matchTieBreak` |
 
-- `matchFormat`: `MatchFormat(length:setLength:gameScoring:matchTieBreak:)`. `matchTieBreak` is `length == .bestOfThree && thirdSet == .tieBreakToTen`, so a 1-set match never has it (FR-002, ITF MT-02) and the init never throws.
+- `matchFormat: MatchFormat?`: `try? MatchFormat(length:setLength:gameScoring:matchTieBreak:)`. `nil` can't occur for any of the 24 combinations (tested). `MatchSession.start` still guards it: on `nil` the session stays on `.setup` and starts nothing (Story 1 s6). There is no `try!` and no trap. `matchTieBreak` is `length == .bestOfThree && thirdSet == .tieBreakToTen`, so a 1-set match never has it (FR-002, ITF MT-02) and the init never throws.
 - `isThirdSetVisible`: `length == .bestOfThree` (Story 1 s3). `thirdSet` keeps its value while hidden.
 - **Storage**: `UserDefaults`, key `lastFormat.v1`, a dictionary of four raw strings. It is written when a match starts (Story 1 s5) and read when New match appears. Each field falls back to its default on its own when it is missing or unknown (Story 1 s6). There is no first-server field (FR-004).
 
@@ -69,10 +69,10 @@ Derived:
 | `undo()` | `.playing` or `.summary`, `canUndo` | `undo()` | if it was `.summary`: `clock.reopen`, `isPaused = false`, → `.playing`; announce a status-line change only; no haptic (Story 3 s7) |
 | `pause()` / `resume()` | `.playing`, in progress | none | `clock.pause` / `clock.resume`; toggle `isPaused`; no haptic |
 | `correctServer()` | `.playing`, in progress (paused or not) | `correctFirstServer(to: effectiveFirstServer.other)` | announce the new server; no haptic (Story 4 s9, s10) |
-| `endEarly()` (after confirmation) | `.playing` | `hasPlayedPoint` ? `endEarly()` : none | with a point: `clock.stop`, → `.summary`. With none: `match = nil`, `clock = nil`, → `.setup` (Story 4 s13) |
-| `done()` | `.summary` | none | `match = nil`, `clock = nil`, → `.setup` with the stored format (Story 5 s10) |
+| `endEarly()` (after confirmation) | `.playing` | `hasPlayedPoint` ? `endEarly()` : none | `isPaused = false` in both cases. With a point: `clock.stop`, → `.summary`. With none: `match = nil`, `clock = nil`, → `.setup` (Story 4 s13) |
+| `done()` | `.summary` | none | `match = nil`, `clock = nil`, `isPaused = false`, → `.setup` with the stored format (Story 5 s10) |
 
-A rejected engine call (`MatchError`) leaves the session unchanged and plays nothing (Edge cases: very fast taps; tap while the summary is opening, ITF MT-08).
+Every command first calls `haptics.cancelPending()` (research R3), then posts at most one combined announcement (R4). A rejected engine call (`MatchError`) leaves the session unchanged and plays nothing (Edge cases: very fast taps; tap while the summary is opening, ITF MT-08).
 
 ## PointOutcome (value, pure)
 
@@ -99,7 +99,7 @@ Everything Watch 3 shows or reads, built from `MatchState`, `isPaused` and the l
 | `zones[player].isServer` | `state.server == player` |
 | `zones[player].courtSide` | `state.courtSide` when serving, otherwise nil: "Right" / "Left" / "Choice" |
 | `statusText` | "Paused" if paused, else the first true of `isMatchTieBreak`, `isTieBreak`, `isDecidingPoint`, `isDeuce`, else empty (FR-008) |
-| `summaryAccessibilityLabel` | the server's score first, then a separate Me or Opponent string with the side or the receiver's choice (Story 7 s1, R2-1) |
+| `summaryAccessibilityLabel` | the server's score first, then a separate Me or Opponent string with the side or the receiver's choice (Story 7 s1, R2-1), then `statusAccessibilityText` when it's not empty (US7 s2) |
 | `zones[player].accessibilityLabel` / `hint` | the copy-table zone sentence with plural games and sets / "Add point for …" |
 | `zonesAcceptTaps(isLuminanceReduced:)` | `acceptsPoints && !isLuminanceReduced` (Story 6 s3) |
 | `statusAccessibilityText` | "Paused. <state>" or "<state>" (R1-3) |

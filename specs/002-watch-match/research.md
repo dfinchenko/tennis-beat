@@ -46,18 +46,24 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   | Match | `.notification` |
   | Change of ends | `.retry`, played about 0.8 s after the point's haptic |
 
-  Tests use a recording fake. SC-003 compares the recorded sequence with the outcome table.
+  The delayed change-of-ends haptic is a **cancellable pending task**:
+  - `WatchHaptics` keeps the handle;
+  - `HapticPlaying.cancelPending()` cancels it;
+  - `MatchSession` calls `cancelPending()` at the start of **every** command (point, undo, correction, pause, resume, end, done).
+
+  So an Undo within 0.8 s (the SC-007 mis-tap case) never plays a stale change-of-ends haptic (FR-012, US3 s7), and a quick next tap never plays point 1's change of ends after point 2's haptic. `WatchHaptics` takes an injected device sink `(WKHapticType) -> Void` and an injected `sleep: @Sendable (Duration) async throws -> Void`, so tests drive the delay by hand. The session tests use a recording fake for the outcomes. A separate `WatchHaptics` test checks the timed playback: change-of-ends point, then Undo before the sleep returns → the sink gets only the point's haptic.
 - **Rationale**: These are the system's distinct patterns; custom Core Haptics patterns are not available on watchOS. The delay keeps the change-of-ends pattern separate from the point's haptic (Story 3 s5). Whether the four are told apart without looking is the Story 3 s8 / SC-007 device check, so the mapping is a proposal that Denys may change after that check without a spec change.
 - **Alternative rejected**: `.sensoryFeedback` view modifiers. They fire on value changes, so they can't distinguish an added point from an undo that produces a similar state, and they can't be tested without UI.
 
 ## R4. VoiceOver announcements behind a protocol
 
-- **Decision**: An `Announcing` protocol. The production type posts `AccessibilityNotification.Announcement(_:)`. The session announces:
-  - after an added point: the game, set or match winner (from `PointOutcome`), then "Change ends" if the point calls for it;
-  - after a server correction: the new server;
-  - after any event: the new status-line text, when it differs from the previous one.
+- **Decision**: An `Announcing` protocol. The session builds **one combined announcement per command** and posts it once, so VoiceOver doesn't cut one announcement off with the next. Its parts, in this order:
+  1. after an added point: the game, set or match winner (from `PointOutcome`);
+  2. "Change ends" if the point calls for it;
+  3. after a server correction: the new server;
+  4. after any command: the new status-line text, when it differs from the previous one.
 
-  Tests use a recording fake.
+  The parts are joined with ". ", for example "Game: Me. Change ends". The production type posts `AccessibilityNotification.Announcement` with an `AttributedString` whose `accessibilitySpeechAnnouncementPriority` is `.high`. Tests use a recording fake and check that one command yields at most one announcement.
 - **Rationale**: FR-024 and Story 7 s2–s4 are testable without a simulator this way. The strings come from the String Catalog, so the fake records localized text.
 - **Alternative rejected**: deriving announcements in views with `onChange`: not testable without UI, and it can't tell an added point from an undo.
 
@@ -69,9 +75,9 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - **Ending** (match won or ended early) sets `stoppedAt`, closing an open pause at that moment first.
   - **Undo from the summary** adds the interval `[stoppedAt, now]` to the excluded list and clears `stoppedAt`, so the time on the summary is not counted (Story 5 s9) and the match is not paused (edge case "Undo of an early end").
 
-  The session takes a `now: () -> Date` closure. Views redraw with `TimelineView`: every second in the active state, `.everyMinute` when the luminance is reduced (R8).
+  The session takes a `now: () -> Date` closure. Views redraw with `TimelineView`: every second in the active state. When the luminance is reduced they use a custom `ElapsedMinuteSchedule(clock:)`, whose entries are the wall-clock dates at which the elapsed time reaches each next whole minute (computed from `startedAt` and the excluded intervals). The dimmed minutes are therefore never late (R8).
 - **Rationale**: FR-022 needs wall-clock time minus pauses, which stays right after the app returns from the background or the screen wakes: nothing counts ticks. SC-004 (≤ 1 s over a scripted 30-minute match) is checked with a fake clock in a unit test.
-- **Formatting**: the header uses `Duration.formatted(.time(pattern: .minuteSecond))`, or `.hourMinuteSecond` from one hour on, with `.monospacedDigit()`. Always On uses `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))`, so it shows whole elapsed minutes (42:59 → "42 min", never rounded up), for example "42 min" or "84 min" (R1-8). `TimelineView(.everyMinute)` ticks on wall-clock minutes, so the dimmed value may lag the match time by up to a minute; this is accepted for Always On. The summary uses `.time(pattern: .hourMinuteSecond)`. All of them follow the current locale (FR-023).
+- **Formatting**: the header uses `Duration.formatted(.time(pattern: .minuteSecond))`, or `.hourMinuteSecond` from one hour on, with `.monospacedDigit()`. Always On uses `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))`, so it shows whole elapsed minutes (42:59 → "42 min", never rounded up), for example "42 min" or "84 min" (R1-8). The `ElapsedMinuteSchedule` above aligns the redraws with elapsed minutes, not wall-clock minutes. The summary uses `.time(pattern: .hourMinuteSecond)`. All of them follow the current locale (FR-023).
 - **Alternative rejected**: a `Timer` that increments a counter: it drifts, and it stops while the app is suspended.
 
 ## R6. Navigation and screens
@@ -93,6 +99,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - **Dynamic Type**: the score screen uses `.dynamicTypeSize(...DynamicTypeSize.xxxLarge)` (Q9, FR-025), the largest standard size on watchOS. The other screens are `ScrollView`s with no cap.
   - **Fonts**: text styles from `docs/design/typography.md`, with `.rounded` and `.monospacedDigit()` for numbers.
   - **VoiceOver**: the score summary is the first element after the header. Each zone is one element (`.accessibilityElement(children: .ignore)`) with the zone sentence as its label and "Add point for …" as its hint. All strings come from `ScoreScreenModel`.
+  - **Status in the summary** (US7 s2): when the status line has text, the summary label ends with it, for example "40–40, I'm serving, from the right. Deuce" or "…. Paused. Deuce". The status line itself is hidden from VoiceOver (`.accessibilityHidden(true)`), so it isn't read twice.
 - **Rationale**: Story 7 s1 fixes the reading order and the content. The wording is the copy table's, with separate Me and Opponent strings (R2-1). Keeping the strings in the model lets unit tests check the VoiceOver text for every state without a simulator.
 - **Alternative rejected**: `.accessibilityAction(named:)` for "Add point": the zone's default action is already the tap, and a named action would make VoiceOver users pick from the actions menu.
 
@@ -128,6 +135,8 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - Keys are semantic (`score.summary.me.right`, `setup.setLength.value`), so the separate Me and Opponent strings (R2-1) and the match tie-break chip (R2-4) are separate keys.
   - Counts (games, sets, "%d games" in Set length) use plural variations.
   - Minutes and durations use `FormatStyle` (R5), not catalog strings.
+  - **Language lookup**: the models take a `Locale` (production: `.current`) and resolve every string as `String(localized: LocalizedStringResource("key", locale: locale))`. `LocalizedStringResource` uses its `locale` to choose the translation. `String(localized:locale:)` is not used, because its `locale` only formats the interpolated values. Tests build models with `Locale(identifier: "pl")` and `"uk"`, and each has a positive control that the text differs from EN.
+  - **Other languages** fall back to the development language, `en` (US7 s7).
   - Every row of the spec's copy table becomes keys in the screen PR that first uses it.
   - A unit test loads the catalog's PL and UK bundles and fails on any key that is missing a translation (SC-006).
 - **Rationale**: Constitution X, FR-023, SC-006. Semantic keys stop an EN wording change from orphaning translations.

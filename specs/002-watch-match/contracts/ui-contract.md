@@ -45,11 +45,11 @@ Without these arguments the app behaves as in production. Neither argument exist
 | Point wins a game | game | "Game: <winner>", status change, if any |
 | Point wins a set | set | "Set: <winner>", status change, if any |
 | Point wins the match | match | "Match: <winner>" |
-| …and `changeOfEnds` (not the match point) | + change of ends, after ~0.8 s | + "Change ends" |
+| …and `changeOfEnds` (not the match point) | + change of ends, after ~0.8 s, cancelled by any later command | + "Change ends" |
 | Undo, early end, undo of an early end, pause, resume | none | status change, if any |
 | Server correction | none | "Server: <new server>" |
 
-"Status change" means the status-line text differs from before the command (research R4). After the match-winning point there is no status line, so the match row has none.
+All announcements for one command are joined into **one** announcement, for example "Game: Me. Change ends" (research R4). "Status change" means the status-line text differs from before the command. After the match-winning point there is no status line, so the match row has none.
 
 ## 5. Session commands (for 003, persistence and 004)
 
