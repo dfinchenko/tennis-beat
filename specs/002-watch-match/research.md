@@ -36,7 +36,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
 
 ## R3. Haptics: `WKInterfaceDevice` behind a protocol
 
-- **Decision**: A `HapticPlaying` protocol with one method, `play(_ outcome: PointOutcome)`. The production type maps the outcome to `WKInterfaceDevice.current().play(_:)`:
+- **Decision**: A `HapticPlaying` protocol with three methods: `play(_ outcome: PointOutcome)`, `cancelPending()` and `flushPending()` (see below). The production type maps the outcome to `WKInterfaceDevice.current().play(_:)`:
 
   | Haptic | `WKHapticType` (proposal) |
   | --- | --- |
@@ -101,7 +101,9 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - **Status in the summary** (US7 s2): when the status line has text, the summary label ends with it, for example "40–40, I'm serving, from the right. Deuce" or "…. Paused. Deuce". The status line itself is hidden from VoiceOver (`.accessibilityHidden(true)`), so it isn't read twice.
   - **UI-test visibility** (R3-1): XCUITest sees only the accessibility tree, so with the production grouping the zone values and the status line are invisible to UI tests. Two decisions:
     - the DEBUG-only launch argument `-uiTestExposeValues` switches each zone to `.accessibilityElement(children: .contain)`, so its child texts keep their identifiers (`zone.<player>.points`, …). The zone keeps `zone.<player>` and stays tappable;
-    - UI tests read the status from the `score.summary` label (its trailing status text), not from a separate element.
+    - UI tests read the status from the `score.summary` label, not from a separate element. The check is exact: the label must equal `expectedSummary + (status.isEmpty ? "" : ". " + status)`, where `status` is "Deuce", "Paused" or "Paused. Deuce" and the like. An empty status therefore also proves there is no suffix.
+    - With `children: .contain` XCUITest may report a zone as a container, not a button, so UI tests find `zone.<player>` with `descendants(matching: .any)["zone.me"]`. The T038 guard test asserts which element type it gets.
+    - The status line drawn on screen stays hidden from the accessibility tree in both modes. Its text comes from `ScoreScreenModel.statusText`, which the unit tests cover (T031, T051). No UI test reads the drawn status line, and there is no test-only code path for it (R1-4 of #17).
 
     The production grouping is unchanged, and accessibility audits (SC-005) and VoiceOver checks always run **without** `-uiTestExposeValues`.
 - **Rationale**: Story 7 s1 fixes the reading order and the content. The wording is the copy table's, with separate Me and Opponent strings (R2-1). Keeping the strings in the model lets unit tests check the VoiceOver text for every state without a simulator.
