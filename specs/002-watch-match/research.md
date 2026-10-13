@@ -49,9 +49,8 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   The delayed change-of-ends haptic is a **cancellable pending task**:
   - `WatchHaptics` keeps the handle;
   - `HapticPlaying.cancelPending()` cancels it;
-  - `MatchSession` calls `cancelPending()` at the start of **every** command (point, undo, correction, pause, resume, end, done).
-
-  So an Undo within 0.8 s (the SC-007 mis-tap case) never plays a stale change-of-ends haptic (FR-012, US3 s7), and a quick next tap never plays point 1's change of ends after point 2's haptic. `WatchHaptics` takes an injected device sink `(WKHapticType) -> Void` and an injected `sleep: @Sendable (Duration) async throws -> Void`, so tests drive the delay by hand. The session tests use a recording fake for the outcomes. A separate `WatchHaptics` test checks the timed playback: change-of-ends point, then Undo before the sleep returns → the sink gets only the point's haptic.
+  - `MatchSession` calls `cancelPending()` at the start of undo, server correction, pause, End and Done, so an Undo within 0.8 s (the SC-007 mis-tap case) never plays a stale change-of-ends haptic (FR-012, US3 s7);
+  - an **added point never cancels it** (R3-4): it first calls `flushPending()`, which plays a pending change-of-ends haptic at once, then plays its own haptic. Two quick taps after a change-of-ends point therefore still give point 1's haptic, its change of ends, then point 2's haptic, in order (FR-012, Edge "very fast taps"). `WatchHaptics` takes an injected device sink `(WKHapticType) -> Void` and an injected `sleep: @Sendable (Duration) async throws -> Void`, so tests drive the delay by hand. The session tests use a recording fake for the outcomes. Separate `WatchHaptics` tests check the timed playback: a change-of-ends point, then Undo before the sleep returns → the sink gets only the point's haptic; a change-of-ends point, then another point before the sleep returns → the sink gets point 1's haptic, change of ends, then point 2's haptic.
 - **Rationale**: These are the system's distinct patterns; custom Core Haptics patterns are not available on watchOS. The delay keeps the change-of-ends pattern separate from the point's haptic (Story 3 s5). Whether the four are told apart without looking is the Story 3 s8 / SC-007 device check, so the mapping is a proposal that Denys may change after that check without a spec change.
 - **Alternative rejected**: `.sensoryFeedback` view modifiers. They fire on value changes, so they can't distinguish an added point from an undo that produces a similar state, and they can't be tested without UI.
 
@@ -100,6 +99,11 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - **Fonts**: text styles from `docs/design/typography.md`, with `.rounded` and `.monospacedDigit()` for numbers.
   - **VoiceOver**: the score summary is the first element after the header. Each zone is one element (`.accessibilityElement(children: .ignore)`) with the zone sentence as its label and "Add point for …" as its hint. All strings come from `ScoreScreenModel`.
   - **Status in the summary** (US7 s2): when the status line has text, the summary label ends with it, for example "40–40, I'm serving, from the right. Deuce" or "…. Paused. Deuce". The status line itself is hidden from VoiceOver (`.accessibilityHidden(true)`), so it isn't read twice.
+  - **UI-test visibility** (R3-1): XCUITest sees only the accessibility tree, so with the production grouping the zone values and the status line are invisible to UI tests. Two decisions:
+    - the DEBUG-only launch argument `-uiTestExposeValues` switches each zone to `.accessibilityElement(children: .contain)`, so its child texts keep their identifiers (`zone.<player>.points`, …). The zone keeps `zone.<player>` and stays tappable;
+    - UI tests read the status from the `score.summary` label (its trailing status text), not from a separate element.
+
+    The production grouping is unchanged, and accessibility audits (SC-005) and VoiceOver checks always run **without** `-uiTestExposeValues`.
 - **Rationale**: Story 7 s1 fixes the reading order and the content. The wording is the copy table's, with separate Me and Opponent strings (R2-1). Keeping the strings in the model lets unit tests check the VoiceOver text for every state without a simulator.
 - **Alternative rejected**: `.accessibilityAction(named:)` for "Add point": the zone's default action is already the tap, and a named action would make VoiceOver users pick from the actions menu.
 
@@ -145,9 +149,9 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
 ## R12. UI tests and CI
 
 - **Decision**:
-  - **UI tests**: `TennisBeat Watch AppUITests` (XCUITest) run scripted tap sequences on the watch simulator in EN. Elements carry accessibility identifiers (`zone.me`, `zone.me.points`, `zone.me.games`, `zone.me.sets`, `zone.me.serve`, `zone.me.side`, `status`, `undo`, …).
+  - **UI tests**: `TennisBeat Watch AppUITests` (XCUITest) run scripted tap sequences on the watch simulator in EN. Elements carry accessibility identifiers (`zone.me`, `zone.me.points`, `zone.me.games`, `zone.me.sets`, `zone.me.serve`, `zone.me.side`, `score.summary`, `undo`, …). The zone child identifiers are visible only with `-uiTestExposeValues`, and the status is read from `score.summary` (R7).
   - **Expected values**: the UI test target links `TennisCore`, replays the same taps through a `Match`, and compares each displayed text with the engine's value after every tap, undo and correction (SC-002). The display mapping in the test is one trivial table: `PointDisplay` to "0/15/30/40/AD" or a number, and `CourtSide` to Right/Left/Choice.
-  - **Launch arguments**: `-resetFormat` and `-coinToss me|opponent` make runs deterministic.
+  - **Launch arguments**: `-resetFormat` and `-coinToss me|opponent` make runs deterministic. Value-checking runs add `-uiTestExposeValues` (R7, R3-1).
   - **CI**: a new `watch-tests` job runs `xcodebuild test` for the `TennisBeat Watch App` scheme (unit and UI tests) on a watchOS simulator on the `macos-26` runner. It is added in PR 1.
   - **Fallback**: if the runner image has no watchOS simulator runtime, the job runs the unit tests only on a generic destination, and the PRs attach local XcodeBuildMCP UI-test results. Denys is told in that PR.
 - **Rationale**: SC-002 asks for UI-level tests on the watch simulator. Checking against the engine, and not against the app's own model, keeps the test independent of the code under test. CI evidence is bound to the head SHA (constitution IV).

@@ -15,7 +15,7 @@ The four New match rows. This is the only data the feature stores (FR-004).
 | `atFortyAll` | `advantage`, `decidingPoint` | `advantage` | `GameScoring.advantage` / `.noAd` |
 | `thirdSet` | `fullSet`, `tieBreakToTen` | `fullSet` | `matchTieBreak` |
 
-- `matchFormat: MatchFormat?`: `try? MatchFormat(length:setLength:gameScoring:matchTieBreak:)`. `nil` can't occur for any of the 24 combinations (tested). `MatchSession.start` still guards it: on `nil` the session stays on `.setup` and starts nothing (Story 1 s6). There is no `try!` and no trap. `matchTieBreak` is `length == .bestOfThree && thirdSet == .tieBreakToTen`, so a 1-set match never has it (FR-002, ITF MT-02) and the init never throws.
+- `matchFormat: MatchFormat?`: `try? MatchFormat(length:setLength:gameScoring:matchTieBreak:)`. `nil` can't occur for any of the 24 combinations (tested). `MatchSession.start` builds the format through its injected `makeFormat` and guards it: on `nil` the session stays on `.setup` and starts nothing (Story 1 s6). There is no `try!` and no trap. `matchTieBreak` is `length == .bestOfThree && thirdSet == .tieBreakToTen`, so a 1-set match never has it (FR-002, ITF MT-02) and the init never throws.
 - `isThirdSetVisible`: `length == .bestOfThree` (Story 1 s3). `thirdSet` keeps its value while hidden.
 - **Storage**: `UserDefaults`, key `lastFormat.v1`, a dictionary of four raw strings. It is written when a match starts (Story 1 s5) and read when New match appears. Each field falls back to its default on its own when it is missing or unknown (Story 1 s6). There is no first-server field (FR-004).
 
@@ -54,6 +54,7 @@ The one live match, plus the route. It is created when the app starts and holds 
 | `haptics` | `HapticPlaying` | Injected (R3) |
 | `announcer` | `Announcing` | Injected (R4) |
 | `now` | `() -> Date` | Injected clock (R5) |
+| `makeFormat` | `(FormatChoice) -> MatchFormat?` | Injected; production `\.matchFormat` (R3-6 test seam) |
 
 Derived:
 - `acceptsPoints`: `route == .playing && !isPaused && match.state.status == .inProgress` (Story 2 s3, FR-005, FR-016).
@@ -72,7 +73,7 @@ Derived:
 | `endEarly()` (after confirmation) | `.playing` | `hasPlayedPoint` ? `endEarly()` : none | `isPaused = false` in both cases. With a point: `clock.stop`, → `.summary`. With none: `match = nil`, `clock = nil`, → `.setup` (Story 4 s13) |
 | `done()` | `.summary` | none | `match = nil`, `clock = nil`, `isPaused = false`, → `.setup` with the stored format (Story 5 s10) |
 
-Every command first calls `haptics.cancelPending()` (research R3), then posts at most one combined announcement (R4). A rejected engine call (`MatchError`) leaves the session unchanged and plays nothing (Edge cases: very fast taps; tap while the summary is opening, ITF MT-08).
+Undo, server correction, pause, End and Done first call `haptics.cancelPending()`; an added point calls `haptics.flushPending()` instead, so it never drops a pending change-of-ends haptic (research R3). Every command posts at most one combined announcement (R4). A rejected engine call (`MatchError`) leaves the session unchanged and plays nothing (Edge cases: very fast taps; tap while the summary is opening, ITF MT-08).
 
 ## PointOutcome (value, pure)
 
