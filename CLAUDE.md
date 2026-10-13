@@ -28,6 +28,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 - Artifact gate: `scripts/gates/check-artifacts.sh specs/NNN-feature`
 - Info.plist strings gate: `scripts/gates/check-infoplist-strings.sh`
 - Project format gate: `scripts/gates/check-project-format.sh`
+- Review gate (CI, job `review-gate`): `PR_BODY=... HEAD_SHA=... scripts/gates/check-review-gate.sh`
 - Spec Kit (v0.10+, skills in `.claude/skills/speckit-*`): `/speckit-specify`, `/speckit-clarify`, `/speckit-plan`, `/speckit-tasks`, `/speckit-analyze`, `/speckit-implement`, `/speckit-constitution`.
 
 ## Workflow for every task
@@ -37,7 +38,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 4. Engine tests cite the rule they check, e.g. `// ITF: Rule 5(b)` using the IDs in `docs/rules/itf-notes.md`.
 5. Build both app targets and run the affected flow in the simulator via XcodeBuildMCP; attach screenshots to the PR.
 6. Invoke the `reviewer` subagent. Do not pass it your own summary. It returns `Reviewed-SHA`. Post each report as a PR comment with numbered findings (R<review>-<n>) and their outcomes.
-7. Open/update the PR with the `Reviewed-SHA` line. If you change anything after review, re-run tests and review: evidence is only valid for the reviewed SHA.
+7. Open/update the PR with the `Reviewed-SHA: <full SHA>` line (or `Reviewed-SHA: pending`). If you change anything after review, re-run tests and review: evidence is only valid for the reviewed SHA. The review-gate CI job fails unless `Reviewed-SHA` equals the PR head. Merge order: Denys's approval commit (for specs, `Status: Approved`) first, then the final review on that SHA, then Denys merges; push nothing after the final review.
 8. Append a row to the metrics log in `docs/harness.md` for the previous merged PR (each PR's row goes into the following PR). Count each defect once, in the earliest stage that caught it (tests/hooks → simulator → reviewer → CI → device); every count must be traceable to that PR's reviewer-report comments or CI runs.
 
 ## Hard rules
