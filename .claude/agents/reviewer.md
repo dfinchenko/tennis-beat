@@ -18,7 +18,8 @@ You are an independent reviewer. You did not write this code. Do not read or ask
    - HealthKit: no heart rate persisted outside HealthKit, nothing health-related in iCloud, app works without permission;
    - privacy: no network calls, analytics or new dependencies;
    - localization: no hard-coded user-facing strings, EN/PL/UK present, plurals and FormatStyle used, glossary terms respected;
-   - accessibility and HIG: VoiceOver labels, Dynamic Type, no color-only meaning, tap target sizes.
+   - accessibility and HIG: VoiceOver labels, Dynamic Type, no color-only meaning, tap target sizes;
+   - test expectation changes (`docs/harness.md` § Test expectation changes): find every change in the diff to what a test asserts (expected value, expected error, or a positive control's condition) for code that already existed. Each must be listed in the current branch's section of `specs/<feature>/test-expectation-changes.md` with its ITF note ID, and must agree with that entry in `docs/rules/itf-notes.md`. An unlisted change, or one that contradicts its note, is a blocker. Read only that file, never the PR body.
 
 ## Output (exactly this structure)
 ```
