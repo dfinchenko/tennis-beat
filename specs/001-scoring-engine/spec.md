@@ -69,6 +69,7 @@ The player taps "my point" or "opponent's point" after every rally. The engine k
 17. **Given** best of 3 with the match tie-break option at 1 set each, **Then** the deciding set is a single match tie-break and no third standard set is played.
 18. **Given** best of 3 without the match tie-break option at 1 set each, **Then** a normal third set is played.
 19. **Given** a setup with a 1-set match and the match tie-break option, **Then** the setup is rejected as invalid [ITF: MT-02].
+20. **Given** a setup with a set length other than 4, 6 or 8 (e.g. 5), including one restored from a saved event list, **Then** the setup is rejected as invalid [ITF: ST-07].
 
 ---
 
@@ -163,13 +164,13 @@ The watch reminds the players to change ends with a haptic. The engine reports, 
 
 1. **Given** a set in progress, **When** a game ends and the number of games played in that set becomes odd (1, 3, 5, …), **Then** a change of ends is reported [ITF: EN-01].
 2. **Given** a set that ends with an even total of games (e.g. 6–4 = 10), **Then** no change of ends is reported at the end of the set. The change comes after game 1 of the next set [ITF: EN-02].
-3. **Given** a set that ends with an odd total of games (e.g. 6–3 = 9), **Then** a change of ends is reported at the end of the set [ITF: EN-02].
-4. **Given** a set won in a tie-break, **Then** its total is 2N+1 games (7–6 = 13, 5–4 = 9, 9–8 = 17), and a change of ends is reported after it. This is an explicit test case for each set length [ITF: EN-03, EN-04].
+3. **Given** a set that ends with an odd total of games (e.g. 6–3 = 9) and does not end the match, **Then** a change of ends is reported at the end of the set [ITF: EN-02].
+4. **Given** a set won in a tie-break that does not end the match, **Then** its total is 2N+1 games (7–6 = 13, 5–4 = 9, 9–8 = 17), and a change of ends is reported after it. This is an explicit test case for each set length [ITF: EN-03, EN-04].
 5. **Given** a tie-break, **When** the total number of tie-break points played reaches 6, 12, 18, … and the tie-break has not ended, **Then** a change of ends is reported [ITF: TB-05].
-6. **Given** a tie-break whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
+6. **Given** a tie-break that does not end the match and whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
 7. **Given** best of 3 with the match tie-break option, set 2 won in a tie-break (2N+1 games for set length N, e.g. 7–6, 5–4 or 9–8), **Then** a change of ends is reported after set 2, before the match tie-break, for each set length [ITF: EN-03, EN-04].
 8. **Given** best of 3 with the match tie-break option, set 2 won with an even total of games (e.g. 6–4, 4–2, 8–6), **Then** no change of ends is reported before the match tie-break; the first change comes after 6 match-tie-break points [ITF: EN-02, EN-04, TB-05].
-9. **Given** the point that wins the match, **Then** no change of ends is reported [ITF: EN-05].
+9. **Given** the point that wins the match, **Then** no change of ends is reported, even where EN-01, EN-02, EN-03 or TB-05 would otherwise call for one. Explicit cases: a 1-set match won 6–3; a 1-set match won 7–6; a best-of-3 match won 2–0 with set 2 won in a tie-break; a match tie-break won 10–8 (18 points) [ITF: EN-05].
 
 ---
 
@@ -244,6 +245,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 7. **Given** a correction to the player who is already the first server, **Then** it is rejected and the state is unchanged.
 8. **Given** a finished or unfinished match, **When** the first server is corrected, **Then** the correction is accepted and recomputes the stats; the result and the match status are unchanged.
 9. **Given** a correction, **When** the player undoes, **Then** the correction is removed and the state equals the uncorrected match (Story 3, scenario 12).
+10. **Given** an unfinished match followed by a first-server correction, **Then** the event list is valid, the match stays unfinished, and the stats are recomputed. **When** the player undoes once, **Then** only the correction is removed; **when** the player undoes again, **Then** the early end is removed and the match is back in progress [ITF: MT-08, CE-02].
 
 ---
 
@@ -252,7 +254,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Undo across boundaries:** undo across game, set and tie-break boundaries, across the start of the match tie-break, and after the match ends (Story 3).
 - **Undo at the start:** with no points played, undo is a no-op (Story 3, scenario 6).
 - **Point after the match ends:** rejected, and the state is unchanged (Story 3, scenario 9).
-- **Invalid setup:** set length other than 4, 6 or 8; match tie-break with a 1-set match; missing or repeated setup. All are rejected (Story 1, scenario 19; Story 3, scenario 10).
+- **Invalid setup:** set length other than 4, 6 or 8; match tie-break with a 1-set match; missing or repeated setup. All are rejected (Story 1, scenarios 19 and 20; Story 3, scenario 10).
 - **Long games and tie-breaks:** unlimited deuces and unlimited tie-break length (Story 1, scenario 7; Story 4, scenario 3).
 - **Deciding point:** court side is "receiver's choice", and the point is a break point (Story 2, scenario 12; Story 6, scenario 7).
 - **Change of ends at the end of a tie-break:** only one change when the final tie-break point is also a multiple of 6 (Story 5, scenario 6).
@@ -320,8 +322,8 @@ A few games in, the players notice the wrong player was recorded as serving firs
   - "receiver's choice" on the No-Ad deciding point [ITF: NA-02].
 
 *Change of ends*
-- **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games) [ITF: EN-01, EN-02, EN-03, EN-04].
-- **FR-021**: During a tie-break or match tie-break, a change of ends MUST be reported after every 6th point (6, 12, 18, …). When the tie-break's final point coincides with this, exactly one change of ends MUST be reported [ITF: TB-05].
+- **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games), unless that game wins the match (FR-023) [ITF: EN-01, EN-02, EN-03, EN-04, EN-05].
+- **FR-021**: During a tie-break or match tie-break, a change of ends MUST be reported after every 6th point (6, 12, 18, …). When the tie-break's final point coincides with this, exactly one change of ends MUST be reported [ITF: TB-05]. No change of ends is reported when that point wins the match (FR-023) [ITF: EN-05].
 - **FR-022**: Before a match tie-break, ends MUST change only if set 2 ended with an odd total of games [ITF: EN-04].
 - **FR-023**: No change of ends MUST be reported after the point that wins the match [ITF: EN-05].
 
@@ -338,7 +340,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test.
 
 *Early end and server correction*
-- **FR-029**: A match-ended-early event MUST make the match unfinished: no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match [ITF: MT-08].
+- **FR-029**: A match-ended-early event MUST make the match unfinished. Only first-server corrections MAY follow it; an event list with a point or a second early end after it is invalid. An unfinished match has no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match [ITF: MT-08].
 - **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status and change-of-ends signals MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early [ITF: CE-02].
 
 *Saved format*
@@ -350,7 +352,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Match format**: match length (1 set or best of 3), set length (4, 6 or 8), game scoring (Advantage or No-Ad), and the match tie-break option (best of 3 only).
 - **Setup event**: the match format plus the first server (Me or Opponent). Exactly one per match, always first.
 - **Point event**: which player won the point (Me or Opponent), and the time it was recorded (stored, never used for state).
-- **Match-ended-early event**: marks the match as unfinished. At most one, always last.
+- **Match-ended-early event**: marks the match as unfinished. At most one; only first-server corrections may follow it.
 - **First-server-corrected event**: names the player who really served first. The latest one applies.
 - **Match record**: the format version plus the ordered list of events. It is the only thing that needs to be saved.
 - **Match state**: everything computed from the match record: score, match status (in progress, won, unfinished), server, court side, flags, change-of-ends signal, set scores and winners.
