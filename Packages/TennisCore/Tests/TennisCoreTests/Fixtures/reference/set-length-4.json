@@ -1,0 +1,71 @@
+{
+  "origin": "agent-built",
+  "format": {
+    "matchLength": "oneSet",
+    "setLength": 4,
+    "gameScoring": "advantage",
+    "matchTieBreak": false
+  },
+  "firstServer": "me",
+  "sets": [
+    {
+      "games": [
+        "MMMM",
+        "OOOO",
+        "MMMM",
+        "OOOO",
+        "MMMM",
+        "OOOO",
+        "MMMM",
+        "OOOO",
+        "MMMMMOMM"
+      ]
+    }
+  ],
+  "expectedStats": {
+    "me": {
+      "pointsWonOnServe": [
+        20,
+        20
+      ],
+      "pointsWonOnReturn": [
+        3,
+        20
+      ],
+      "serviceGamesHeld": [
+        4,
+        4
+      ],
+      "breakPointsConverted": [
+        0,
+        0
+      ],
+      "breakPointsSaved": [
+        0,
+        0
+      ]
+    },
+    "opponent": {
+      "pointsWonOnServe": [
+        17,
+        20
+      ],
+      "pointsWonOnReturn": [
+        0,
+        20
+      ],
+      "serviceGamesHeld": [
+        4,
+        4
+      ],
+      "breakPointsConverted": [
+        0,
+        0
+      ],
+      "breakPointsSaved": [
+        0,
+        0
+      ]
+    }
+  }
+}

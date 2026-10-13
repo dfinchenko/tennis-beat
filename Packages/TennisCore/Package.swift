@@ -13,7 +13,11 @@ let package = Package(
   ],
   targets: [
     .target(name: "TennisCore"),
-    .testTarget(name: "TennisCoreTests", dependencies: ["TennisCore"]),
+    .testTarget(
+      name: "TennisCoreTests",
+      dependencies: ["TennisCore"],
+      resources: [.copy("Fixtures")]
+    ),
   ],
   swiftLanguageModes: [.v6]
 )

@@ -1,0 +1,13 @@
+{
+  "origin": "hand-scored (Denys)",
+  "date": "YYYY-MM-DD",
+  "format": { "matchLength": "oneSet | bestOfThree", "setLength": 6, "gameScoring": "advantage | noAd", "matchTieBreak": false },
+  "firstServer": "me | opponent",
+  "sets": [
+    { "games": ["MMOM", "OOMOO", "…"] }
+  ],
+  "expectedStats": {
+    "me":       { "pointsWonOnServe": [0, 0], "pointsWonOnReturn": [0, 0], "serviceGamesHeld": [0, 0], "breakPointsConverted": [0, 0], "breakPointsSaved": [0, 0] },
+    "opponent": { "pointsWonOnServe": [0, 0], "pointsWonOnReturn": [0, 0], "serviceGamesHeld": [0, 0], "breakPointsConverted": [0, 0], "breakPointsSaved": [0, 0] }
+  }
+}

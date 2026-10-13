@@ -1,0 +1,76 @@
+{
+  "changeOfEnds": false,
+  "completedSets": [
+    {
+      "games": [
+        6,
+        4
+      ],
+      "isMatchTieBreak": false,
+      "tieBreak": null,
+      "winner": "me"
+    }
+  ],
+  "courtSide": "right",
+  "games": [
+    1,
+    0
+  ],
+  "isDecidingPoint": false,
+  "isDeuce": false,
+  "isMatchTieBreak": false,
+  "isTieBreak": false,
+  "pointCount": 46,
+  "points": [
+    "15",
+    "15"
+  ],
+  "server": "me",
+  "stats": {
+    "me": {
+      "breakPointsConverted": [
+        6,
+        6
+      ],
+      "breakPointsSaved": [
+        0,
+        4
+      ],
+      "pointsWonOnReturn": [
+        24,
+        24
+      ],
+      "pointsWonOnServe": [
+        5,
+        22
+      ],
+      "serviceGamesHeld": [
+        1,
+        5
+      ]
+    },
+    "opponent": {
+      "breakPointsConverted": [
+        4,
+        4
+      ],
+      "breakPointsSaved": [
+        0,
+        6
+      ],
+      "pointsWonOnReturn": [
+        17,
+        22
+      ],
+      "pointsWonOnServe": [
+        0,
+        24
+      ],
+      "serviceGamesHeld": [
+        0,
+        6
+      ]
+    }
+  },
+  "status": "unfinished"
+}
