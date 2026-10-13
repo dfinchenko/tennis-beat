@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-07
 
-**Status**: Draft
+**Status**: Approved (2026-10-13, Denys)
 
 **Input**: User description: "Scoring engine in Packages/TennisCore (pure Swift; no UI, HealthKit or persistence). A match is an ordered list of Codable events: setup (format, first server) and pointWon(by: me | opponent). State is a pure reduction of events. Undo removes the last event and works across game/set boundaries and after the match has ended. Formats: singles; 1 set or best of 3; set length 4, 6 or 8 games; Advantage or No-Ad; tie-break at N–N (ST-04, ST-06; 7-point tie-break); optional 10-point match tie-break instead of the deciding set, only for best of 3 (MT-02). State exposes: point display per player (0/15/30/40/AD; numbers in tie-breaks), games, sets, set and match winner, current server, serving court side (right when points already played in the current game or tie-break are even, left when odd; at the No-Ad deciding point it is "receiver's choice", NA-02), flags for deuce, deciding point, tie-break and match tie-break, and change-of-ends events (Rule 10, EN-02, EN-04; a set won in a tie-break has 2N+1 games, so ends change after it). Serve rotation: alternate each game; in a tie-break the first server serves one point, then two each; the player who served first in a tie-break receives first in the next set. Derived stats: points won on serve and on return, service games held (BP-03), break points converted and saved (BP-01, BP-02; tie-break points are never break points). Every rule references its ID in docs/rules/itf-notes.md. Acceptance criteria list these edge cases as testable scenarios."
 
