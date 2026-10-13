@@ -37,10 +37,10 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 **Purpose**: Prepare the package and the test support. No engine logic yet.
 
-- [ ] T001 Create the implementation worktree and branch from the latest `origin/main` (`.worktrees/001-impl`, branch `feat/001-scoring-engine-impl`). Set `.specify/feature.json` to `specs/001-scoring-engine`. Run `scripts/gates/check-artifacts.sh specs/001-scoring-engine`, and STOP if it fails.
-- [ ] T002 Add test resources to `Packages/TennisCore/Package.swift`: `.testTarget(name: "TennisCoreTests", dependencies: ["TennisCore"], resources: [.copy("Fixtures")])`. Create `Tests/Fixtures/saved-format/` and `Tests/Fixtures/reference/`, each with a `.gitkeep`. Add no package `dependencies:` (constitution IX).
-- [ ] T003 Create the source folders from plan.md: `Sources/Model/`, `Sources/Engine/`, `Sources/Persistence/`. Keep `Sources/TennisCore.swift` (module doc and `version`), and bump `version` to `"0.1.0"`.
-- [ ] T004 [P] Write `Tests/Support/SplitMix64.swift`:
+- [X] T001 Create the implementation worktree and branch from the latest `origin/main` (`.worktrees/001-impl`, branch `feat/001-scoring-engine-impl`). Set `.specify/feature.json` to `specs/001-scoring-engine`. Run `scripts/gates/check-artifacts.sh specs/001-scoring-engine`, and STOP if it fails.
+- [X] T002 Add test resources to `Packages/TennisCore/Package.swift`: `.testTarget(name: "TennisCoreTests", dependencies: ["TennisCore"], resources: [.copy("Fixtures")])`. Create `Tests/Fixtures/saved-format/` and `Tests/Fixtures/reference/`, each with a `.gitkeep`. Add no package `dependencies:` (constitution IX).
+- [X] T003 Create the source folders from plan.md: `Sources/Model/`, `Sources/Engine/`, `Sources/Persistence/`. Keep `Sources/TennisCore.swift` (module doc and `version`), and bump `version` to `"0.1.0"`.
+- [X] T004 [P] Write `Tests/Support/SplitMix64.swift`:
   - a `RandomNumberGenerator` seeded by a `UInt64`;
   - a computed `static var testSeed: UInt64 { … }` (no stored mutable global, which Swift 6 strict concurrency rejects), read from the `TENNISCORE_SEED` environment variable, with a fixed default constant otherwise (research R8).
 
@@ -52,16 +52,16 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 **⚠️ CRITICAL**: No story work starts before this phase is complete.
 
-- [ ] T005 [P] Create `Sources/Model/Player.swift`:
+- [X] T005 [P] Create `Sources/Model/Player.swift`:
   - `Player` (`me`, `opponent`, `other`);
   - `PlayerPair<Value>` with `subscript(Player)`. "Order is always Me, then Opponent".
-- [ ] T006 [P] Create `Sources/Model/MatchFormat.swift`: `MatchLength`, `SetLength` (raw values 4, 6, 8), `GameScoring`, `MatchFormat`, `MatchSetup`.
+- [X] T006 [P] Create `Sources/Model/MatchFormat.swift`: `MatchLength`, `SetLength` (raw values 4, 6, 8), `GameScoring`, `MatchFormat`, `MatchSetup`.
   - `MatchFormat.init` is declared `throws(MatchError)` but **does not validate yet**: it accepts every combination. The `.invalidFormat` check is added in T019, after the US1 s19 test (T016) has failed against it (constitution III).
-- [ ] T007 [P] Create `Sources/Model/MatchError.swift` with exactly `missingSetup`, `duplicateSetup`, `invalidFormat`, `matchNotInProgress`, `sameFirstServer`.
-- [ ] T008 [P] Create `Sources/Model/MatchEvent.swift`: `setup(MatchSetup)`, `point(winner: Player, recordedAt: Date)`, `matchEndedEarly`, `firstServerCorrected(Player)`.
-- [ ] T009 [P] Create `Sources/Model/MatchState.swift` with `MatchState`, `MatchStatus`, `SetScore`, `PointDisplay` (`.zero … .advantage`, `.tieBreak(Int)`) and `CourtSide`. Fields as in data-model.md "Derived: match state".
-- [ ] T010 [P] Create `Sources/Model/MatchStats.swift` with `Tally` ("`0 ≤ won ≤ of`"), `PlayerStats` and `MatchStats` with `subscript(Player)`.
-- [ ] T011 Create safe stubs with the full public API, so that story tests compile and fail by assertion, never by a trap. **No `fatalError`, `precondition` or `try!`** (contract G6): a trap kills the whole `swift test` run. Depends on T005–T010.
+- [X] T007 [P] Create `Sources/Model/MatchError.swift` with exactly `missingSetup`, `duplicateSetup`, `invalidFormat`, `matchNotInProgress`, `sameFirstServer`.
+- [X] T008 [P] Create `Sources/Model/MatchEvent.swift`: `setup(MatchSetup)`, `point(winner: Player, recordedAt: Date)`, `matchEndedEarly`, `firstServerCorrected(Player)`.
+- [X] T009 [P] Create `Sources/Model/MatchState.swift` with `MatchState`, `MatchStatus`, `SetScore`, `PointDisplay` (`.zero … .advantage`, `.tieBreak(Int)`) and `CourtSide`. Fields as in data-model.md "Derived: match state".
+- [X] T010 [P] Create `Sources/Model/MatchStats.swift` with `Tally` ("`0 ≤ won ≤ of`"), `PlayerStats` and `MatchStats` with `subscript(Player)`.
+- [X] T011 Create safe stubs with the full public API, so that story tests compile and fail by assertion, never by a trap. **No `fatalError`, `precondition` or `try!`** (contract G6): a trap kills the whole `swift test` run. Depends on T005–T010.
   - `Sources/Engine/Match.swift`: `Match` with `init(setup:)`, `init(events:)`, `record`, `recordPoint`, `endEarly`, `correctFirstServer`, `undo`, `state`, `stats`, `effectiveFirstServer`. In the stub:
     - `init(events:)` stores the events unvalidated;
     - the mutators do nothing;
@@ -69,12 +69,12 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
     - `state` returns a fixed placeholder (status in progress, 0–0, Me serving, right);
     - `stats` returns all-zero tallies.
   - `Sources/Persistence/MatchCodec.swift`: `RestoreError` and `MatchCodec`, with `currentFormatVersion = 1`. In the stub, `encode` returns empty `Data()` and `decode` returns `.failure(.malformed)`.
-- [ ] T012 Write `Tests/Support/MatchBuilder.swift`, a test DSL:
+- [X] T012 Write `Tests/Support/MatchBuilder.swift`, a test DSL:
   - `Match.make(_ length:, setLength:, scoring:, matchTieBreak:, firstServer:)`;
   - `.play("MMOM …")`, where `M` = Me won the point, `O` = Opponent won the point, and spaces are ignored;
   - helpers `.winGame(_ p:)`, `.winGames(me:opponent:)` (alternating order, never deciding the set early), `.winSet(_ p:)` and `.reach(games:)`;
   - a fixed `recordedAt` clock that advances 1 s per point.
-- [ ] T013 Remove the placeholder `moduleIsLinked()` test from `Tests/TennisCoreTests.swift`, keeping a version test for `TennisCore.version`. Run `swift test` and confirm that it compiles and passes.
+- [X] T013 Remove the placeholder `moduleIsLinked()` test from `Tests/TennisCoreTests.swift`, keeping a version test for `TennisCore.version`. Run `swift test` and confirm that it compiles and passes.
 
 **Checkpoint**: The package compiles, the API surface is fixed, and the suite is green with no story tests yet.
 
