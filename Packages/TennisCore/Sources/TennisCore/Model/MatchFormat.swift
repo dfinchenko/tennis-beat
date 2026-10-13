@@ -32,6 +32,7 @@ public struct MatchFormat: Sendable, Hashable {
     gameScoring: GameScoring,
     matchTieBreak: Bool
   ) throws(MatchError) {
+    if matchTieBreak && length != .bestOfThree { throw .invalidFormat }  // ITF: MT-02
     self.length = length
     self.setLength = setLength
     self.gameScoring = gameScoring

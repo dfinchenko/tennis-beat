@@ -88,16 +88,16 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US1 and US4 (write first, run, must FAIL against the stubs)
 
-- [ ] T014 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s1–s9 for the standard game (`// ITF: GM-01, GM-02, NA-01`):
+- [X] T014 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s1–s9 for the standard game (`// ITF: GM-01, GM-02, NA-01`):
   - s1 checks `.zero, .fifteen, .thirty, .forty`;
   - s7 plays 10 deuces;
   - s8 checks `isDecidingPoint` on and `isDeuce` off.
-- [ ] T015 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s10–s14 for sets (`// ITF: ST-01, ST-03, ST-04, ST-06, ST-07`; ST-01 because every set is a tie-break set, FR-007), with the edge cases as parameterized arguments:
+- [X] T015 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s10–s14 for sets (`// ITF: ST-01, ST-03, ST-04, ST-06, ST-07`; ST-01 because every set is a tie-break set, FR-007), with the edge cases as parameterized arguments:
   - N = 4: 4–2 and 5–3 win, 4–3 continues;
   - N = 8: 8–6 and 9–7 win, 8–7 continues.
-- [ ] T016 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s15–s19 for the match (`// ITF: MT-01, MT-02, MT-03`). s19 expects `MatchFormat.init` to throw `.invalidFormat`; it fails against T006, which doesn't validate yet. (US1 s20 needs the codec and is written in T028.) Also, in `Tests/US3UndoAndRestoreTests.swift`, write test US3 s9 here, because T020 implements it: after the match-winning point, `recordPoint` throws `.matchNotInProgress` and the `Match` is unchanged.
-- [ ] T017 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s1–s6 (`// ITF: TB-01, MT-03`): numeric displays, 7–5, 6–6 → 7–6 continues, 15–13, match tie-break 10–8, and 12–10.
-- [ ] T018 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s7, s9 and s10 (`// ITF: MT-05, TB-01, ST-07, GM-02, NA-01`; NA-02 and TB-04 go on the court-side test in T022):
+- [X] T016 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s15–s19 for the match (`// ITF: MT-01, MT-02, MT-03`). s19 expects `MatchFormat.init` to throw `.invalidFormat`; it fails against T006, which doesn't validate yet. (US1 s20 needs the codec and is written in T028.) Also, in `Tests/US3UndoAndRestoreTests.swift`, write test US3 s9 here, because T020 implements it: after the match-winning point, `recordPoint` throws `.matchNotInProgress` and the `Match` is unchanged.
+- [X] T017 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s1–s6 (`// ITF: TB-01, MT-03`): numeric displays, 7–5, 6–6 → 7–6 continues, 15–13, match tie-break 10–8, and 12–10.
+- [X] T018 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s7, s9 and s10 (`// ITF: MT-05, TB-01, ST-07, GM-02, NA-01`; NA-02 and TB-04 go on the court-side test in T022):
   - s7: `completedSets` reads 6–4, 3–6, then a match-tie-break entry with games 1–0, `tieBreak` 10–7 and `isMatchTieBreak`;
   - s9: per set length, 7–6 (7–5), 5–4 (9–7) and 9–8 (7–3);
   - s10: the flags are off at 3–3, 6–6 and 9–9 in Advantage and No-Ad matches, and the court side is never `.receiversChoice`. That last check stays red until T023, so assert it in a separate `@Test` named `"US4 s10 court side …"` and write it in T022 instead.
@@ -106,7 +106,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Implementation for US1 and US4
 
-- [ ] T019 [US1] Add the `.invalidFormat` check to `MatchFormat.init` in `Sources/Model/MatchFormat.swift` ("`matchTieBreak` is allowed only with `bestOfThree`", MT-02). Implement the score track in `Sources/Engine/ScoreTrack.swift`, a value type with:
+- [X] T019 [US1] Add the `.invalidFormat` check to `MatchFormat.init` in `Sources/Model/MatchFormat.swift` ("`matchTieBreak` is allowed only with `bestOfThree`", MT-02). Implement the score track in `Sources/Engine/ScoreTrack.swift`, a value type with:
   - the standard game (Advantage: "won with ≥ 4 points and a 2-point lead"; No-Ad: the 4th point wins at 3–3);
   - the set (won at N with a 2-game lead, N+1–N−1, or the N–N tie-break);
   - the 7-point tie-break ("first to 7, +2", no cap);
@@ -114,7 +114,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - the match status;
   - `completedSets`, including `SetScore.tieBreak` and `isMatchTieBreak` (MT-05);
   - point displays, and the `isDeuce`, `isDecidingPoint`, `isTieBreak` and `isMatchTieBreak` flags exactly as in FR-015.
-- [ ] T020 [US1] Implement `Sources/Engine/Reducer.swift`:
+- [X] T020 [US1] Implement `Sources/Engine/Reducer.swift`:
   - `step(_ state:, winner:) -> (state, PointContext)` on the score track;
   - `replay(setup:, effectiveFirstServer:, events:)`.
 
