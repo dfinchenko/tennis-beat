@@ -313,7 +313,7 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 - **SC-002**: For scripted tap sequences covering every format (1 set, best of 3, with and without match tie-break, set lengths 4, 6 and 8, Advantage and No-Ad), every value on the score screen equals the engine state after every tap, undo and correction (automated UI-level tests on the watch simulator).
 - **SC-003**: Over the same sequences, the haptic requested after each event matches Story 3 in 100% of cases, including no change-of-ends haptic on undo, server correction or the match-winning point.
 - **SC-004**: Elapsed time and duration differ from wall-clock time minus pauses by no more than 1 second over a scripted 30-minute match with pauses (automated with a controllable clock).
-- **SC-005**: Every screen passes an accessibility audit on the watch simulator with no missing labels, and every screen is readable with no truncated text at the largest agreed text size on the smallest supported watch, in all three languages (screenshots in the PRs).
+- **SC-005**: Every screen passes an accessibility audit on the watch simulator with no missing labels, and every screen is readable with no truncated text at the largest agreed text size on the 40 mm watch simulator (the smallest supported watch), in all three languages (screenshots in the PRs).
 - **SC-006**: 100% of user-facing strings exist in the String Catalog in EN, PL and UK, and every tennis term matches `docs/glossary.md`.
 - **SC-007**: Device checks (Denys, real watch): a player can score a full set without looking at the screen between points, relying on haptics; the four haptics are told apart; the score is readable in Always On at arm's length; Undo after a mis-tap takes under 3 seconds.
 
@@ -342,6 +342,6 @@ Denys accepted all proposals on 2026-10-13 ("all as proposed").
 - **Q6** — A light point haptic plays on every added point that wins no game.
 - **Q7** — The summary has a secondary Undo button under Done. The design export gains this button.
 - **Q8** — Always On hides the serve icon, the court-side pill and the status line.
-- **Q9** — Dynamic Type on the score screen goes up to the largest standard (non-accessibility) size; the other screens support every size and scroll. The smallest target is the smallest watch watchOS 26 supports (40 mm Series 6 / SE); the request named 42 mm, and the proposal did not name a size, so Denys confirms this in the PR.
+- **Q9** — Dynamic Type on the score screen goes up to the largest standard (non-accessibility) size; the other screens support every size and scroll. The smallest target is the smallest watch watchOS 26 supports, 40 mm (Series 6 / SE); the request's 42 mm came from an outdated note (confirmed by Denys on 2026-10-13). Layout checks run on the 40 mm simulator; real-device checks run on Denys's own watch.
 - **Q10** — Without a workout session the app may return to the watch face with the wrist down, and the match is lost if the system ends the app. Accepted for 002; spec 003 adds the workout session.
 - **Q11** — A set won in a tie-break shows "7:6", as designed.

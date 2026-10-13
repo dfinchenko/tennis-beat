@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [x] No [NEEDS CLARIFICATION] markers remain (Q1–Q11 decided by Denys on 2026-10-13; Q9 watch size to confirm in the PR)
+- [x] No [NEEDS CLARIFICATION] markers remain (Q1–Q11 decided by Denys on 2026-10-13)
 - [x] Requirements are testable and unambiguous (given the proposals)
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)

@@ -61,7 +61,7 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 - [ ] Full match on court: scoring, undo, change-of-ends haptics
 - [ ] Health permission denied: scoring still works, no crashes
 - [ ] Always On: score readable, no seconds or animations
-- [ ] Largest Dynamic Type on a 42 mm watch: nothing clipped
+- [ ] Largest Dynamic Type: nothing clipped. Layout is checked on the 40 mm watch simulator (the smallest watch watchOS 26 supports); the real-device check runs on Denys's own watch
 - [ ] iPhone far away during the match: match arrives later
 - [ ] Wet fingers / towel: no accidental points
 - [ ] App killed mid-match: match restored with the same score
