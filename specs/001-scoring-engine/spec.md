@@ -115,7 +115,7 @@ A player who taps the wrong zone can undo, as many times as needed, even across 
 
 1. **Given** any match with at least one event after the setup, **When** the player undoes, **Then** the last event is removed, whatever its kind (point, early end or server correction), and the state equals the state computed from the remaining events. This applies to every exposed value, including server, court side, flags, change-of-ends and stats.
 2. **Given** Me just won set 1 6–4 and set 2 is at 0–0, **When** the player undoes, **Then** set 1 is back in progress at 5–4 with the game score before the last point, and the set-1 winner is cleared.
-3. **Given** the match has ended, **When** the player undoes, **Then** the match is back in progress at match point, the match winner is cleared, and new points can be added.
+3. **Given** the match has been won and the last event is the match-winning point, **When** the player undoes, **Then** the match is back in progress at match point, the match winner is cleared, and new points can be added.
 4. **Given** a tie-break at 6–6 in points, **When** the player undoes, **Then** the tie-break score is 6–5 or 5–6 with the server and court side for that point.
 5. **Given** the first point of the match was just played, **When** the player undoes, **Then** the state is the start of the match: 0–0, the first server serving, from the right.
 6. **Given** only the setup event (no other events), **When** the player undoes, **Then** nothing changes. Undo never removes the setup.
@@ -342,7 +342,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-027**: Stats MUST be available at any moment of the match, counting only what has happened so far, and MUST follow undo exactly. For an unfinished match they count every point played before the early end.
 
 *Traceability*
-- **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test.
+- **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test. This is a process requirement with no acceptance scenario of its own; it is verified by SC-001.
 
 *Early end and server correction*
 - **FR-029**: A match-ended-early event MUST make the match unfinished. Only first-server corrections MAY follow it; an event list with a point or a second early end after it is invalid. An unfinished match has no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match [ITF: MT-08].
