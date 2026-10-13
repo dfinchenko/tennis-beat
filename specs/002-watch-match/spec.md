@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-13
 
-**Status**: Draft
+**Status**: Approved (2026-10-13, Denys)
 
 **Input**: User description: "Spec 002 — the match on Apple Watch. Watch match flow built on TennisCore, following docs/design/screens (setup, first server incl. coin toss, scoring, controls, Always On, summary). Setup: match length, set length 4/6/8, «При 40:40» (Перевага / Вирішальне очко), match tie-break option only for best of 3; defaults from the last match. Scoring: two full-height tap zones (opponent top, me bottom), point display, sets and games, serve icon and court-side pill (справа / зліва / на вибір), status line only for «Рівно», «Вирішальне очко», «Тай-брейк», «Матч-тай-брейк». Haptics: distinct for game, set, match; change of ends only when an added point calls for it (never on undo or correction). Controls page: undo, pause/resume (elapsed time stops), server correction, end match early with confirmation. Summary: result, set scores, duration; heart rate comes in spec 003. Always On: dimmed state as in the design. All strings via String Catalog in EN/PL/UK per docs/glossary.md; VoiceOver labels; Dynamic Type on 42 mm. Out of scope: HealthKit (003), persistence and crash recovery, sync to iPhone (004). A 0-point unfinished match is never saved. Deliver the implementation later in small PRs per screen."
 

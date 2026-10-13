@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Q1–Q11 were decided by Denys on 2026-10-13 ("all as proposed"). The spec stays Draft until Denys sets `Status: Approved`.
+- Q1–Q11 were decided by Denys on 2026-10-13 ("all as proposed"). Denys approved the spec on 2026-10-13.
 - The copy table holds draft strings for Denys's approval; PL drafts need a native tennis player's review.
