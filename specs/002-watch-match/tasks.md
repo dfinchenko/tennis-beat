@@ -57,22 +57,22 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 **Purpose**: Catalog, design tokens, CI and test support. No screen yet.
 
-- [ ] T001 PR checklist step 1 for PR 1: worktree `.worktrees/002-setup`, branch `feat/002-setup`.
-- [ ] T002 Add a `watch-tests` job to `.github/workflows/ci.yml` (research R12):
+- [X] T001 PR checklist step 1 for PR 1: worktree `.worktrees/002-setup`, branch `feat/002-setup`.
+- [X] T002 Add a `watch-tests` job to `.github/workflows/ci.yml` (research R12):
   - `runs-on: macos-26`, the same "Select newest Xcode" step as `app-builds`;
   - pick the first available watchOS simulator with `xcrun simctl list devices available -j`;
   - `timeout-minutes: 45`;
-- run `xcodebuild test -project TennisBeat/TennisBeat.xcodeproj -scheme "TennisBeat Watch App" -destination "platform=watchOS Simulator,id=<udid>" CODE_SIGNING_ALLOWED=NO`.
+  - run `xcodebuild test -project TennisBeat/TennisBeat.xcodeproj -scheme "TennisBeat Watch App" -destination "platform=watchOS Simulator,id=<udid>" CODE_SIGNING_ALLOWED=NO`.
 
   If no watchOS runtime exists on the image, run `xcodebuild build-for-testing` with a generic destination instead, and record this in the PR body for Denys (R12 fallback). Do not add the job to the required checks: that is Denys's ruleset.
-- [ ] T003 [P] Create `App/Localizable.xcstrings`: source language `en`, with `pl` and `uk` localizations, empty for now (research R11). Confirm that `knownRegions` in `project.pbxproj` already lists `en`, `pl` and `uk`, and leave the project file unchanged.
-- [ ] T004 [P] Create `App/DesignSystem/Colors.swift`: one `Color` per `watch/*`, `brand/*` and `status/*` token in `docs/design/tokens.json`, with the exact hex and alpha values (for example `watch/zone-me` `#DFFF4F29`). Use names like `Color.brandBall` and `Color.watchZoneMe`.
-- [ ] T005 [P] Create `App/DesignSystem/Typography.swift`: `Font` helpers for `Watch/Large Title`, `Title`, `Headline`, `Body`, `Footnote`, `Label`, `Caption`, `Score` and `Number` (`docs/design/typography.md`). Build them on SwiftUI text styles so Dynamic Type works, and use `.rounded` with monospaced digits for `Score` and `Number`.
-- [ ] T006 [P] Create the test support in `UnitTests/Support/`:
+- [X] T003 [P] Create `App/Localizable.xcstrings`: source language `en`, with `pl` and `uk` localizations, empty for now (research R11). Confirm that `knownRegions` in `project.pbxproj` already lists `en`, `pl` and `uk`, and leave the project file unchanged.
+- [X] T004 [P] Create `App/DesignSystem/Colors.swift`: one `Color` per `watch/*`, `brand/*` and `status/*` token in `docs/design/tokens.json`, with the exact hex and alpha values (for example `watch/zone-me` `#DFFF4F29`). Use names like `Color.brandBall` and `Color.watchZoneMe`.
+- [X] T005 [P] Create `App/DesignSystem/Typography.swift`: `Font` helpers for `Watch/Large Title`, `Title`, `Headline`, `Body`, `Footnote`, `Label`, `Caption`, `Score` and `Number` (`docs/design/typography.md`). Build them on SwiftUI text styles so Dynamic Type works, and use `.rounded` with monospaced digits for `Score` and `Number`.
+- [X] T006 [P] Create the test support in `UnitTests/Support/`:
   - `FakeClock.swift`: a settable `now`, with `advance(by:)`;
   - `RecordingHaptics.swift` and `RecordingAnnouncer.swift`: record calls in order;
   - `MatchScript.swift`: builds a TennisCore `Match` from a format, a first server and a string like `"MMOM"` (M = Me, O = Opponent), with helpers `games(_:)` and `set(_:)` (the same idea as 001's `MatchBuilder`).
-- [ ] T007 Remove the template test `UnitTests/TennisBeat_Watch_AppTests.swift` and the template UI tests in `UITests/` once the first real tests exist (T011 and T015).
+- [X] T007 Remove the template test `UnitTests/TennisBeat_Watch_AppTests.swift` and the template UI tests in `UITests/` once the first real tests exist (T011 and T015).
 
 ---
 
@@ -80,11 +80,11 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 **Purpose**: The session skeleton and the root view that every screen needs.
 
-- [ ] T008 Create `App/Match/LaunchOptions.swift` (`#if DEBUG` only):
+- [X] T008 Create `App/Match/LaunchOptions.swift` (`#if DEBUG` only):
   - parse `-resetFormat`, `-coinToss me|opponent` and `-uiTestExposeValues` (used from PR 2) from `ProcessInfo.processInfo.arguments` (contract §2);
   - in a Release build, return the production defaults.
-- [ ] T009 Create `App/Match/MatchSession.swift`: an `@Observable` main-actor class with `route: Route` (`.setup`, `.playing`, `.summary`), `match: Match?`, `clock: MatchClock?`, `isPaused`, and the injected `haptics`, `announcer` and `now`. The commands are stubs that change nothing. In this PR only `start(firstServer:)` gets a body (T019). Follow [data-model.md § MatchSession](data-model.md#matchsession-observable-main-actor) exactly.
-- [ ] T010 Replace `App/ContentView.swift` with `RootView`, which switches on `session.route`:
+- [X] T009 Create `App/Match/MatchSession.swift`: an `@Observable` main-actor class with `route: Route` (`.setup`, `.playing`, `.summary`), `match: Match?`, `clock: MatchClock?`, `isPaused`, and the injected `haptics`, `announcer` and `now`. The commands are stubs that change nothing. In this PR only `start(firstServer:)` gets a body (T019). Follow [data-model.md § MatchSession](data-model.md#matchsession-observable-main-actor) exactly.
+- [X] T010 Replace `App/ContentView.swift` with `RootView`, which switches on `session.route`:
   - `.setup` → `NewMatchView` in a `NavigationStack`;
   - `.playing` → a placeholder `Text` with the identifier `score.placeholder`, removed in PR 2;
   - `.summary` → `EmptyView`.
@@ -103,7 +103,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T011 [P] [US1] `UnitTests/FormatChoiceTests.swift`:
+- [X] T011 [P] [US1] `UnitTests/FormatChoiceTests.swift`:
   - US1 s1: with no stored value, the defaults are best of 3, 6 games, Advantage, Full set (Q2);
   - US1 s3: `isThirdSetVisible` is false for 1 set, and `thirdSet` is kept;
   - US1 s5: save then load round-trips all four rows, and nothing about the first server is stored;
@@ -113,17 +113,17 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - FR-001: every one of the 2×3×2×2 combinations builds a `MatchFormat` with the expected fields; `// ITF: MT-01, MT-03, ST-04, ST-06, ST-07, GM-02, NA-01`.
 
   Use a throwaway `UserDefaults(suiteName:)` for each test.
-- [ ] T012 [P] [US1] `UnitTests/CoinTossTests.swift`:
+- [X] T012 [P] [US1] `UnitTests/CoinTossTests.swift`:
   - US1 s9: an injected toss of `.opponent` starts the match with the Opponent as first server;
   - FR-003: 10,000 tosses through the production `CoinToss.toss(using:)` with a seeded generator give `.me` in 50% ± 2%; `// ITF: SV-01`.
-- [ ] T013 [P] [US1] `UnitTests/SessionTests.swift`, setup part:
+- [X] T013 [P] [US1] `UnitTests/SessionTests.swift`, setup part:
   - US1 s8: `start(firstServer: .me)` → `route == .playing`, the match has one `.setup` event with the chosen format and first server, the state is 0–0 with `server == .me` and `courtSide == .right`, and the clock started at `now`; `// ITF: SV-01, SV-03`;
   - US1 s5: `start` stores the format;
   - US1 s10: no match exists before `start` (the back navigation itself is checked in the UI test).
-- [ ] T014 [P] [US7] `UnitTests/StringCatalogTests.swift`:
+- [X] T014 [P] [US7] `UnitTests/StringCatalogTests.swift`:
   - SC-006: load the source catalog `App/Localizable.xcstrings` as JSON, from a path relative to `#filePath` (the simulator can read host paths);
   - fail on any key without a `pl` or `uk` value, or with a plural variation missing a category its language needs (`one`, `few`, `many`, `other` for PL and UK).
-- [ ] T015 [P] [US1] `UITests/SetupFlowUITests.swift` (launch with `-resetFormat`), using the identifiers from contract §1:
+- [X] T015 [P] [US1] `UITests/SetupFlowUITests.swift` (launch with `-resetFormat`), using the identifiers from contract §1:
   - US1 s1 and s2: four rows with captions and values;
   - US1 s3: set Format to 1 set, the Third set row is gone; back to best of 3, it returns with "Tie-break to 10" when that was chosen before;
   - US1 s4: tapping a row shows a picker with the current value selected, and picking returns with the row updated;
@@ -133,38 +133,38 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US1 s9: launch with `-coinToss opponent` → Coin toss → the result reads "First server: Opponent" → Start → `score.placeholder`;
   - US1 s10: back from First server returns to New match unchanged; back from the result returns to First server;
   - US7 s7 (other language): launch with `-AppleLanguages (de)`, and New match shows the EN strings ("New match", "Start").
-- [ ] T016 [P] [US7] `UITests/SetupAccessibilityUITests.swift`:
+- [X] T016 [P] [US7] `UITests/SetupAccessibilityUITests.swift`:
   - US7 s5: each row's accessibility label and value read like "Set length, 6 games";
   - SC-005: `XCUIApplication().performAccessibilityAudit()` passes on New match, the picker, First server and the coin-toss result.
 
 ### Implementation
 
-- [ ] T017 [P] [US1] `App/Match/FormatChoice.swift`: `FormatChoice` and `FormatStore`, as in [data-model.md § FormatChoice](data-model.md#formatchoice-stored):
+- [X] T017 [P] [US1] `App/Match/FormatChoice.swift`: `FormatChoice` and `FormatStore`, as in [data-model.md § FormatChoice](data-model.md#formatchoice-stored):
   - key `lastFormat.v1`, a dictionary of four raw strings;
   - per-row fallback to the defaults "best of 3, sets of 6, Advantage, third set as a full set";
   - `matchTieBreak = length == .bestOfThree && thirdSet == .tieBreakToTen`.
-- [ ] T018 [P] [US1] `App/Match/CoinToss.swift`: `CoinToss.toss(using: inout some RandomNumberGenerator) -> Player` (`Bool.random(using:)` → Me or Opponent); production passes `SystemRandomNumberGenerator`; the `-coinToss` override from `LaunchOptions` bypasses it.
-- [ ] T019 [US1] `MatchSession.start(firstServer:)`:
+- [X] T018 [P] [US1] `App/Match/CoinToss.swift`: `CoinToss.toss(using: inout some RandomNumberGenerator) -> Player` (`Bool.random(using:)` → Me or Opponent); production passes `SystemRandomNumberGenerator`; the `-coinToss` override from `LaunchOptions` bypasses it.
+- [X] T019 [US1] `MatchSession.start(firstServer:)`:
   - `Match(setup: MatchSetup(format: formatChoice.matchFormat, firstServer:))`;
   - save the format;
   - `clock = MatchClock(startedAt: now())`; this creates `App/Match/MatchClock.swift` with `startedAt` and `elapsed(at:)` only; pause and stop come in PR 2 and PR 3;
   - `route = .playing`.
 
   Also `formatChoice` loading on init, honouring `-resetFormat`.
-- [ ] T020 [US1] `App/Setup/NewMatchView.swift` (Watch 1, with the Set length row second, Q1):
+- [X] T020 [US1] `App/Setup/NewMatchView.swift` (Watch 1, with the Set length row second, Q1):
   - a `ScrollView` with the title and the setting rows (caption in Footnote/secondary, value in Title, on `watch/surface`, radius 16);
   - the Third set row only when `isThirdSetVisible`;
   - a capsule Start button (`brand/ball`) that pushes First server;
   - each row is a button with an accessibility label (caption) and value (current value).
-- [ ] T021 [P] [US1] `App/Setup/OptionPickerView.swift`: a list of options with a checkmark on the current one. Picking sets the value and pops. Identifiers `picker.option.<rawValue>`.
-- [ ] T022 [US1] `App/Setup/FirstServerView.swift` (Watch 2): the title "Who serves first?" and three 52 pt capsule buttons (Me `brand/ball`, Opponent `watch/button-opponent`, Coin toss `watch/surface`). Me and Opponent call `session.start`. Coin toss pushes `CoinTossResultView` with a new toss each time.
-- [ ] T023 [US1] `App/Setup/CoinTossResultView.swift`: "First server: %@" and a Start button that calls `session.start(firstServer: result)` (Q3, R1-12).
-- [ ] T024 [US7] Add the EN, PL and UK strings for New match, the pickers, First server and the coin toss to `App/Localizable.xcstrings`, exactly as the spec's copy table, with semantic keys (R11):
+- [X] T021 [P] [US1] `App/Setup/OptionPickerView.swift`: a list of options with a checkmark on the current one. Picking sets the value and pops. Identifiers `picker.option.<rawValue>`.
+- [X] T022 [US1] `App/Setup/FirstServerView.swift` (Watch 2): the title "Who serves first?" and three 52 pt capsule buttons (Me `brand/ball`, Opponent `watch/button-opponent`, Coin toss `watch/surface`). Me and Opponent call `session.start`. Coin toss pushes `CoinTossResultView` with a new toss each time.
+- [X] T023 [US1] `App/Setup/CoinTossResultView.swift`: "First server: %@" and a Start button that calls `session.start(firstServer: result)` (Q3, R1-12).
+- [X] T024 [US7] Add the EN, PL and UK strings for New match, the pickers, First server and the coin toss to `App/Localizable.xcstrings`, exactly as the spec's copy table, with semantic keys (R11):
   - `setup.title`, `setup.format.caption`, `setup.format.oneSet`, `setup.format.bestOfThree`;
   - `setup.setLength.caption`, `setup.setLength.value` with plural variations "%d games" / «%d gemów» / «%d геймів»;
   - `setup.atFortyAll.*`, `setup.thirdSet.*`, `setup.start`;
   - `firstServer.title`, `player.me`, `player.opponent`, `firstServer.coinToss`, `coinToss.result`.
-- [ ] T025 [US1] Update `docs/design/screens/watch-1-new-match.md`: add the "Set length" row as the second row, with EN, PL and UK texts and a note "added by spec 002 Q1" (R1-9).
+- [X] T025 [US1] Update `docs/design/screens/watch-1-new-match.md`: add the "Set length" row as the second row, with EN, PL and UK texts and a note "added by spec 002 Q1" (R1-9).
 - [ ] T026 [US1] PR checklist steps 3–7 for PR 1. Screenshots: New match (defaults and 1 set), a picker, First server, the coin-toss result, each in EN, PL and UK at the largest standard and an accessibility size on 40 mm. Device checks for Denys: SC-001 (two taps from launch to the score route). Metrics row for the 002 plan PR (its number is in `git log` on `main`).
 
 **Checkpoint (PR 1 merged)**: a match can be set up and started; US1 is fully covered.
