@@ -43,6 +43,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 
 ## Hard rules
 - Never write code for a spec that is not `Status: Approved`. Never change acceptance criteria yourself — propose changes to Denys.
+- Set `Status: Approved` in a spec only after Denys's explicit approval comment on the spec's PR, and link that comment in the commit message (e.g. `Approval: https://github.com/dfinchenko/tennis-beat/pull/8#issuecomment-…`). No comment, no approval.
 - Never merge PRs, never push to `main`, never force-push.
 - Heart rate and other health data are never stored in the app database or iCloud; read them from HealthKit on demand by workout UUID.
 - No analytics, no third-party SDKs, no network calls. Add no dependency without asking.

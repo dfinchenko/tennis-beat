@@ -12,7 +12,7 @@ for f in spec.md plan.md tasks.md; do
   fi
 done
 if [[ -s "$dir/spec.md" ]] && ! grep -Eq '^\**Status:?\**:? *Approved' "$dir/spec.md"; then
-  echo "GATE FAIL: $dir/spec.md is not 'Status: Approved' (set by Denys)" >&2
+  echo "GATE FAIL: $dir/spec.md is not 'Status: Approved' (approved by Denys in a PR comment)" >&2
   fail=1
 fi
 [[ $fail -eq 0 ]] && echo "GATE PASS: $dir"

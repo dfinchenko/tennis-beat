@@ -4,7 +4,10 @@
 
 ### I. Spec Before Code
 
-- No implementation starts until the feature's `spec.md` carries `Status: Approved`, set by Denys.
+- No implementation starts until the feature's `spec.md` carries `Status: Approved`. Only Denys
+  approves a spec. An agent MAY write the `Status: Approved` line only after Denys has posted an
+  explicit approval comment on the spec's PR, and the commit that sets it MUST link that comment.
+  Without such a comment, the spec stays Draft.
 - Acceptance criteria and priorities are set by the human owner, never by an agent. An agent MAY
   propose changes to a spec; it MUST NOT apply them to acceptance criteria itself.
 - `scripts/gates/check-artifacts.sh specs/NNN-feature` MUST pass before implementation begins.
@@ -132,4 +135,4 @@ Rationale: the harness is itself an experiment and must report truthfully.
   PATCH for clarifications.
 - Every review checks compliance with these principles; violations are blocker findings.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-06
+**Version**: 1.1.0 | **Ratified**: 2026-10-06 | **Last Amended**: 2026-10-13
