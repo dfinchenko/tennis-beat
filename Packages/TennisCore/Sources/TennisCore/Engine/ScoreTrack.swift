@@ -31,6 +31,8 @@ struct ScoreTrack: Sendable, Hashable {
   private(set) var points: PlayerPair<Int> = .zero
   private(set) var mode: Mode = .standard
   private(set) var winner: Player?
+  /// The most recent point's change-of-ends value; `false` before the first point.
+  private(set) var changeOfEnds = false
 
   init(format: MatchFormat) {
     self.format = format
@@ -87,6 +89,7 @@ struct ScoreTrack: Sendable, Hashable {
   mutating func addPoint(_ player: Player) -> Outcome {
     var outcome = Outcome(mode: mode, pointsBefore: points)
     points[player] += 1
+    defer { changeOfEnds = Self.changeOfEnds(after: outcome, pointsPlayed: points) }
     guard winsGame(player, with: points) else { return outcome }
 
     outcome.gameEnded = true
@@ -135,6 +138,21 @@ struct ScoreTrack: Sendable, Hashable {
     } else {
       mode = .standard
     }
+  }
+
+  /// The change-of-ends value of the point that produced `outcome` (data-model rules 1–4).
+  private static func changeOfEnds(after outcome: Outcome, pointsPlayed: PlayerPair<Int>) -> Bool {
+    // 1. ITF: EN-05 — never after the match-winning point.
+    if outcome.matchEnded { return false }
+    // 2. ITF: EN-01, EN-02, EN-03, EN-04 — a game (or set tie-break) that makes the set's games odd.
+    if outcome.gameEnded { return !outcome.gamesInSetAfterGame.isMultiple(of: 2) }
+    // 3. ITF: TB-05 — every 6 points inside a tie-break or match tie-break.
+    if outcome.mode != .standard {
+      let played = pointsPlayed.me + pointsPlayed.opponent
+      return played > 0 && played.isMultiple(of: 6)
+    }
+    // 4.
+    return false
   }
 
   private static func display(_ points: Int) -> PointDisplay {

@@ -243,17 +243,17 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US5 (write first, must FAIL)
 
-- [ ] T039 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s1–s4 (`// ITF: EN-01, EN-02, EN-03, EN-04`). Positive control for s2 (the placeholder `changeOfEnds` is always `false`): the same test asserts the change after game 1 of the next set is `true`. s4 has one parameterized case per set length: 7–6 = 13, 5–4 = 9, 9–8 = 17.
-- [ ] T040 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s5–s8 (`// ITF: TB-05, EN-03, EN-02, EN-04`):
+- [X] T039 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s1–s4 (`// ITF: EN-01, EN-02, EN-03, EN-04`). Positive control for s2 (the placeholder `changeOfEnds` is always `false`): the same test asserts the change after game 1 of the next set is `true`. s4 has one parameterized case per set length: 7–6 = 13, 5–4 = 9, 9–8 = 17.
+- [X] T040 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write tests US5 s5–s8 (`// ITF: TB-05, EN-03, EN-02, EN-04`):
   - s6: a 7–5 tie-break (12 points) reports exactly one change;
   - s7: one case per set length;
   - s8: the first change comes after 6 match-tie-break points; the test asserts that point's value is `true` (positive control), not only that earlier ones are `false`.
-- [ ] T041 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write test US5 s9 (`// ITF: EN-05`) with all four explicit cases: 1-set 6–3, 1-set 7–6, best of 3 won 2–0 with set 2 won in a tie-break, and a match tie-break won 10–8 (18 points). Also check `changeOfEnds == false` before the first point. Positive control: in each case, an earlier point of the same match reports `true` (e.g. after game 1).
-- [ ] T042 [P] [US5] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s7 (`// ITF: EN-03, TB-05`): undoing a point that called for a change of ends exposes the previous point's value, or `false` if there is none. Cases: undo the point that ends game 1 (previous value `false`); and, as the positive control, undo the point that wins a set-1 tie-break **7–0** in best of 3. That point calls for a change (EN-03: 13 games), and the previous point (6–0, the 6th tie-break point) is `true` (TB-05), so the undo must expose `true` and the test fails against the always-`false` placeholder. Two consecutive points can both call for a change only here: games last at least 4 points, and a tie-break won after 6 points must be won 7–0 or 0–7.
+- [X] T041 [P] [US5] In `Tests/US5ChangeOfEndsTests.swift`, write test US5 s9 (`// ITF: EN-05`) with all four explicit cases: 1-set 6–3, 1-set 7–6, best of 3 won 2–0 with set 2 won in a tie-break, and a match tie-break won 10–8 (18 points). Also check `changeOfEnds == false` before the first point. Positive control: in each case, an earlier point of the same match reports `true` (e.g. after game 1).
+- [X] T042 [P] [US5] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s7 (`// ITF: EN-03, TB-05`): undoing a point that called for a change of ends exposes the previous point's value, or `false` if there is none. Cases: undo the point that ends game 1 (previous value `false`); and, as the positive control, undo the point that wins a set-1 tie-break **7–0** in best of 3. That point calls for a change (EN-03: 13 games), and the previous point (6–0, the 6th tie-break point) is `true` (TB-05), so the undo must expose `true` and the test fails against the always-`false` placeholder. Two consecutive points can both call for a change only here: games last at least 4 points, and a tie-break won after 6 points must be won 7–0 or 0–7.
 
 ### Implementation for US5
 
-- [ ] T043 [US5] In `Sources/Engine/ScoreTrack.swift`, compute each point's change of ends with the 4-rule order in data-model.md "Change of ends":
+- [X] T043 [US5] In `Sources/Engine/ScoreTrack.swift`, compute each point's change of ends with the 4-rule order in data-model.md "Change of ends":
   1. the match-winning point → `false`;
   2. the end of a standard game or set tie-break → odd games in the set;
   3. inside a tie-break → points are a positive multiple of 6;

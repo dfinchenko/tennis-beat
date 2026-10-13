@@ -21,7 +21,7 @@ struct Reduction: Sendable, Hashable {
       isDecidingPoint: score.isDecidingPoint,
       isTieBreak: score.mode != .standard,
       isMatchTieBreak: score.mode == .matchTieBreak,
-      changeOfEnds: false
+      changeOfEnds: score.changeOfEnds
     )
   }
 
