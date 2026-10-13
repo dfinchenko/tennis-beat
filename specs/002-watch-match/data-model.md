@@ -101,6 +101,7 @@ Everything Watch 3 shows or reads, built from `MatchState`, `isPaused` and the l
 | `statusText` | "Paused" if paused, else the first true of `isMatchTieBreak`, `isTieBreak`, `isDecidingPoint`, `isDeuce`, else empty (FR-008) |
 | `summaryAccessibilityLabel` | the server's score first, then a separate Me or Opponent string with the side or the receiver's choice (Story 7 s1, R2-1) |
 | `zones[player].accessibilityLabel` / `hint` | the copy-table zone sentence with plural games and sets / "Add point for …" |
+| `zonesAcceptTaps(isLuminanceReduced:)` | `acceptsPoints && !isLuminanceReduced` (Story 6 s3) |
 | `statusAccessibilityText` | "Paused. <state>" or "<state>" (R1-3) |
 
 Point display order for VoiceOver: the server's score first [ITF: GM-01]; "advantage" for AD.
