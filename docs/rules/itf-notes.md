@@ -1,6 +1,6 @@
 # ITF rules notes — scoring source of truth
 
-Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07, and MT-05 and EN-05 on 2026-10-12; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
+Status: **Draft** overall. Denys approved the product decisions ST-04, ST-06, MT-02, EN-04 and BP-01..BP-03 on 2026-10-07, MT-05 and EN-05 on 2026-10-12, and MT-08 and CE-02 on 2026-10-13; those entries are marked **Approved**. Rule entries stay Draft until Denys spot-checks them against the PDF.
 
 ## Source
 - **Edition:** ITF *Rules of Tennis* 2026 (English). The © line says 2025, and the PDF was last modified on 2025-12-23. Changes to the rules take effect on 1 January of the following year.
@@ -57,6 +57,7 @@ The Tests column is filled in by the engine feature.
 | MT-05 | — (not in source) | Not covered | The source does not say how a match tie-break appears in the score line. Common practice writes it as a set, e.g. "1–0 (10–7)". | Our decision: the match tie-break is the deciding set, won 1–0. It is stored as a set with a match-tie-break flag and its point score, and results show that point score, e.g. 6–4, 3–6, 10–7. **Approved** (Denys, 2026-10-12). | |
 | MT-06 | App. VI — Match tie-break (7 points) (3) | Rule | Alternative: a 7-point match tie-break. | Not in MVP scope. | |
 | MT-07 | App. VI — Final set tie-break (10 points) (5) | Rule | Alternative: in the final set, at 6 games all, play a 10-point tie-break. | Not in MVP scope. | |
+| MT-08 | — (not in source) | Not covered — our decision | The source does not describe a match that stops before it is decided (court time over, injury) as a scorekeeping outcome. | Our decision: a "match ended early" event makes the match unfinished: no winner, completed sets keep their winners, stats count the points played, further points are rejected, and undo removes the event. It is allowed at 0–0 and rejected after the match is won or already ended early. Apps do not save a 0-point unfinished match to history, and head-to-head excludes unfinished matches. **Approved** (Denys, 2026-10-13). | |
 
 ### Service and ends
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
@@ -75,6 +76,7 @@ The Tests column is filled in by the engine feature.
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |
 | --- | --- | --- | --- | --- | --- |
 | CE-01 | Rule 27 | Rule | When an error is discovered, all points already played stand. Order-of-service mistakes are fixed according to set conditions. | The app uses undo (dropping events) instead of officiating corrections. Rule 27 is not modelled in MVP, and the spec must say so. | |
+| CE-02 | — (not in source); contrast Rule 27 | Not covered — our decision | The source has no rule for correcting the recorded first server in a scorekeeping record. Rule 27 (CE-01) covers order-of-service errors on court: points already played stand and the order is fixed from then on. | Our decision, a scorekeeping fix, not Rule 27: a "first server corrected" event recomputes the whole match as if the corrected player had served first from the start, so the server of every game and tie-break point and all serve-dependent stats change. Scores, winners and change-of-ends signals do not. It is allowed at any time, including after the match ends; a correction to the current first server is rejected; the latest correction applies; undo removes it. **Approved** (Denys, 2026-10-13). | |
 
 ### Derived concepts
 | ID | Rule / appendix ref | Origin | Paraphrase | Engine implication | Tests |

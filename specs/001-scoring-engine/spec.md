@@ -205,7 +205,7 @@ After the match, the iPhone shows stats derived only from the points: points won
 
 ---
 
-### User Story 7 - End a match early (Priority: P2)
+### User Story 7 - End a match early (Priority: P2) [ITF: MT-08]
 
 Court time runs out or a player is injured. The player ends the match early; the match is kept as unfinished, with its score and stats so far.
 
@@ -225,7 +225,7 @@ Court time runs out or a player is injured. The player ends the match early; the
 
 ---
 
-### User Story 8 - Correct the first server (Priority: P2)
+### User Story 8 - Correct the first server (Priority: P2) [ITF: CE-02]
 
 A few games in, the players notice the wrong player was recorded as serving first. The player corrects the first server; the whole match is recomputed as if the corrected player had served first from the start.
 
@@ -338,8 +338,8 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test.
 
 *Early end and server correction*
-- **FR-029**: A match-ended-early event MUST make the match unfinished: no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match.
-- **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status and change-of-ends signals MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early.
+- **FR-029**: A match-ended-early event MUST make the match unfinished: no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match [ITF: MT-08].
+- **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status and change-of-ends signals MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early [ITF: CE-02].
 
 *Saved format*
 - **FR-031**: The saved event list MUST carry a format version. The engine MUST restore lists saved with its own version and with every older version it has written. A list with a newer version MUST be rejected with an "unsupported version" result, without crashing and without producing a state.
@@ -364,7 +364,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **SC-002**: For every prefix of at least 1,000 randomly generated valid matches (all supported formats), undo followed by re-adding the same point returns exactly the previous state. Undoing to the start returns the initial state.
 - **SC-003**: Saving and restoring the event list of any of those matches reproduces the identical state, including stats, in 100% of cases.
 - **SC-004**: Performance has two checks:
-  - **CI:** on the macOS CI runner, a full recompute of the state and stats of a 500-point best-of-3 match from its event list takes under 50 ms (median of 10 runs). The CI test fails above this threshold.
+  - **CI:** on the macOS CI runner, a full recompute of the state and stats of a 500-point best-of-3 match from its event list takes under 10 ms (median of 10 runs). The CI test fails above this threshold.
   - **Device checklist (Denys):** on the oldest supported Apple Watch, after the app is killed during a 500-point match and relaunched, the score screen shows the restored score without a loading indicator.
 - **SC-005**: Stats for 5 reference matches (one per format family: 1 set, best of 3, best of 3 with match tie-break, No-Ad, set length 4 or 8) match their expected counts exactly. At least one reference match is hand-scored by Denys (point sequence and expected stats counted by hand). The others are built by the agent, marked as agent-built in the test fixtures, and cross-checked by the SC-006 invariants.
 - **SC-006**: In stats, totals are consistent for every generated match. Points served by one player equal points received by the other, and break points converted plus saved equal break points faced, per player pair.
@@ -375,8 +375,8 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Match tie-break in the result:** it is recorded as the deciding set, won 1–0, with its point score (e.g. "10–7"). This follows ITF MT-05 (Not covered; approved by Denys on 2026-10-12).
 - **No change of ends after the match-winning point** (FR-023). This is our decision, since nothing remains to be played: ITF EN-05 (Not covered; approved by Denys on 2026-10-12).
 - **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02. Approved by Denys on 2026-10-12.
-- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on. Product decision by Denys, 2026-10-12.
-- **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. Product decision by Denys, 2026-10-12.
+- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on [ITF: CE-02] (Not covered; approved by Denys on 2026-10-13).
+- **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. The engine accepts an early end at 0–0, but the watch and iPhone features MUST NOT save a 0-point unfinished match to history (**note for the watch and iPhone features**) [ITF: MT-08] (Not covered; approved by Denys on 2026-10-13).
 - **Saved format:** older versions are migrated on restore. The first released version is 1. Where and when the list is saved is the apps' concern.
 - **Out of scope:**
   - doubles;
