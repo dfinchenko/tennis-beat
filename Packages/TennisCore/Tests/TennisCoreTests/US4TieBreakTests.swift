@@ -139,16 +139,16 @@ struct US4TieBreakTests {
   @Test(
     "US4 s10 deuce and deciding-point flags are off at equal tie-break scores",
     arguments: [GameScoring.advantage, .noAd], [false, true])
-  func s10(scoring: GameScoring, matchTieBreak: Bool) throws {
+  func s10(scoring: GameScoring, inMatchTieBreak: Bool) throws {
     var m = try Match.make(scoring: scoring, matchTieBreak: true)
-    if matchTieBreak {
+    if inMatchTieBreak {
       m.winSet(.me)
       m.winSet(.opponent)
     } else {
       m.reachTieBreak()
     }
     #expect(m.state.isTieBreak)
-    for _ in 0..<(matchTieBreak ? 9 : 6) {
+    for _ in 0..<(inMatchTieBreak ? 9 : 6) {
       m.play("MO")
       let points = m.state.points
       #expect(points.me == points.opponent)
@@ -163,9 +163,9 @@ extension US4TieBreakTests {
   @Test(
     "US4 s10 court side is never the receiver's choice at equal tie-break scores",
     arguments: [GameScoring.advantage, .noAd], [false, true])
-  func s10CourtSide(scoring: GameScoring, matchTieBreak: Bool) throws {
+  func s10CourtSide(scoring: GameScoring, inMatchTieBreak: Bool) throws {
     var m = try Match.make(scoring: scoring, matchTieBreak: true)
-    if matchTieBreak {
+    if inMatchTieBreak {
       m.winSet(.me)
       m.winSet(.opponent)
     } else {
@@ -175,7 +175,7 @@ extension US4TieBreakTests {
     m.point(.me)
     #expect(m.state.courtSide == .left)  // positive control against an always-Right stub
     m.point(.opponent)
-    for _ in 0..<(matchTieBreak ? 9 : 6) {
+    for _ in 0..<(inMatchTieBreak ? 9 : 6) {
       #expect(m.state.courtSide == .right)
       m.play("MO")
     }

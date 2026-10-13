@@ -3,7 +3,7 @@ import Foundation
 /// A match record (the ordered event list) and the values derived from it.
 ///
 /// Appending a point is one incremental `Reducer.step`; undo and corrections replay the list
-/// (research R2). Parts not yet implemented keep the T011 stub behaviour and never trap.
+/// (research R2).
 public struct Match: Sendable, Hashable {
   public private(set) var events: [MatchEvent]
   public let setup: MatchSetup

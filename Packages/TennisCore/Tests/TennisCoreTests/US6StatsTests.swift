@@ -61,17 +61,17 @@ struct US6StatsTests {
 
   // ITF: BP-03
   @Test("US6 s4 tie-breaks and match tie-breaks are never service games", arguments: [false, true])
-  func s4(matchTieBreak: Bool) throws {
+  func s4(inMatchTieBreak: Bool) throws {
     var m = try Match.make(matchTieBreak: true)
-    if matchTieBreak {
+    if inMatchTieBreak {
       m.winSet(.me)
       m.winSet(.opponent)
     } else {
       m.reachTieBreak()
     }
     let before = m.stats.me.serviceGamesHeld.of + m.stats.opponent.serviceGamesHeld.of
-    #expect(before == (matchTieBreak ? 12 : 12))  // positive control: the standard games count
-    m.play(matchTieBreak ? "MMMMMMMMMM" : "MMMMMMM")
+    #expect(before == 12)  // positive control: the standard games count
+    m.play(inMatchTieBreak ? "MMMMMMMMMM" : "MMMMMMM")
     #expect(m.state.isTieBreak == false)
     let after = m.stats.me.serviceGamesHeld.of + m.stats.opponent.serviceGamesHeld.of
     #expect(after == before)
@@ -184,9 +184,9 @@ extension US4TieBreakTests {
   // ITF: BP-02
   @Test(
     "US4 s8 no point in a tie-break or match tie-break is a break point", arguments: [false, true])
-  func s8(matchTieBreak: Bool) throws {
+  func s8(inMatchTieBreak: Bool) throws {
     var m = try Match.make(matchTieBreak: true, firstServer: .opponent)
-    if matchTieBreak {
+    if inMatchTieBreak {
       m.winSet(.me)
       m.winSet(.opponent)
     } else {
