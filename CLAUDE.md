@@ -43,7 +43,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 
 ## Hard rules
 - Never write code for a spec that is not `Status: Approved`. Never change acceptance criteria yourself — propose changes to Denys.
-- If a test expectation is changed after the code it checks was written, the PR body lists each such change under **Test expectation changes**: the test, the old and new expectation, and its ITF note ID. The reviewer verifies every listed change against `docs/rules/itf-notes.md` (see `docs/harness.md`).
+- If a test expectation is changed after the code it checks was written, list each such change in `specs/<feature>/test-expectation-changes.md` (a section for this branch: test, old → new expectation, ITF note ID), not in the PR body. The reviewer reads that file with the diff and verifies every listed change against `docs/rules/itf-notes.md` (see `docs/harness.md`).
 - Never merge PRs, never push to `main`, never force-push.
 - Heart rate and other health data are never stored in the app database or iCloud; read them from HealthKit on demand by workout UUID.
 - No analytics, no third-party SDKs, no network calls. Add no dependency without asking.
