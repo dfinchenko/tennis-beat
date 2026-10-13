@@ -114,7 +114,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   Use a throwaway `UserDefaults(suiteName:)` for each test.
 - [ ] T012 [P] [US1] `UnitTests/CoinTossTests.swift`:
   - US1 s9: an injected toss of `.opponent` starts the match with the Opponent as first server;
-  - FR-003: 10,000 tosses with a seeded generator give `.me` in 50% ± 2%; `// ITF: SV-01`.
+  - FR-003: 10,000 tosses through the production `CoinToss.toss(using:)` with a seeded generator give `.me` in 50% ± 2%; `// ITF: SV-01`.
 - [ ] T013 [P] [US1] `UnitTests/SessionTests.swift`, setup part:
   - US1 s8: `start(firstServer: .me)` → `route == .playing`, the match has one `.setup` event with the chosen format and first server, the state is 0–0 with `server == .me` and `courtSide == .right`, and the clock started at `now`; `// ITF: SV-01, SV-03`;
   - US1 s5: `start` stores the format;
@@ -141,7 +141,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - key `lastFormat.v1`, a dictionary of four raw strings;
   - per-row fallback to the defaults "best of 3, sets of 6, Advantage, third set as a full set";
   - `matchTieBreak = length == .bestOfThree && thirdSet == .tieBreakToTen`.
-- [ ] T018 [P] [US1] `App/Match/CoinToss.swift`: `CoinToss(toss: () -> Player)`, with production `Bool.random() ? .me : .opponent`, and the `-coinToss` override from `LaunchOptions`.
+- [ ] T018 [P] [US1] `App/Match/CoinToss.swift`: `CoinToss.toss(using: inout some RandomNumberGenerator) -> Player` (`Bool.random(using:)` → Me or Opponent); production passes `SystemRandomNumberGenerator`; the `-coinToss` override from `LaunchOptions` bypasses it.
 - [ ] T019 [US1] `MatchSession.start(firstServer:)`:
   - `Match(setup: MatchSetup(format: formatChoice.matchFormat, firstServer:))`;
   - save the format;
@@ -183,12 +183,18 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US3 s1: a game won, not the set → `.game`, in an Advantage game and in a No-Ad deciding point; `// ITF: GM-02, NA-01`;
   - US3 s2: a set won 6–4, and a set won in a 7–6 tie-break → `.set`; `// ITF: ST-04, TB-01`;
   - US3 s3: the match won in a set, and in a match tie-break 10–8 → `.match`; `// ITF: MT-03, MT-05`;
-  - US3 s5: `changeOfEnds` after games 1 and 3 of a set (`// ITF: EN-01`), at the first game of the next set after an odd set total (`// ITF: EN-04`), and after the 6th tie-break point that doesn't end it, which is `.point` with change of ends (`// ITF: TB-05`);
-  - US3 s6: the match-winning point never has `changeOfEnds`, even where the engine's flag would read "change"; `// ITF: EN-05`;
+  - US3 s5, change of ends (each case built with the engine):
+    - games 1 and 3 of a set → `.game` + change (`// ITF: EN-01`);
+    - a 6–3 set won → `.set` + change (`// ITF: EN-02`);
+    - a 6–4 set won → `.set`, no change; then game 1 of the next set → `.game` + change (`// ITF: EN-02, EN-01`);
+    - a 7–6 tie-break set won → `.set` + change (`// ITF: EN-03`);
+    - in a match-tie-break format, set 2 won with an odd total → `.set` + change; with an even total → `.set`, no change (`// ITF: EN-04`);
+    - the 6th point of a set tie-break and of a match tie-break that doesn't end it → `.point` + change (`// ITF: TB-05`);
+  - US3 s6: the match-winning point never has `changeOfEnds`, checked on engine-built matches where EN-01, EN-02 or TB-05 would otherwise apply (a match won 6–3 on an odd game; a match tie-break won 10–8 on the 18th point); `// ITF: EN-05`;
   - positive control: a 6–5 game is `.game`, not `.set`.
 - [ ] T029 [P] [US3] `UnitTests/PointOutcomePropertyTests.swift`, `"FR-010 property …"`: over 500 seeded random matches in every format (SplitMix64 copied from 001's test support into `UnitTests/Support/`), each added point gives exactly one level, and the level agrees with the change in `status`, `completedSets.count` and the games total.
 - [ ] T030 [P] [US3] `UnitTests/SessionFeedbackTests.swift` (SC-003, FR-012, FR-024), with `RecordingHaptics` and `RecordingAnnouncer`, as in contract §4:
-  - US3 s1–s5: the haptic sequence per added point, with change of ends after the point's haptic;
+  - US3 s1–s5: the haptic sequence per added point, with change of ends after the point's haptic, including set + change of ends (a 6–3 set: set haptic, then change of ends; `// ITF: EN-02`);
   - US3 s7: undo of a game-winning point, undo that brings back a state whose `changeOfEnds` reads true, and undo of the match point from `.summary` record **no** haptic; `// ITF: EN-05`;
   - Edge "change of ends on a game-winning point that is undone and played again": the haptic plays again;
   - US7 s3: announcements "Game: Me", "Set: Opponent", "Match: Me";
@@ -287,6 +293,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - SC-004: a scripted 30-minute match with 4 pauses of 1–5 minutes and random 5–40 s steps, where `elapsed` at every step differs from (wall time − pauses) by ≤ 1 s.
 - [ ] T049 [P] [US4] `UnitTests/SessionTests.swift`, controls part:
   - US4 s5: while paused, `acceptsPoints` is false and `addPoint` adds nothing;
+  - US2 s3 (ended early): after `endEarly()`, `addPoint` adds nothing and requests no haptic; `// ITF: MT-08`;
   - US4 s7: while paused, `undo`, `correctServer` and `endEarly` work and `isPaused` stays true (except after `endEarly`);
   - US4 s9: `correctServer()` records `.firstServerCorrected(effectiveFirstServer.other)`, and the score is unchanged while the server and side follow the engine; it also works paused and in a tie-break; `// ITF: CE-02`;
   - US4 s12: `endEarly()` with a point → `.matchEndedEarly`, the clock is stopped, `route == .summary`; `// ITF: MT-08`;
@@ -303,6 +310,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US4 s5 and FR-016: Pause → `status` reads "Paused", the zones add nothing, and the button reads Resume;
   - US4 s6: Resume → taps score again;
   - US4 s9: Server moves `zone.*.serve` and keeps the points;
+  - SC-002 (corrections): extend the `ScoringUITests` scripted sequences for every format with a server correction (via Controls) every 11th step, and check that the screen equals the engine replay after each; `// ITF: CE-02`;
   - US4 s11: End → `confirm.end` and Cancel; Cancel changes nothing;
   - US4 s12: confirm with a point → the summary route; US4 s13: confirm at 0–0 → New match;
   - SC-005: `performAccessibilityAudit()` (including `.textClipped`) on Controls and the End confirmation, at `.xxxLarge` and at an accessibility size.
@@ -336,7 +344,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US5 s2: Win when Me won, Loss when the Opponent won;
   - US5 s3: "Match ended early", never Win or Loss;
   - US5 s4: chips "6:4", "3:6", a match tie-break "10:7" (`// ITF: MT-05`), and a tie-break set "7:6" (Q11);
-  - US5 s5: an early end mid-set gives "3:2*"; mid-match-tie-break gives "7:5*" (`// ITF: MT-05, MT-08`); right after a completed set with no point played, no extra chip; with points played in the first game at 0–0, "0:0*";
+  - US5 s5: an early end mid-set gives "3:2*"; mid-match-tie-break gives "7:5*" (`// ITF: MT-05, MT-08`); right after a completed set with no point played, no extra chip; with points played in the first game at 0–0, "0:0*"; in a match-tie-break format, an early end at 1–1 in sets with no match tie-break point played gives no chip (the display is `tieBreak(0)`), and with one point played the chip reads "1:0*" or "0:1*" (`// ITF: MT-05`);
   - US5 s6: `isLost` for the Opponent's sets; VoiceOver "Set 2: 3–6, lost", "Set 3: 4–2, unfinished", and the match tie-break variant "Match tie-break: 10–7, won" (R2-4), in EN, PL and UK;
   - US5 s7: the duration is `clock.elapsed(at: stoppedAt)` formatted `.hourMinuteSecond`;
   - US5 s8: the model has no heart-rate or calorie field (a compile-time shape check in the test).
@@ -379,7 +387,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 - [ ] T067 PR checklist step 1 for PR 5: worktree `.worktrees/002-always-on`, branch `feat/002-always-on`.
 - [ ] T068 [P] [US6] `UnitTests/ScoreScreenModelTests.swift`, dimmed part:
-  - US6 s1: the dimmed time text is whole minutes in the abbreviated system format ("42 min", "84 min"; PL and UK via `Locale`);
+  - US6 s1: the dimmed time text is whole minutes in the abbreviated system format ("42 min", "84 min"; PL and UK via `Locale`), rounded down: 42:59 → "42 min";
   - US6 s2: the dimmed model has no seconds, no Undo, no serve icon, no court-side pill and no status (Q8).
 - [ ] T069 [P] [US6] `UnitTests/AlwaysOnTests.swift`, US6 s3: `ScoreScreenModel.zonesAcceptTaps(isLuminanceReduced:)` is false when the luminance is reduced, even while `session.acceptsPoints` is true (positive control: true when not reduced). `ScoreView` passes this value to `.allowsHitTesting`.
 - [ ] T070 [P] [US7] `UITests/AccessibilityAuditUITests.swift`: the final SC-005 pass across all screens and languages (each earlier PR already audited its own screens in EN). `performAccessibilityAudit()` on every screen (New match, the picker, First server, the coin-toss result, Score, Controls, the End confirmation, Summary) in EN. Then repeat with `-AppleLanguages (pl)` and `(uk)`, and with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, failing on any clipped-text issue (US7 s6, s7).
@@ -388,7 +396,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 - [ ] T071 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
   - the dimmed fills and the point colours are lower-opacity `brand/opponent` and `brand/ball`, with sets and games in `text-secondary`;
-  - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated))` with `TimelineView(.everyMinute)`;
+  - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))` with `TimelineView(.everyMinute)` (up to a minute of lag accepted, research R5);
   - Undo, the serve icon, the pill and the status line are hidden;
   - `.transaction { $0.animation = nil }`;
   - `.allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced:))` on the zones, false when dimmed (FR-021, Story 6 s3).

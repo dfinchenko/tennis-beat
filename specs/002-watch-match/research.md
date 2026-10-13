@@ -31,7 +31,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
 
   The result is one `level` (point, game, set or match), the `changeOfEnds` flag and the `winner`. Undo, correction, early end, pause and resume never call it, so they can't produce haptics (Story 3 s7, FR-012).
 - **Rationale**: The engine exposes the state, not a per-point result (review 1, R1-4). A won game that ends a set resets `games` to 0–0, so the set check comes before the game check. A tie-break point that ends the set changes `completedSets`. A match tie-break point that wins the match changes `status`. The `changeOfEnds` value belongs to the latest point (spec 001), which is the point just added.
-- **Tests**: a table of scripted cases built with the engine for every level, in Advantage and No-Ad games, set tie-breaks and match tie-breaks, plus the change-of-ends cases (odd games EN-01..EN-03, the first game of a set EN-04, every 6 tie-break points TB-05, and the match-winning point EN-05). A seeded property test checks that exactly one level is produced per added point and that the level agrees with the changes in `status`, `completedSets` and `games` over generated matches.
+- **Tests**: a table of scripted cases built with the engine for every level, in Advantage and No-Ad games, set tie-breaks and match tie-breaks, plus the change-of-ends cases: odd games (EN-01); a set won with an odd total gives `.set` with change of ends, and with an even total the change comes after game 1 of the next set (EN-02); a 7–6 tie-break set (EN-03); the set before a match tie-break (EN-04); every 6 points in a set tie-break and in a match tie-break (TB-05); and the match-winning point (EN-05). A seeded property test checks that exactly one level is produced per added point and that the level agrees with the changes in `status`, `completedSets` and `games` over generated matches.
 - **Alternative rejected**: diffing the event lists, or counting points in the app: that is score logic outside the engine (FR-010).
 
 ## R3. Haptics: `WKInterfaceDevice` behind a protocol
@@ -64,14 +64,14 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
 ## R5. Elapsed time with an injected clock
 
 - **Decision**: `MatchClock` is a value type with `startedAt`, a list of excluded intervals (pauses, and time spent on the summary) and an optional `stoppedAt`.
-  - `elapsed(at now: Date) = (stoppedAt ?? now) − startedAt − excluded`.
+  - `elapsed(at now: Date) = (stoppedAt ?? pausedAt ?? now) − startedAt − excluded`, so it freezes during an open pause (as data-model.md).
   - **Pause** opens an interval and **Resume** closes it.
   - **Ending** (match won or ended early) sets `stoppedAt`, closing an open pause at that moment first.
   - **Undo from the summary** adds the interval `[stoppedAt, now]` to the excluded list and clears `stoppedAt`, so the time on the summary is not counted (Story 5 s9) and the match is not paused (edge case "Undo of an early end").
 
   The session takes a `now: () -> Date` closure. Views redraw with `TimelineView`: every second in the active state, `.everyMinute` when the luminance is reduced (R8).
 - **Rationale**: FR-022 needs wall-clock time minus pauses, which stays right after the app returns from the background or the screen wakes: nothing counts ticks. SC-004 (≤ 1 s over a scripted 30-minute match) is checked with a fake clock in a unit test.
-- **Formatting**: the header uses `Duration.formatted(.time(pattern: .minuteSecond))`, or `.hourMinuteSecond` from one hour on, with `.monospacedDigit()`. Always On uses `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated))` in whole minutes, for example "42 min" or "84 min" (R1-8). The summary uses `.time(pattern: .hourMinuteSecond)`. All of them follow the current locale (FR-023).
+- **Formatting**: the header uses `Duration.formatted(.time(pattern: .minuteSecond))`, or `.hourMinuteSecond` from one hour on, with `.monospacedDigit()`. Always On uses `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))`, so it shows whole elapsed minutes (42:59 → "42 min", never rounded up), for example "42 min" or "84 min" (R1-8). `TimelineView(.everyMinute)` ticks on wall-clock minutes, so the dimmed value may lag the match time by up to a minute; this is accepted for Always On. The summary uses `.time(pattern: .hourMinuteSecond)`. All of them follow the current locale (FR-023).
 - **Alternative rejected**: a `Timer` that increments a counter: it drifts, and it stops while the app is suspended.
 
 ## R6. Navigation and screens
@@ -118,8 +118,8 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
 
 ## R10. Coin toss
 
-- **Decision**: `CoinToss` takes an injected `() -> Player`. The production value is `Bool.random() ? .me : .opponent`, which uses the system's random generator. The result screen shows the result and one Start button. Going back discards it, and the next tap tosses again (Story 1 s9, s10).
-- **Tests**: a unit test with a fixed toss. A distribution test runs 10,000 tosses with a seeded generator and accepts 50% ± 2% (FR-003).
+- **Decision**: `CoinToss.toss(using: inout some RandomNumberGenerator) -> Player` maps `Bool.random(using:)` to Me or Opponent. Production passes `SystemRandomNumberGenerator`. The result screen shows the result and one Start button. Going back discards it, and the next tap tosses again (Story 1 s9, s10).
+- **Tests**: the distribution test runs the production mapping 10,000 times with a seeded generator and accepts 50% ± 2% (FR-003). The UI-test override `-coinToss` bypasses the generator.
 - **Alternative rejected**: a custom generator in production: the system generator is already uniform.
 
 ## R11. Localization

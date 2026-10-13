@@ -114,7 +114,7 @@ Watch 6, built from `MatchState`, the clock and the language (FR-019, Story 5).
 | --- | --- |
 | `title` | `.won(.me)` → Win; `.won(.opponent)` → Loss; `.unfinished` → Match ended early |
 | `chips` | One per `completedSets` entry: games Me–Opponent, or the tie-break points if `isMatchTieBreak` [ITF: MT-05]; `isLost = winner == .opponent` |
-| unfinished chip | Only when `status == .unfinished` and a point of the current set was played (`games` total > 0 or a point display ≠ 0): the current games with "*", or the match tie-break points with "*" (Story 5 s5, R1-2) |
+| unfinished chip | Only when `status == .unfinished` and a point of the current set was played (`games` total > 0, or some player's point display is neither `.zero` nor `.tieBreak(0)`; a match tie-break starts at `.tieBreak(0)`): the current games with "*", or the match tie-break points with "*" (Story 5 s5, R1-2) |
 | `chips[i].accessibilityLabel` | "Set n: a–b, won/lost/unfinished", or for a match tie-break "Match tie-break: a–b, won/lost/unfinished" (R2-4) |
 | `duration` | `clock.elapsed(at: stoppedAt)`, `.time(pattern: .hourMinuteSecond)` |
 

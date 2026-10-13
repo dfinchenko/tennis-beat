@@ -43,7 +43,7 @@ Without these arguments the app behaves as in production. Neither argument exist
 | --- | --- | --- |
 | Point, no game won | point | status change, if any |
 | Point wins a game | game | "Game: <winner>", status change |
-| Point wins a set | set | "Set: <winner>" |
+| Point wins a set | set | "Set: <winner>", status change, if any |
 | Point wins the match | match | "Match: <winner>" |
 | …and `changeOfEnds` (not the match point) | + change of ends, after ~0.8 s | + "Change ends" |
 | Undo, early end, undo of an early end, pause, resume | none | status change, if any |
