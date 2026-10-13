@@ -151,6 +151,7 @@ Tie-breaks are scored with numbers, need a 2-point margin, and decide the set. T
 7. **Given** a match won by a match tie-break, **Then** the match result lists set 1, set 2 and the deciding match tie-break with its point score (e.g. 6–4, 3–6, 10–7) [ITF: MT-05].
 8. **Given** a tie-break, **Then** no point in it is ever a break point [ITF: BP-02].
 9. **Given** a set won in a tie-break, for each set length, **Then** the completed set score is N+1–N and also records the tie-break's own point score (e.g. 7–6 with the tie-break won 7–5, 5–4 with 9–7, 9–8 with 7–3) [ITF: TB-01, ST-07].
+10. **Given** a tie-break or match tie-break at equal scores (e.g. 3–3, 6–6, 9–9), in an Advantage match and in a No-Ad match, **Then** the deuce and deciding-point flags are both off, and the court side is Right or Left, never "receiver's choice". In an Advantage standard game the deciding-point flag is never on [ITF: GM-02, NA-01, NA-02, TB-04].
 
 ---
 
@@ -245,7 +246,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 4. **Given** a correction during a tie-break, **Then** the tie-break serving rotation and the first server of the next set follow the corrected order [ITF: TB-02, TB-03].
 5. **Given** a corrected match, **When** further points are added, **Then** service continues in the corrected order.
 6. **Given** two corrections in a row (to Opponent, then back to Me), **Then** the latest correction applies, and the state equals the uncorrected match.
-7. **Given** a correction to the player who is already the first server, **Then** it is rejected and the state is unchanged.
+7. **Given** a correction to the current first server (the setup's, or the latest correction's), **Then** it is rejected and the state is unchanged.
 8. **Given** a finished or unfinished match, **When** the first server is corrected, **Then** the correction is accepted and recomputes the stats; the result and the match status are unchanged.
 9. **Given** a correction, **When** the player undoes, **Then** the correction is removed and the state equals the uncorrected match (Story 3, scenario 12).
 10. **Given** an unfinished match followed by a first-server correction, **Then** the event list is valid, the match stays unfinished, and the stats are recomputed. **When** the player undoes once, **Then** only the correction is removed; **when** the player undoes again, **Then** the early end is removed and the match is back in progress [ITF: MT-08, CE-02].
@@ -285,7 +286,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
   - a setup with an unsupported format;
   - any point after the match has been won or ended early;
   - a match-ended-early event after the match has been won or ended early;
-  - a first-server correction to the player who is already the first server.
+  - a first-server correction to the current first server (the setup's, or the latest correction's).
   Rejected input MUST leave the state unchanged.
 
 *Format*
@@ -315,7 +316,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
   - the serving court side;
   - flags for deuce, deciding point, tie-break and match tie-break;
   - whether the players must change ends after the last event. Only point events can report a change of ends; match-ended-early and first-server-corrected events never do.
-- **FR-015**: The deuce flag MUST be on only in Advantage games at equal scores of 3 or more points each. The deciding-point flag MUST be on only in No-Ad games at 3–3 [ITF: GM-02, NA-01].
+- **FR-015**: The deuce flag MUST be on only in standard (non-tie-break) Advantage games at equal scores of 3 or more points each. The deciding-point flag MUST be on only in standard (non-tie-break) No-Ad games at 3–3. Both flags MUST be off in every tie-break and match tie-break [ITF: GM-02, NA-01, TB-01].
 
 *Service and court side*
 - **FR-016**: The first server from the setup MUST serve game 1. After every standard game, the other player MUST serve the next game, across set boundaries too [ITF: SV-01, SV-02].
@@ -323,7 +324,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-018**: After a set decided by a tie-break, the player who served first in that tie-break MUST receive in the first game of the next set. The same rule decides the first server of a match tie-break that follows a tie-break set [ITF: TB-03, SV-04, MT-04].
 - **FR-019**: The serving court side MUST be:
   - Right when the number of points already played in the current game or tie-break is even, Left when it is odd [ITF: SV-03, TB-04];
-  - "receiver's choice" on the No-Ad deciding point [ITF: NA-02].
+  - "receiver's choice" on the No-Ad deciding point of a standard game, never in a tie-break [ITF: NA-02].
 
 *Change of ends*
 - **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games), unless that game wins the match (FR-023) [ITF: EN-01, EN-02, EN-03, EN-04, EN-05].
