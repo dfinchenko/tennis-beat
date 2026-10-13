@@ -13,7 +13,7 @@
 
 ## Requirement Completeness
 
-- [ ] No [NEEDS CLARIFICATION] markers remain — 11 open questions (Q1–Q11), each with a proposal in the text
+- [x] No [NEEDS CLARIFICATION] markers remain (Q1–Q11 decided by Denys on 2026-10-13; Q9 watch size to confirm in the PR)
 - [x] Requirements are testable and unambiguous (given the proposals)
 - [x] Success criteria are measurable
 - [x] Success criteria are technology-agnostic (no implementation details)
@@ -31,5 +31,5 @@
 
 ## Notes
 
-- Open questions Q1–Q11 must be answered by Denys before `Status: Approved`.
+- Q1–Q11 were decided by Denys on 2026-10-13 ("all as proposed"). The spec stays Draft until Denys sets `Status: Approved`.
 - The copy table holds draft strings for Denys's approval; PL drafts need a native tennis player's review.
