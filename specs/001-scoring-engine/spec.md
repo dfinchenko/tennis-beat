@@ -69,6 +69,7 @@ The player taps "my point" or "opponent's point" after every rally. The engine k
 17. **Given** best of 3 with the match tie-break option at 1 set each, **Then** the deciding set is a single match tie-break and no third standard set is played.
 18. **Given** best of 3 without the match tie-break option at 1 set each, **Then** a normal third set is played.
 19. **Given** a setup with a 1-set match and the match tie-break option, **Then** the setup is rejected as invalid [ITF: MT-02].
+20. **Given** a setup with a set length other than 4, 6 or 8 (e.g. 5), including one restored from a saved event list, **Then** the setup is rejected as invalid [ITF: ST-07].
 
 ---
 
@@ -114,7 +115,7 @@ A player who taps the wrong zone can undo, as many times as needed, even across 
 
 1. **Given** any match with at least one event after the setup, **When** the player undoes, **Then** the last event is removed, whatever its kind (point, early end or server correction), and the state equals the state computed from the remaining events. This applies to every exposed value, including server, court side, flags, change-of-ends and stats.
 2. **Given** Me just won set 1 6–4 and set 2 is at 0–0, **When** the player undoes, **Then** set 1 is back in progress at 5–4 with the game score before the last point, and the set-1 winner is cleared.
-3. **Given** the match has ended, **When** the player undoes, **Then** the match is back in progress at match point, the match winner is cleared, and new points can be added.
+3. **Given** the match has been won and the last event is the match-winning point, **When** the player undoes, **Then** the match is back in progress at match point, the match winner is cleared, and new points can be added.
 4. **Given** a tie-break at 6–6 in points, **When** the player undoes, **Then** the tie-break score is 6–5 or 5–6 with the server and court side for that point.
 5. **Given** the first point of the match was just played, **When** the player undoes, **Then** the state is the start of the match: 0–0, the first server serving, from the right.
 6. **Given** only the setup event (no other events), **When** the player undoes, **Then** nothing changes. Undo never removes the setup.
@@ -127,6 +128,7 @@ A player who taps the wrong zone can undo, as many times as needed, even across 
 13. **Given** an event list saved with the current format version, or with any older format version the engine has ever written, **When** it is restored, **Then** it is accepted and produces the state that version recorded. A saved example of every released format version is kept as a test fixture.
 14. **Given** an event list saved with a newer format version than the engine knows, **When** it is restored, **Then** it is rejected with an "unsupported version" result, the engine does not crash, and no state is produced from it.
 15. **Given** two event lists with the same events but different recorded times on the points (including times out of order), **Then** both produce the identical state and stats. Recorded times are stored and restored but never used to compute state.
+16. **Given** a saved event list with a point or a second match-ended-early event after a match-ended-early event, or with any point after the match-winning point, **When** it is restored, **Then** it is rejected as invalid [ITF: MT-08].
 
 ---
 
@@ -148,12 +150,14 @@ Tie-breaks are scored with numbers, need a 2-point margin, and decide the set. T
 6. **Given** a match tie-break at 9–9 or 10–10, **Then** it continues until a 2-point margin (e.g. 12–10).
 7. **Given** a match won by a match tie-break, **Then** the match result lists set 1, set 2 and the deciding match tie-break with its point score (e.g. 6–4, 3–6, 10–7) [ITF: MT-05].
 8. **Given** a tie-break, **Then** no point in it is ever a break point [ITF: BP-02].
+9. **Given** a set won in a tie-break, for each set length, **Then** the completed set score is N+1–N and also records the tie-break's own point score (e.g. 7–6 with the tie-break won 7–5, 5–4 with 9–7, 9–8 with 7–3) [ITF: TB-01, ST-07].
+10. **Given** a tie-break or match tie-break at equal scores (e.g. 3–3, 6–6, 9–9), in an Advantage match and in a No-Ad match, **Then** the deuce and deciding-point flags are both off, and the court side is Right or Left, never "receiver's choice". In an Advantage standard game the deciding-point flag is never on [ITF: GM-02, NA-01, NA-02, TB-04].
 
 ---
 
 ### User Story 5 - Change ends at the right time (Priority: P2)
 
-The watch reminds the players to change ends with a haptic. The engine reports, after each point, whether the players must change ends now.
+The watch reminds the players to change ends with a haptic. The engine reports, after each event, whether the players must change ends now. Only point events can report a change of ends.
 
 **Why this priority**: It's a convenience, not part of the score itself, but players expect it and it's on the device checklist.
 
@@ -163,13 +167,13 @@ The watch reminds the players to change ends with a haptic. The engine reports, 
 
 1. **Given** a set in progress, **When** a game ends and the number of games played in that set becomes odd (1, 3, 5, …), **Then** a change of ends is reported [ITF: EN-01].
 2. **Given** a set that ends with an even total of games (e.g. 6–4 = 10), **Then** no change of ends is reported at the end of the set. The change comes after game 1 of the next set [ITF: EN-02].
-3. **Given** a set that ends with an odd total of games (e.g. 6–3 = 9), **Then** a change of ends is reported at the end of the set [ITF: EN-02].
-4. **Given** a set won in a tie-break, **Then** its total is 2N+1 games (7–6 = 13, 5–4 = 9, 9–8 = 17), and a change of ends is reported after it. This is an explicit test case for each set length [ITF: EN-03, EN-04].
+3. **Given** a set that ends with an odd total of games (e.g. 6–3 = 9) and does not end the match, **Then** a change of ends is reported at the end of the set [ITF: EN-02].
+4. **Given** a set won in a tie-break that does not end the match, **Then** its total is 2N+1 games (7–6 = 13, 5–4 = 9, 9–8 = 17), and a change of ends is reported after it. This is an explicit test case for each set length [ITF: EN-03, EN-04].
 5. **Given** a tie-break, **When** the total number of tie-break points played reaches 6, 12, 18, … and the tie-break has not ended, **Then** a change of ends is reported [ITF: TB-05].
-6. **Given** a tie-break whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
+6. **Given** a tie-break that does not end the match and whose final point is also a multiple of 6 (e.g. 7–5 = 12 points), **Then** exactly one change of ends is reported for that point (the end-of-set change), not two [ITF: TB-05, EN-03].
 7. **Given** best of 3 with the match tie-break option, set 2 won in a tie-break (2N+1 games for set length N, e.g. 7–6, 5–4 or 9–8), **Then** a change of ends is reported after set 2, before the match tie-break, for each set length [ITF: EN-03, EN-04].
 8. **Given** best of 3 with the match tie-break option, set 2 won with an even total of games (e.g. 6–4, 4–2, 8–6), **Then** no change of ends is reported before the match tie-break; the first change comes after 6 match-tie-break points [ITF: EN-02, EN-04, TB-05].
-9. **Given** the point that wins the match, **Then** no change of ends is reported [ITF: EN-05].
+9. **Given** the point that wins the match, **Then** no change of ends is reported, even where EN-01, EN-02, EN-03 or TB-05 would otherwise call for one. Explicit cases: a 1-set match won 6–3; a 1-set match won 7–6; a best-of-3 match won 2–0 with set 2 won in a tie-break; a match tie-break won 10–8 (18 points) [ITF: EN-05].
 
 ---
 
@@ -205,7 +209,7 @@ After the match, the iPhone shows stats derived only from the points: points won
 
 ---
 
-### User Story 7 - End a match early (Priority: P2)
+### User Story 7 - End a match early (Priority: P2) [ITF: MT-08]
 
 Court time runs out or a player is injured. The player ends the match early; the match is kept as unfinished, with its score and stats so far.
 
@@ -222,10 +226,11 @@ Court time runs out or a player is injured. The player ends the match early; the
 5. **Given** a match with no points played yet, **When** a match-ended-early event is added, **Then** it is accepted: the match is unfinished at 0–0 with empty stats.
 6. **Given** a match that has already been won, or already ended early, **When** a match-ended-early event is submitted, **Then** it is rejected and the state is unchanged.
 7. **Given** an unfinished match, **Then** no change of ends is reported for the early-end event.
+8. **Given** the last point reported a change of ends, **When** a match-ended-early event follows, **Then** the change-of-ends signal is off; **when** the player undoes the early end, **Then** the signal is on again.
 
 ---
 
-### User Story 8 - Correct the first server (Priority: P2)
+### User Story 8 - Correct the first server (Priority: P2) [ITF: CE-02]
 
 A few games in, the players notice the wrong player was recorded as serving first. The player corrects the first server; the whole match is recomputed as if the corrected player had served first from the start.
 
@@ -237,13 +242,15 @@ A few games in, the players notice the wrong player was recorded as serving firs
 
 1. **Given** Me recorded as first server and 2 completed games (Me won both), **When** the first server is corrected to Opponent, **Then** the state equals a match set up with Opponent serving first followed by the same points: the score is still 2–0, game 1 counts as the Opponent's service game (lost, so broken) and game 2 as Me's (held), and the Opponent serves game 3.
 2. **Given** the correction in scenario 1, **Then** points won on serve and on return, service games held, and break points are all recomputed for both players as if the Opponent had served first.
-3. **Given** any match, **When** the first server is corrected, **Then** the point displays, games, sets, set winners, match winner and change-of-ends signals are unchanged; only server-dependent values change (current server, serve and return stats, service games, break points).
+3. **Given** any match, **When** the first server is corrected, **Then** the point displays, games, sets, set winners, match winner, court side, the deuce, deciding-point and tie-break flags, and the change-of-ends signal reported by each point are unchanged; only server-dependent values change (current server, serve and return stats, service games, break points).
 4. **Given** a correction during a tie-break, **Then** the tie-break serving rotation and the first server of the next set follow the corrected order [ITF: TB-02, TB-03].
 5. **Given** a corrected match, **When** further points are added, **Then** service continues in the corrected order.
 6. **Given** two corrections in a row (to Opponent, then back to Me), **Then** the latest correction applies, and the state equals the uncorrected match.
-7. **Given** a correction to the player who is already the first server, **Then** it is rejected and the state is unchanged.
+7. **Given** a correction to the current first server (the setup's, or the latest correction's), **Then** it is rejected and the state is unchanged.
 8. **Given** a finished or unfinished match, **When** the first server is corrected, **Then** the correction is accepted and recomputes the stats; the result and the match status are unchanged.
 9. **Given** a correction, **When** the player undoes, **Then** the correction is removed and the state equals the uncorrected match (Story 3, scenario 12).
+10. **Given** an unfinished match followed by a first-server correction, **Then** the event list is valid, the match stays unfinished, and the stats are recomputed. **When** the player undoes once, **Then** only the correction is removed; **when** the player undoes again, **Then** the early end is removed and the match is back in progress [ITF: MT-08, CE-02].
+11. **Given** the last point reported a change of ends, **When** the first server is corrected, **Then** the change-of-ends signal is off, because the correction is now the last event; **when** the player undoes the correction, **Then** the signal is on again.
 
 ---
 
@@ -252,7 +259,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Undo across boundaries:** undo across game, set and tie-break boundaries, across the start of the match tie-break, and after the match ends (Story 3).
 - **Undo at the start:** with no points played, undo is a no-op (Story 3, scenario 6).
 - **Point after the match ends:** rejected, and the state is unchanged (Story 3, scenario 9).
-- **Invalid setup:** set length other than 4, 6 or 8; match tie-break with a 1-set match; missing or repeated setup. All are rejected (Story 1, scenario 19; Story 3, scenario 10).
+- **Invalid setup:** set length other than 4, 6 or 8; match tie-break with a 1-set match; missing or repeated setup. All are rejected (Story 1, scenarios 19 and 20; Story 3, scenario 10).
 - **Long games and tie-breaks:** unlimited deuces and unlimited tie-break length (Story 1, scenario 7; Story 4, scenario 3).
 - **Deciding point:** court side is "receiver's choice", and the point is a break point (Story 2, scenario 12; Story 6, scenario 7).
 - **Change of ends at the end of a tie-break:** only one change when the final tie-break point is also a multiple of 6 (Story 5, scenario 6).
@@ -279,7 +286,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
   - a setup with an unsupported format;
   - any point after the match has been won or ended early;
   - a match-ended-early event after the match has been won or ended early;
-  - a first-server correction to the player who is already the first server.
+  - a first-server correction to the current first server (the setup's, or the latest correction's).
   Rejected input MUST leave the state unchanged.
 
 *Format*
@@ -308,8 +315,8 @@ A few games in, the players notice the wrong player was recorded as serving firs
   - the current server;
   - the serving court side;
   - flags for deuce, deciding point, tie-break and match tie-break;
-  - whether the players must change ends after the last point.
-- **FR-015**: The deuce flag MUST be on only in Advantage games at equal scores of 3 or more points each. The deciding-point flag MUST be on only in No-Ad games at 3–3 [ITF: GM-02, NA-01].
+  - whether the players must change ends after the last event. Only point events can report a change of ends; match-ended-early and first-server-corrected events never do.
+- **FR-015**: The deuce flag MUST be on only in standard (non-tie-break) Advantage games at equal scores of 3 or more points each. The deciding-point flag MUST be on only in standard (non-tie-break) No-Ad games at 3–3. Both flags MUST be off in every tie-break and match tie-break [ITF: GM-02, NA-01, TB-01].
 
 *Service and court side*
 - **FR-016**: The first server from the setup MUST serve game 1. After every standard game, the other player MUST serve the next game, across set boundaries too [ITF: SV-01, SV-02].
@@ -317,11 +324,11 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-018**: After a set decided by a tie-break, the player who served first in that tie-break MUST receive in the first game of the next set. The same rule decides the first server of a match tie-break that follows a tie-break set [ITF: TB-03, SV-04, MT-04].
 - **FR-019**: The serving court side MUST be:
   - Right when the number of points already played in the current game or tie-break is even, Left when it is odd [ITF: SV-03, TB-04];
-  - "receiver's choice" on the No-Ad deciding point [ITF: NA-02].
+  - "receiver's choice" on the No-Ad deciding point of a standard game, never in a tie-break [ITF: NA-02].
 
 *Change of ends*
-- **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games) [ITF: EN-01, EN-02, EN-03, EN-04].
-- **FR-021**: During a tie-break or match tie-break, a change of ends MUST be reported after every 6th point (6, 12, 18, …). When the tie-break's final point coincides with this, exactly one change of ends MUST be reported [ITF: TB-05].
+- **FR-020**: A change of ends MUST be reported after a game that makes the number of games played in the current set odd. That covers the end of a set with an odd total, including every set won in a tie-break (2N+1 games), unless that game wins the match (FR-023) [ITF: EN-01, EN-02, EN-03, EN-04, EN-05].
+- **FR-021**: During a tie-break or match tie-break, a change of ends MUST be reported after every 6th point (6, 12, 18, …). When the tie-break's final point coincides with this, exactly one change of ends MUST be reported [ITF: TB-05]. No change of ends is reported when that point wins the match (FR-023) [ITF: EN-05].
 - **FR-022**: Before a match tie-break, ends MUST change only if set 2 ended with an odd total of games [ITF: EN-04].
 - **FR-023**: No change of ends MUST be reported after the point that wins the match [ITF: EN-05].
 
@@ -335,11 +342,11 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **FR-027**: Stats MUST be available at any moment of the match, counting only what has happened so far, and MUST follow undo exactly. For an unfinished match they count every point played before the early end.
 
 *Traceability*
-- **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test.
+- **FR-028**: Every rule-based test MUST cite the ITF note ID it checks (`// ITF: <ID>`), and every scenario in this spec MUST be covered by at least one test. This is a process requirement with no acceptance scenario of its own; it is verified by SC-001.
 
 *Early end and server correction*
-- **FR-029**: A match-ended-early event MUST make the match unfinished: no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match.
-- **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status and change-of-ends signals MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early.
+- **FR-029**: A match-ended-early event MUST make the match unfinished. Only first-server corrections MAY follow it; an event list with a point or a second early end after it is invalid. An unfinished match has no match winner, completed sets keep their winners, the score stays as it was, and no change of ends is reported for it. Undo MUST remove it and resume the match [ITF: MT-08].
+- **FR-030**: A first-server-corrected event MUST make the engine recompute the whole match as if the corrected player had served first from the setup on, including the server of every game and tie-break point and all serve, return, service-game and break-point stats. Point displays, games, sets, winners, match status, court side, the deuce, deciding-point and tie-break flags, and the change-of-ends signal reported by each point MUST NOT change. The latest correction applies. It is allowed at any time, including after the match has been won or ended early [ITF: CE-02].
 
 *Saved format*
 - **FR-031**: The saved event list MUST carry a format version. The engine MUST restore lists saved with its own version and with every older version it has written. A list with a newer version MUST be rejected with an "unsupported version" result, without crashing and without producing a state.
@@ -350,7 +357,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Match format**: match length (1 set or best of 3), set length (4, 6 or 8), game scoring (Advantage or No-Ad), and the match tie-break option (best of 3 only).
 - **Setup event**: the match format plus the first server (Me or Opponent). Exactly one per match, always first.
 - **Point event**: which player won the point (Me or Opponent), and the time it was recorded (stored, never used for state).
-- **Match-ended-early event**: marks the match as unfinished. At most one, always last.
+- **Match-ended-early event**: marks the match as unfinished. At most one; only first-server corrections may follow it.
 - **First-server-corrected event**: names the player who really served first. The latest one applies.
 - **Match record**: the format version plus the ordered list of events. It is the only thing that needs to be saved.
 - **Match state**: everything computed from the match record: score, match status (in progress, won, unfinished), server, court side, flags, change-of-ends signal, set scores and winners.
@@ -364,7 +371,7 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **SC-002**: For every prefix of at least 1,000 randomly generated valid matches (all supported formats), undo followed by re-adding the same point returns exactly the previous state. Undoing to the start returns the initial state.
 - **SC-003**: Saving and restoring the event list of any of those matches reproduces the identical state, including stats, in 100% of cases.
 - **SC-004**: Performance has two checks:
-  - **CI:** on the macOS CI runner, a full recompute of the state and stats of a 500-point best-of-3 match from its event list takes under 50 ms (median of 10 runs). The CI test fails above this threshold.
+  - **CI:** on the macOS CI runner, a full recompute of the state and stats of a 500-point best-of-3 match from its event list takes under 10 ms (median of 10 runs). The CI test fails above this threshold.
   - **Device checklist (Denys):** on the oldest supported Apple Watch, after the app is killed during a 500-point match and relaunched, the score screen shows the restored score without a loading indicator.
 - **SC-005**: Stats for 5 reference matches (one per format family: 1 set, best of 3, best of 3 with match tie-break, No-Ad, set length 4 or 8) match their expected counts exactly. At least one reference match is hand-scored by Denys (point sequence and expected stats counted by hand). The others are built by the agent, marked as agent-built in the test fixtures, and cross-checked by the SC-006 invariants.
 - **SC-006**: In stats, totals are consistent for every generated match. Points served by one player equal points received by the other, and break points converted plus saved equal break points faced, per player pair.
@@ -375,8 +382,8 @@ A few games in, the players notice the wrong player was recorded as serving firs
 - **Match tie-break in the result:** it is recorded as the deciding set, won 1–0, with its point score (e.g. "10–7"). This follows ITF MT-05 (Not covered; approved by Denys on 2026-10-12).
 - **No change of ends after the match-winning point** (FR-023). This is our decision, since nothing remains to be played: ITF EN-05 (Not covered; approved by Denys on 2026-10-12).
 - **Tie-break points count in serve and return stats** (FR-024). Break-point stats exclude them, per BP-02. Approved by Denys on 2026-10-12.
-- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on. Product decision by Denys, 2026-10-12.
-- **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. Product decision by Denys, 2026-10-12.
+- **Not modelled:** officiating corrections such as Rule 27. Undo is the correction mechanism [ITF: CE-01]. The first-server correction (Story 8) is a scorekeeping fix, not Rule 27: it rewrites who served from the start, whereas Rule 27 keeps the points played and fixes the order from then on [ITF: CE-02] (Not covered; approved by Denys on 2026-10-13).
+- **Early end:** a match ended early is unfinished, with no winner. Unfinished matches are excluded from head-to-head records. **Note for the iPhone feature**, which owns head-to-head; the engine only exposes the status. The engine accepts an early end at 0–0, but the watch and iPhone features MUST NOT save a 0-point unfinished match to history (**note for the watch and iPhone features**) [ITF: MT-08] (Not covered; approved by Denys on 2026-10-13).
 - **Saved format:** older versions are migrated on restore. The first released version is 1. Where and when the list is saved is the apps' concern.
 - **Out of scope:**
   - doubles;
