@@ -4,8 +4,8 @@ import Foundation
 
 /// Seeded random valid matches for the property tests (research R8).
 ///
-/// Built in stages: points only (US3); early ends (US7) and first-server corrections (US8)
-/// are added in their phases.
+/// Built in stages: points (US3), early ends (US7); first-server corrections (US8) are added
+/// in their phase.
 enum MatchGenerator {
   struct Generated {
     var index: Int
@@ -55,6 +55,11 @@ enum MatchGenerator {
         break
       }
     }
-    return m.events
+    var events = m.events
+    // US7: one match in ten ends early at the point where it stopped.
+    if m.state.status == .inProgress, Double.random(in: 0..<1, using: &rng) < 0.1 {
+      events.append(.matchEndedEarly)
+    }
+    return events
   }
 }

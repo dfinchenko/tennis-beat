@@ -43,8 +43,13 @@ public struct Match: Sendable, Hashable {
       guard reduction.status == .inProgress else { throw .matchNotInProgress }
       events.append(event)
       Reducer.step(&reduction, winner: winner)
-    case .matchEndedEarly, .firstServerCorrected:
-      // Stub behaviour until T057 and T063: no change, no throw.
+    case .matchEndedEarly:
+      // ITF: MT-08 — only an in-progress match can end early; nothing else changes.
+      guard reduction.status == .inProgress else { throw .matchNotInProgress }
+      events.append(event)
+      reduction.endedEarly = true
+    case .firstServerCorrected:
+      // Stub behaviour until T063: no change, no throw.
       break
     }
   }

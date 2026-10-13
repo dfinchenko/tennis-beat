@@ -341,20 +341,20 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US7 (write first, must FAIL)
 
-- [ ] T053 [P] [US7] In `Tests/US7EarlyEndTests.swift`, write tests US7 s1–s8 (`// ITF: MT-08`):
+- [X] T053 [P] [US7] In `Tests/US7EarlyEndTests.swift`, write tests US7 s1–s8 (`// ITF: MT-08`):
   - s1: 6–4, 3–2, 30–15;
   - s5: an early end at 0–0 gives empty stats;
   - s6: rejected after a win or after an early end;
   - s7 and s8: `changeOfEnds` unchanged by the early end and by undoing it. Positive control (a no-op `endEarly` keeps it unchanged too): after the early end, `status == .unfinished`; after the undo, `.inProgress`.
 
   Cover the edge cases "mid-game" and "mid-tie-break" as parameterized arguments of s1.
-- [ ] T054 [P] [US7] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s11 (undo of an early end resumes the match), test `"US3 s9 ended early …"` (a point after an early end throws `.matchNotInProgress` and leaves the `Match` unchanged; it intentionally covers the same behaviour as US7 s3 in T053, under the US3 ID, so US3 s9 is fully covered by its own ID), and the early-end cases of US3 s16: a restored list with a point or a second early end after an early end → `.invalid(.matchNotInProgress)`.
-- [ ] T055 [US7] Extend `Tests/Support/MatchGenerator.swift`: with probability 0.1, end a match early at a random point. In `Tests/PropertyTests.swift`, write test SC-007(b): for every in-progress prefix, an early end followed by undo leaves the entire state and stats unchanged. P-1, SC-002 and SC-003 now also cover early ends.
-- [ ] T056 [US7] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `matchEndedEarly` event at the end (status `unfinished`).
+- [X] T054 [P] [US7] In `Tests/US3UndoAndRestoreTests.swift`, write test US3 s11 (undo of an early end resumes the match), test `"US3 s9 ended early …"` (a point after an early end throws `.matchNotInProgress` and leaves the `Match` unchanged; it intentionally covers the same behaviour as US7 s3 in T053, under the US3 ID, so US3 s9 is fully covered by its own ID), and the early-end cases of US3 s16: a restored list with a point or a second early end after an early end → `.invalid(.matchNotInProgress)`.
+- [X] T055 [US7] Extend `Tests/Support/MatchGenerator.swift`: with probability 0.1, end a match early at a random point. In `Tests/PropertyTests.swift`, write test SC-007(b): for every in-progress prefix, an early end followed by undo leaves the entire state and stats unchanged. P-1, SC-002 and SC-003 now also cover early ends.
+- [X] T056 [US7] Extend `Tests/Fixtures/saved-format/v1.json` and `v1.expected.json` with a `matchEndedEarly` event at the end (status `unfinished`).
 
 ### Implementation for US7
 
-- [ ] T057 [US7] Implement `endEarly()` and `record(.matchEndedEarly)` in `Sources/Engine/Match.swift`:
+- [X] T057 [US7] Implement `endEarly()` and `record(.matchEndedEarly)` in `Sources/Engine/Match.swift`:
   - the status becomes `.unfinished`, and nothing else changes;
   - rejected with `.matchNotInProgress` unless the status is `.inProgress`;
   - a replay after an early end restores `.unfinished`;

@@ -239,6 +239,9 @@
       "recordedAt": 813593126.375,
       "type": "point",
       "winner": "opponent"
+    },
+    {
+      "type": "matchEndedEarly"
     }
   ],
   "formatVersion": 1
