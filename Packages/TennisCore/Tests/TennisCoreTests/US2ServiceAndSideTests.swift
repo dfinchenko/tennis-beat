@@ -173,9 +173,9 @@ struct US2ServiceAndSideTests {
   @Test(
     "US2 s13 tie-breaks serve from the right on even points played and the left on odd",
     arguments: [false, true])
-  func s13(matchTieBreak: Bool) throws {
+  func s13(inMatchTieBreak: Bool) throws {
     var m = try Match.make(matchTieBreak: true)
-    if matchTieBreak {
+    if inMatchTieBreak {
       m.winSet(.me)
       m.winSet(.opponent)
     } else {

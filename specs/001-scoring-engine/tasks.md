@@ -416,8 +416,8 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 - [X] T066 [P] Fill in the **Tests** column of `docs/rules/itf-notes.md` for every ID used by the engine with the test files that cite it, using `grep -rl "ITF: <ID>"`. Leave out-of-scope IDs (ST-02, ST-05, MT-06, MT-07, TB-06, CE-01) as "— (out of MVP scope)". ST-01 is in scope (fixed tie-break-set method) and cites T015's tests.
 - [X] T067 Build both app schemes with XcodeBuildMCP (`TennisBeat`, `TennisBeat Watch App`), as in quickstart.md §4, and confirm that both succeed. No UI changed, so there are no screenshots; state that in the PR.
 - [X] T068 Append the metrics row for the previous merged PR to `docs/harness.md` (CLAUDE.md step 8).
-- [ ] T069 Commit, then invoke the `reviewer` subagent with only `specs/001-scoring-engine` and the base branch `main`. Post its report as a PR comment with numbered findings (R<review>-<n>). Fix and re-review until PASS on the head SHA.
-- [ ] T070 Push and open the implementation PR with `Reviewed-SHA: <full SHA>` equal to the head. The PR body states:
+- [X] T069 Commit, then invoke the `reviewer` subagent with only `specs/001-scoring-engine` and the base branch `main`. Post its report as a PR comment with numbered findings (R<review>-<n>). Fix and re-review until PASS on the head SHA.
+- [X] T070 Push and open the implementation PR with `Reviewed-SHA: <full SHA>` equal to the head. The PR body states:
   - "SC-005: not claimed (hand-scored fixture pending, T050)", unless T050 is done;
   - "SC-004 device check: deferred to the watch feature (approved by Denys, 2026-10-13)";
   - no UI, HealthKit or sync change, so no other device checks.

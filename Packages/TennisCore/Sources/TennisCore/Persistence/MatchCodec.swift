@@ -92,10 +92,10 @@ private struct SavedFormat: Codable {
 /// One event, with a `"type"` discriminator. Hand-written so the layout never depends on
 /// compiler-synthesized keys (research R5).
 private enum SavedEvent: Codable {
-  case setup(format: SavedFormat, firstServer: String)
-  case point(winner: String, recordedAt: Double)
+  case setup(format: SavedFormat, firstServer: Player)
+  case point(winner: Player, recordedAt: Double)
   case matchEndedEarly
-  case firstServerCorrected(firstServer: String)
+  case firstServerCorrected(firstServer: Player)
 
   private enum Kind: String, Codable {
     case setup, point, matchEndedEarly, firstServerCorrected
@@ -108,15 +108,15 @@ private enum SavedEvent: Codable {
   init(_ event: MatchEvent) {
     switch event {
     case .setup(let setup):
-      self = .setup(format: SavedFormat(setup.format), firstServer: setup.firstServer.rawValue)
+      self = .setup(format: SavedFormat(setup.format), firstServer: setup.firstServer)
     case .point(let winner, let recordedAt):
       // The Date's own stored value, round-tripped bit-exactly (research R6).
       self = .point(
-        winner: winner.rawValue, recordedAt: recordedAt.timeIntervalSinceReferenceDate)
+        winner: winner, recordedAt: recordedAt.timeIntervalSinceReferenceDate)
     case .matchEndedEarly:
       self = .matchEndedEarly
     case .firstServerCorrected(let player):
-      self = .firstServerCorrected(firstServer: player.rawValue)
+      self = .firstServerCorrected(firstServer: player)
     }
   }
 
@@ -126,16 +126,16 @@ private enum SavedEvent: Codable {
     case .setup:
       self = .setup(
         format: try container.decode(SavedFormat.self, forKey: .format),
-        firstServer: try container.decodeRaw(Player.self, forKey: .firstServer).rawValue)
+        firstServer: try container.decodeRaw(Player.self, forKey: .firstServer))
     case .point:
       self = .point(
-        winner: try container.decodeRaw(Player.self, forKey: .winner).rawValue,
+        winner: try container.decodeRaw(Player.self, forKey: .winner),
         recordedAt: try container.decode(Double.self, forKey: .recordedAt))
     case .matchEndedEarly:
       self = .matchEndedEarly
     case .firstServerCorrected:
       self = .firstServerCorrected(
-        firstServer: try container.decodeRaw(Player.self, forKey: .firstServer).rawValue)
+        firstServer: try container.decodeRaw(Player.self, forKey: .firstServer))
     }
   }
 
@@ -145,16 +145,16 @@ private enum SavedEvent: Codable {
     case .setup(let format, let firstServer):
       try container.encode(Kind.setup, forKey: .type)
       try container.encode(format, forKey: .format)
-      try container.encode(firstServer, forKey: .firstServer)
+      try container.encode(firstServer.rawValue, forKey: .firstServer)
     case .point(let winner, let recordedAt):
       try container.encode(Kind.point, forKey: .type)
-      try container.encode(winner, forKey: .winner)
+      try container.encode(winner.rawValue, forKey: .winner)
       try container.encode(recordedAt, forKey: .recordedAt)
     case .matchEndedEarly:
       try container.encode(Kind.matchEndedEarly, forKey: .type)
     case .firstServerCorrected(let firstServer):
       try container.encode(Kind.firstServerCorrected, forKey: .type)
-      try container.encode(firstServer, forKey: .firstServer)
+      try container.encode(firstServer.rawValue, forKey: .firstServer)
     }
   }
 
@@ -170,15 +170,15 @@ private enum SavedEvent: Codable {
       let format = try MatchFormat(
         length: length, setLength: setLength, gameScoring: scoring,
         matchTieBreak: saved.matchTieBreak)
-      return .setup(MatchSetup(format: format, firstServer: Player(rawValue: firstServer) ?? .me))
+      return .setup(MatchSetup(format: format, firstServer: firstServer))
     case .point(let winner, let recordedAt):
       return .point(
-        winner: Player(rawValue: winner) ?? .me,
+        winner: winner,
         recordedAt: Date(timeIntervalSinceReferenceDate: recordedAt))
     case .matchEndedEarly:
       return .matchEndedEarly
     case .firstServerCorrected(let player):
-      return .firstServerCorrected(Player(rawValue: player) ?? .me)
+      return .firstServerCorrected(player)
     }
   }
 }
