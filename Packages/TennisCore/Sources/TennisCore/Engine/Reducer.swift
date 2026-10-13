@@ -2,6 +2,7 @@
 struct Reduction: Sendable, Hashable {
   var score: ScoreTrack
   var service: ServiceTrack
+  var stats: MatchStats = .zero
   var endedEarly = false
 
   var status: MatchStatus {
@@ -24,14 +25,14 @@ struct Reduction: Sendable, Hashable {
       changeOfEnds: score.changeOfEnds
     )
   }
-
-  var stats: MatchStats { .zero }
 }
 
 /// What one point meant, for stats.
 struct PointContext: Sendable, Hashable {
   var winner: Player
   var server: Player
+  /// A standard-game point the receiver wins the game with if they win it [ITF: BP-01, BP-02].
+  var isBreakPoint: Bool
   var outcome: ScoreTrack.Outcome
 }
 
@@ -46,10 +47,19 @@ enum Reducer {
   /// Applies one point. The caller has checked that the match is in progress.
   @discardableResult
   static func step(_ reduction: inout Reduction, winner: Player) -> PointContext {
-    let server = reduction.service.server(in: reduction.score)
+    let score = reduction.score
+    let server = reduction.service.server(in: score)
+    let receiver = server.other
+    var ifReceiverWins = score.points
+    ifReceiverWins[receiver] += 1
+    let isBreakPoint = score.mode == .standard && score.winsGame(receiver, with: ifReceiverWins)
+
     let outcome = reduction.score.addPoint(winner)
     reduction.service.pointPlayed(outcome)
-    return PointContext(winner: winner, server: server, outcome: outcome)
+    let context = PointContext(
+      winner: winner, server: server, isBreakPoint: isBreakPoint, outcome: outcome)
+    reduction.stats.add(context)
+    return context
   }
 
   /// Rebuilds the reduction of `events` from scratch, ignoring setup and recorded times.

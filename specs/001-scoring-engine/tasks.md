@@ -273,21 +273,21 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US6 (write first, must FAIL)
 
-- [ ] T044 [P] [US6] In `Tests/US6StatsTests.swift`, write tests US6 s1–s5 (`// ITF: BP-03`): serve and return tallies include tie-break points, the s2 identities hold, and tie-breaks and games in progress are not service games.
-- [ ] T045 [P] [US6] In `Tests/US6StatsTests.swift`, write tests US6 s6–s12 (`// ITF: BP-01, BP-02`):
+- [X] T044 [P] [US6] In `Tests/US6StatsTests.swift`, write tests US6 s1–s5 (`// ITF: BP-03`): serve and return tallies include tie-break points, the s2 identities hold, and tie-breaks and games in progress are not service games.
+- [X] T045 [P] [US6] In `Tests/US6StatsTests.swift`, write tests US6 s6–s12 (`// ITF: BP-01, BP-02`):
   - s8: 0–40 then three points saved → 3 faced, 3 saved;
   - s10: several deuces count each receiver's advantage;
   - s11: no tie-break point is a break point;
   - s12: converted = faced − saved.
-- [ ] T046 [P] [US6] In `Tests/US4TieBreakTests.swift`, write test US4 s8 (`// ITF: BP-02`): no point in a set tie-break or a match tie-break adds to break-point tallies. Positive control: the same match has break points before the tie-break, and they are counted (> 0).
-- [ ] T047 [P] [US6] In `Tests/PropertyTests.swift`, write test SC-006: the three stats identities in data-model.md hold for every prefix of every generated match. Positive control: the points served by both players add up to the number of points in the prefix.
-- [ ] T048 [P] [US6] Create the agent-built reference fixtures in `Tests/Fixtures/reference/`: `one-set.json`, `best-of-3.json`, `best-of-3-match-tie-break.json`, `no-ad.json` and `set-length-4.json`. Each has:
+- [X] T046 [P] [US6] In `Tests/US4TieBreakTests.swift`, write test US4 s8 (`// ITF: BP-02`): no point in a set tie-break or a match tie-break adds to break-point tallies. Positive control: the same match has break points before the tie-break, and they are counted (> 0).
+- [X] T047 [P] [US6] In `Tests/PropertyTests.swift`, write test SC-006: the three stats identities in data-model.md hold for every prefix of every generated match. Positive control: the points served by both players add up to the number of points in the prefix.
+- [X] T048 [P] [US6] Create the agent-built reference fixtures in `Tests/Fixtures/reference/`: `one-set.json`, `best-of-3.json`, `best-of-3-match-tie-break.json`, `no-ad.json` and `set-length-4.json`. Each has:
   - `"origin": "agent-built"`, the format and the first server;
   - `"sets": [{ "games": ["MMOM…", …] }]`, one string per game or tie-break;
   - the expected `PlayerStats` for both players.
 
   The expected values are **counted by hand, not by any script** (a script would be a second engine). Each fixture gets a sidecar `<name>.counting.md` with one row per game: server, points, break points, held or broken.
-- [ ] T049 [P] [US6] Create the fixture template `Tests/Fixtures/reference/hand-scored-denys.template.json`, for Denys to fill in by hand after a real match:
+- [X] T049 [P] [US6] Create the fixture template `Tests/Fixtures/reference/hand-scored-denys.template.json`, for Denys to fill in by hand after a real match:
 
   ```json
   {
@@ -313,7 +313,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - save the filled copy as `hand-scored-denys.json`;
   - the per-game strings let the test also check that game boundaries match the engine's.
 - [ ] T050 [US6] **Owner: Denys.** After your next match, copy `hand-scored-denys.template.json` to `Tests/Fixtures/reference/hand-scored-denys.json`, fill in the format, the first server, the point winners per game and your hand-counted stats, and commit it, or send it to the agent to commit. Until this file exists, the hand-scored SC-005 case is skipped, and every PR states "SC-005: not claimed (hand-scored fixture pending, T050)".
-- [ ] T051 [US6] In `Tests/ReferenceMatchTests.swift`, write test SC-005:
+- [X] T051 [US6] In `Tests/ReferenceMatchTests.swift`, write test SC-005:
   - one parameterized `@Test` over every `reference/*.json` except the template;
   - replay the games, and assert that each game string ends exactly when the engine says the game is won;
   - compare `stats` with `expectedStats`;
@@ -322,7 +322,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Implementation for US6
 
-- [ ] T052 [US6] Implement stats in `Sources/Engine/Reducer.swift` and `Sources/Engine/Match.swift`:
+- [X] T052 [US6] Implement stats in `Sources/Engine/Reducer.swift` and `Sources/Engine/Match.swift`:
   - `Reducer.step` returns a `PointContext` with the server, `isBreakPoint` ("a standard-game point where the receiver wins the game by winning it", BP-01) and the game completed and held flags;
   - aggregate it into `MatchStats` as in data-model.md "Derived: match stats";
   - stats accumulate on append and are recomputed on replay.
