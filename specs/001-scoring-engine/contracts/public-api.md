@@ -128,7 +128,7 @@ public enum RestoreError: Error, Sendable, Hashable {
 
 public enum MatchCodec {
   public static let currentFormatVersion: Int   // 1
-  public static func encode(_ match: Match) throws -> Data
+  public static func encode(_ match: Match) throws(EncodingError) -> Data
   public static func decode(_ data: Data) -> Result<Match, RestoreError>
 }
 ```
@@ -142,5 +142,5 @@ public enum MatchCodec {
 | G3 | When a mutating method throws, `m` is unchanged. | FR-005 |
 | G4 | `MatchCodec.decode(MatchCodec.encode(m)) == .success(m)`, with `recordedAt` bit-exact. | FR-003, FR-032 |
 | G5 | Changing only `recordedAt` values never changes `state` or `stats`. | FR-032, US3 s15 |
-| G6 | The API never traps on input; every rejection is a typed error. | FR-005, FR-031 |
+| G6 | The API never traps on input; every rejection and failure is a typed error (`MatchError`, `RestoreError`, `EncodingError`). | FR-005, FR-031 |
 | G7 | The module imports only Foundation (no SwiftUI, HealthKit, WatchConnectivity). | Constitution |

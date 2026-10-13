@@ -50,13 +50,13 @@ This makes a first-server correction a recompute that cannot touch scores or cha
 
 | Principle | Status | Evidence |
 | --- | --- | --- |
-| I. Spec before code | PASS | `spec.md` has `Status: Approved (2026-10-13, Denys)` (commit `e0c959f`, PR #8). The plan changes no acceptance criteria. The artifact gate will pass once `tasks.md` exists; it currently fails only on the missing `tasks.md`, as expected at this stage. |
+| I. Spec before code | PASS | `spec.md` has `Status: Approved (2026-10-13, Denys)` (commit `e0c959f`, PR #8). The plan changes no acceptance criteria. The artifact gate passes (`GATE PASS: specs/001-scoring-engine`). |
 | II. Tennis rules are the source of truth | PASS | The data model cites the ITF IDs for every rule. Tests carry `// ITF: <ID>` (R12). The implementation fills in the **Tests** column of `itf-notes.md`. No Conflict found: all rules used are Rule, Derived or approved Not covered entries. |
 | III. Test first | PASS | `tasks.md` will order each story as tests (failing) first, then code. Boundary tests are explicit: undo across game, set and match tie-break boundaries and after the match ends (US3), restore from persisted events (US3 s8, s13). "Pause during a tie-break" is out of engine scope (no timing); it is the watch feature's test. |
 | IV. Evidence bound to a commit | PASS | The PR carries `Reviewed-SHA` equal to its head. CI runs the engine tests on every push. |
 | V. Independent review | PASS | The `reviewer` subagent gets only `specs/001-scoring-engine` and the base branch. |
 | VI. One writer per worktree | PASS | Plan work is in `.worktrees/001-plan`; implementation will be in its own worktree and branch. |
-| VII. Green tests ≠ accepted build | PASS | No UI or HealthKit change. The SC-004 device check is listed for Denys and deferred to the watch feature ([quickstart](quickstart.md) §5). |
+| VII. Green tests ≠ accepted build | PASS | No UI or HealthKit change. The SC-004 device check is listed for Denys and deferred to the watch feature (approved by Denys, 2026-10-13; [quickstart](quickstart.md) §5). |
 | VIII. AI never invents numbers | PASS | The engine is the single source of the stats numbers. |
 | IX. Privacy by default | PASS | No dependency, no network, no health data, no secrets. |
 | X. Three languages | PASS (N/A) | The engine exposes enums, not strings (R7). The apps localize `PointDisplay`, `CourtSide` and the status per `glossary.md`. |
@@ -149,8 +149,8 @@ Each step: write tests citing their scenario and ITF ID, and see them fail. A te
 ## Dependencies and open inputs
 
 - **SC-005 hand-scored reference match (Denys)**: a task assigned to Denys, with a fixture template (format, first server, point winners per game, hand-counted stats), filled in after his next match. The implementation can proceed without it, but the PR does not claim SC-005 until it is added (research R11).
-- **SC-004 device check (Denys)**: deferred to the watch feature, which first persists and restores a match.
-- **"Pause during a tie-break" boundary test (constitution III)**: the engine has no timing or pause, so this test belongs to the watch feature's spec and tasks. Recorded here so it isn't lost.
+- **SC-004 device check (Denys)**: deferred to the watch feature, which first persists and restores a match. Deferral approved by Denys on 2026-10-13.
+- **"Pause during a tie-break" boundary test (constitution III)**: the engine has no timing or pause, so this test belongs to the watch feature's spec and tasks. Tracked in backlog #6 as an input for the watch feature's spec.
 
 ## Complexity Tracking
 

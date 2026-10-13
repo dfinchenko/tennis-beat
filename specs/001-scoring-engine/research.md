@@ -23,14 +23,14 @@ The Technical Context had no open `NEEDS CLARIFICATION` items: the spec, the con
   - **Undo** and **first-server correction** replay the list from scratch.
   - **Match ended early** only flips the status.
 - **Rationale**: FR-002 and FR-004 need "state equals the state of the shortened list", and a replay gives exactly that. A 500-point replay is a few thousand integer operations, far below SC-004's 10 ms, even in the debug build CI runs. Incremental append keeps every tap O(1).
-- **Guard against divergence (approved by Denys, 2026-10-13)**: the two code paths are kept in step by a property test, **P-1 (incremental equals replay)**. For every prefix of every generated match (R8), the `Match` built by recording the events one by one must equal the `Match` from a full replay of the same prefix: every `state` value, every `stats` value and the cached reduction. This is a plan-level test that adds to SC-002 and SC-003. It changes no acceptance criterion.
+- **Guard against divergence (approved by Denys, 2026-10-13)**: the two code paths are kept in step by a property test, **P-1 (incremental equals replay)**. For every prefix of every generated match (R8), the `Match` built by recording the events one by one must equal the `Match` from a full replay of the same prefix: every `state` value, every `stats` value and the cached reduction. This is a plan-level test that adds to SC-002 and SC-003. It changes no acceptance criterion. The replay side is `Reducer.replay` called directly, not `Match(events:)`, which records event by event (R3) and so uses the incremental path.
 - **Alternatives rejected**:
   - A snapshot stack per event: more memory, and an extra source of truth that could drift from the replay.
   - Always replaying, even on append: simpler, but O(n²) over the property tests' prefixes, which slows CI for no gain.
 
 ## R3. Validation is the same code path for live input and restored lists
 
-- **Decision**: `Match(events:)` builds the match by recording the events one by one through the same `record` method the app uses. Any rejection rule (FR-005, FR-029, US3 s10/s16) therefore applies identically to live input and to restored data.
+- **Decision**: `Match(events:)` builds the match by recording the events one by one through the same `record` method the app uses. Its cached reduction therefore comes from the incremental `step` path. `Reducer.replay` is used for undo and corrections, and P-1 (R2) compares the two. Any rejection rule (FR-005, FR-029, US3 s10/s16) therefore applies identically to live input and to restored data.
 - **Rationale**: A single rule implementation, so the two cannot disagree.
 - **Alternative rejected**: a separate validator for decoded lists, which duplicates the rules.
 

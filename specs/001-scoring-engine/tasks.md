@@ -42,7 +42,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 - [ ] T003 Create the source folders from plan.md: `Sources/Model/`, `Sources/Engine/`, `Sources/Persistence/`. Keep `Sources/TennisCore.swift` (module doc and `version`), and bump `version` to `"0.1.0"`.
 - [ ] T004 [P] Write `Tests/Support/SplitMix64.swift`:
   - a `RandomNumberGenerator` seeded by a `UInt64`;
-  - `static var testSeed: UInt64`, read from the `TENNISCORE_SEED` environment variable, with a fixed default constant otherwise (research R8).
+  - a computed `static var testSeed: UInt64 { … }` (no stored mutable global, which Swift 6 strict concurrency rejects), read from the `TENNISCORE_SEED` environment variable, with a fixed default constant otherwise (research R8).
 
 ---
 
@@ -56,7 +56,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - `Player` (`me`, `opponent`, `other`);
   - `PlayerPair<Value>` with `subscript(Player)`. "Order is always Me, then Opponent".
 - [ ] T006 [P] Create `Sources/Model/MatchFormat.swift`: `MatchLength`, `SetLength` (raw values 4, 6, 8), `GameScoring`, `MatchFormat`, `MatchSetup`.
-  - `MatchFormat.init` is `throws(MatchError)` and throws `.invalidFormat` when "`matchTieBreak` is allowed only with `bestOfThree`" is violated (MT-02).
+  - `MatchFormat.init` is declared `throws(MatchError)` but **does not validate yet**: it accepts every combination. The `.invalidFormat` check is added in T019, after the US1 s19 test (T016) has failed against it (constitution III).
 - [ ] T007 [P] Create `Sources/Model/MatchError.swift` with exactly `missingSetup`, `duplicateSetup`, `invalidFormat`, `matchNotInProgress`, `sameFirstServer`.
 - [ ] T008 [P] Create `Sources/Model/MatchEvent.swift`: `setup(MatchSetup)`, `point(winner: Player, recordedAt: Date)`, `matchEndedEarly`, `firstServerCorrected(Player)`.
 - [ ] T009 [P] Create `Sources/Model/MatchState.swift` with `MatchState`, `MatchStatus`, `SetScore`, `PointDisplay` (`.zero … .advantage`, `.tieBreak(Int)`) and `CourtSide`. Fields as in data-model.md "Derived: match state".
@@ -92,10 +92,10 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - s1 checks `.zero, .fifteen, .thirty, .forty`;
   - s7 plays 10 deuces;
   - s8 checks `isDecidingPoint` on and `isDeuce` off.
-- [ ] T015 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s10–s14 for sets (`// ITF: ST-03, ST-04, ST-06, ST-07`), with the edge cases as parameterized arguments:
+- [ ] T015 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s10–s14 for sets (`// ITF: ST-01, ST-03, ST-04, ST-06, ST-07`; ST-01 because every set is a tie-break set, FR-007), with the edge cases as parameterized arguments:
   - N = 4: 4–2 and 5–3 win, 4–3 continues;
   - N = 8: 8–6 and 9–7 win, 8–7 continues.
-- [ ] T016 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s15–s19 for the match (`// ITF: MT-01, MT-02, MT-03`). s19 expects `MatchFormat.init` to throw `.invalidFormat`. (US1 s20 needs the codec and is written in T028.)
+- [ ] T016 [P] [US1] In `Tests/US1ScoringTests.swift`, write tests US1 s15–s19 for the match (`// ITF: MT-01, MT-02, MT-03`). s19 expects `MatchFormat.init` to throw `.invalidFormat`; it fails against T006, which doesn't validate yet. (US1 s20 needs the codec and is written in T028.) Also, in `Tests/US3UndoAndRestoreTests.swift`, write test US3 s9 here, because T020 implements it: after the match-winning point, `recordPoint` throws `.matchNotInProgress` and the `Match` is unchanged.
 - [ ] T017 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s1–s6 (`// ITF: TB-01, MT-03`): numeric displays, 7–5, 6–6 → 7–6 continues, 15–13, match tie-break 10–8, and 12–10.
 - [ ] T018 [P] [US4] In `Tests/US4TieBreakTests.swift`, write tests US4 s7, s9 and s10 (`// ITF: MT-05, TB-01, ST-07, GM-02, NA-01, NA-02, TB-04`):
   - s7: `completedSets` reads 6–4, 3–6, then a match-tie-break entry with games 1–0, `tieBreak` 10–7 and `isMatchTieBreak`;
@@ -106,7 +106,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Implementation for US1 and US4
 
-- [ ] T019 [US1] Implement the score track in `Sources/Engine/ScoreTrack.swift`, a value type with:
+- [ ] T019 [US1] Add the `.invalidFormat` check to `MatchFormat.init` in `Sources/Model/MatchFormat.swift` ("`matchTieBreak` is allowed only with `bestOfThree`", MT-02). Implement the score track in `Sources/Engine/ScoreTrack.swift`, a value type with:
   - the standard game (Advantage: "won with ≥ 4 points and a 2-point lead"; No-Ad: the 4th point wins at 3–3);
   - the set (won at N with a 2-game lead, N+1–N−1, or the N–N tie-break);
   - the 7-point tie-break ("first to 7, +2", no cap);
@@ -118,7 +118,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - `step(_ state:, winner:) -> (state, PointContext)` on the score track;
   - `replay(setup:, effectiveFirstServer:, events:)`.
 
-  Wire up `Match.init(setup:)`, `recordPoint`, `record(.point)` and `state` in `Sources/Engine/Match.swift`. Rejecting a point when `status != .inProgress` → `.matchNotInProgress`. Make T014–T018 pass.
+  Wire up `Match.init(setup:)`, `recordPoint`, `record(.point)` and `state` in `Sources/Engine/Match.swift`. Rejecting a point when `status != .inProgress` → `.matchNotInProgress`. Make T014–T018 pass, including US3 s9 from T016.
 
 **Checkpoint**: US1 and US4 pass (except the parts noted for later phases). The engine scores every format.
 
@@ -132,11 +132,11 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
 ### Tests for US2 (write first, must FAIL)
 
-- [ ] T021 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s1–s8 for service order (`// ITF: SV-01, SV-02, SV-04, TB-02, TB-03, MT-04`):
+- [ ] T021 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s1–s8 for service order (`// ITF: SV-01, SV-02, SV-04, TB-02, TB-03, MT-04`). Positive control for the stub (Me serving): s1 is parameterized over both first servers, so the Opponent-first case fails against the stub.
   - s4 for each set length;
   - s5 for several tie-break scores;
   - s7 for set 2 ended by a tie-break before the match tie-break.
-- [ ] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"`: never `.receiversChoice` at equal tie-break scores.
+- [ ] T022 [P] [US2] In `Tests/US2ServiceAndSideTests.swift`, write tests US2 s9–s13 for court side (`// ITF: SV-03, TB-04, NA-02`). Positive control for the stub (always Right): s9 also checks that after one point of the new game the side is Left. s12 expects `.receiversChoice`, and s13 checks a set tie-break and a match tie-break. In `Tests/US4TieBreakTests.swift`, also write `"US4 s10 court side …"`: never `.receiversChoice` at equal tie-break scores.
 
 ### Implementation for US2
 
@@ -165,8 +165,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   - s6: with only the setup, `undo()` returns `nil` and changes nothing.
 
   (s7 is written in T042, s11 in T054, s12 in T060.)
-- [ ] T025 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s9, s10 and s16 (the point-after-a-win case):
-  - a point after a win → `.matchNotInProgress`, with the state unchanged;
+- [ ] T025 [P] [US3] In `Tests/US3UndoAndRestoreTests.swift`, write tests US3 s10 and s16 (the point-after-a-win case). (s9 was written in T016.)
   - `Match(events: [])` and a list starting with a point → `.missingSetup`;
   - a second setup → `.duplicateSetup`;
   - any point after the match-winning point in a restored list → `.matchNotInProgress` (`// ITF: MT-08`).
@@ -176,7 +175,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 - [ ] T027 [P] [US3] In `Tests/SavedFormatTests.swift`, write tests US3 s8, s13, s14 and s15 (`FR-031`, `FR-032`):
   - s8: encode, then decode, gives an equal `Match`, and `recordedAt` is bit-exact (compare `timeIntervalSinceReferenceDate.bitPattern`);
   - s13: `v1.json` restores to `v1.expected.json`;
-  - s14: `"formatVersion": 2` gives `.unsupportedVersion(found: 2, supported: 1)`, with no crash;
+  - s14: `"formatVersion": 2` gives `.unsupportedVersion(found: 2, supported: 1)`, with no crash. To prove that nothing else is parsed, the same result comes back for a version-2 payload whose `events` would be malformed under v1;
   - s15: the same points with shuffled or out-of-order times give an identical `state` and `stats`;
   - extra: an unknown `type` and a missing `formatVersion` give `.malformed`.
 - [ ] T028 [P] [US3] In `Tests/US1ScoringTests.swift`, write test US1 s20 (`// ITF: ST-07`): decoding a saved list with `"setLength": 5` gives `.invalid(.invalidFormat)`, and so does a setup with `oneSet` plus `matchTieBreak: true`.
@@ -192,8 +191,8 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 
   T055 adds early ends to the generator, and T061 adds corrections.
 - [ ] T031 [US3] In `Tests/PropertyTests.swift`, write test **P-1 (incremental equals replay)**, approved by Denys on 2026-10-13 (research R2):
-  - for every prefix of every generated match, compare the `Match` built by `record`ing events one by one with `Match(events: prefix)`, which uses `Reducer.replay`;
-  - the comparison covers every `state` field, every `stats` field and the cached reduction;
+  - for every prefix of every generated match, compare the `Match` built by `record`ing events one by one (the incremental `step` path) with the reduction built directly by `Reducer.replay(setup:effectiveFirstServer:events:)` over the same prefix (via `@testable import`). `Match(events:)` is **not** the replay side: it records event by event (R3), so comparing against it would compare a path with itself;
+  - the comparison covers every `state` field, every `stats` field and the whole cached reduction;
   - print the seed and the match index on failure.
 - [ ] T032 [US3] In `Tests/PropertyTests.swift`, write tests SC-002 and SC-003:
   - SC-002: for every prefix, undo followed by re-recording the same event returns the previous `Match`, and undoing to the start gives `Match(setup:)`;
@@ -208,7 +207,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 ### Implementation for US3
 
 - [ ] T034 [US3] Implement validation in `Sources/Engine/Match.swift`:
-  - `init(events:)` replays through `record(_:)` (research R3);
+  - `init(events:)` validates by recording through `record(_:)` (research R3); its cache comes from the incremental `step` path. Undo and correction rebuild it with `Reducer.replay`, and P-1 (T031) keeps the two paths equal;
   - `record(.setup)` → `.duplicateSetup`;
   - an empty list, or a first event that is not `setup` → `.missingSetup`;
   - `record` mutates only on success (G3);
@@ -220,7 +219,8 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 - [ ] T036 [US3] Implement `MatchCodec.encode` in `Sources/Persistence/MatchCodec.swift`, with the JSON layout exactly as in [contracts/saved-format.md](contracts/saved-format.md):
   - hand-written `Codable` for the events, with the `"type"` discriminator;
   - `recordedAt` as `timeIntervalSinceReferenceDate`;
-  - the encoder uses `.sortedKeys`.
+  - the encoder uses `.sortedKeys`;
+  - `encode` is `throws(EncodingError)`: catch the `JSONEncoder` error and rethrow it as `EncodingError` (contract G6).
 - [ ] T037 [US3] Implement `MatchCodec.decode` in `Sources/Persistence/MatchCodec.swift`, following the 5-step restore algorithm in saved-format.md:
   1. decode the version only;
   2. a newer version → `.unsupportedVersion`;
@@ -413,13 +413,13 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
   ```
 
 - [ ] T065 Run the traceability check from quickstart.md §2. Both counts must be 99, and every `// ITF:` ID must exist in `docs/rules/itf-notes.md`. Run the purity grep from quickstart.md §3, which must print nothing.
-- [ ] T066 [P] Fill in the **Tests** column of `docs/rules/itf-notes.md` for every ID used by the engine with the test files that cite it, using `grep -rl "ITF: <ID>"`. Leave out-of-scope IDs (ST-01, ST-02, ST-05, MT-06, MT-07, TB-06, CE-01) as "— (out of MVP scope)".
+- [ ] T066 [P] Fill in the **Tests** column of `docs/rules/itf-notes.md` for every ID used by the engine with the test files that cite it, using `grep -rl "ITF: <ID>"`. Leave out-of-scope IDs (ST-02, ST-05, MT-06, MT-07, TB-06, CE-01) as "— (out of MVP scope)". ST-01 is in scope (fixed tie-break-set method) and cites T015's tests.
 - [ ] T067 Build both app schemes with XcodeBuildMCP (`TennisBeat`, `TennisBeat Watch App`), as in quickstart.md §4, and confirm that both succeed. No UI changed, so there are no screenshots; state that in the PR.
 - [ ] T068 Append the metrics row for the previous merged PR to `docs/harness.md` (CLAUDE.md step 8).
 - [ ] T069 Commit, then invoke the `reviewer` subagent with only `specs/001-scoring-engine` and the base branch `main`. Post its report as a PR comment with numbered findings (R<review>-<n>). Fix and re-review until PASS on the head SHA.
 - [ ] T070 Push and open the implementation PR with `Reviewed-SHA: <full SHA>` equal to the head. The PR body states:
   - "SC-005: not claimed (hand-scored fixture pending, T050)", unless T050 is done;
-  - "SC-004 device check: deferred to the watch feature";
+  - "SC-004 device check: deferred to the watch feature (approved by Denys, 2026-10-13)";
   - no UI, HealthKit or sync change, so no other device checks.
 
   Push nothing after the final review.
@@ -447,7 +447,7 @@ Run the tests with `swift test --package-path Packages/TennisCore`.
 | FR-031–FR-032 saved format, times | T026–T027, T036–T038, T056, T062 |
 | SC-001 | T065 |
 | SC-002, SC-003 | T030, T032 (extended by T055, T061) |
-| SC-004 | T033 (CI part); device part deferred to the watch feature |
+| SC-004 | T033 (CI part); device part deferred to the watch feature (approved by Denys, 2026-10-13) |
 | SC-005 | T048–T051 (T050 owned by Denys) |
 | SC-006 | T047 |
 | SC-007 | T055 (b), T061 (a) |

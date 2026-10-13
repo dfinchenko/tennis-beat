@@ -75,6 +75,6 @@ Expected: both succeed. This feature has no UI, so there are no simulator screen
 
 ## 5. Device check for Denys (SC-004, second part)
 
-This check waits for the watch scoring screen feature, which first restores a persisted match. Until then, it is listed in the PR as **deferred to the watch feature**:
+This check waits for the watch scoring screen feature, which first restores a persisted match. Until then, it is listed in the PR as **deferred to the watch feature** (approved by Denys, 2026-10-13):
 
 - On the oldest supported Apple Watch: start a match, add ~500 points (or load a 500-point debug fixture), kill the app and relaunch it. The score screen shows the restored score with no loading indicator.
