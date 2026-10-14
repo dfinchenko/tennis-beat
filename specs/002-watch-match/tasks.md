@@ -417,7 +417,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - `.allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced:))` on the zones, false when dimmed (FR-021, Story 6 s3).
 - [x] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8 is tested in T032 (score) and T060 (summary); here, check the remaining screens' screenshots for colour-only meaning (First server buttons differ by label and position).
 - [x] T075 [US6] Update `docs/design/screens/watch-5-always-on.md` (R1-9): Q8 also hides the court-side pill and the status line; the header minutes use the system's abbreviated format, with no plural variations (R1-8). Note "changed by spec 002".
-- [ ] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
+- [x] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
   - US6 s4: readable at arm's length (complete only after spec 003, Q10);
   - the harness Dynamic Type check on his watch (Q9);
   - a full match with no iPhone nearby and no network (FR-027).
