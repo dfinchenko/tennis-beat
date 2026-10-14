@@ -153,7 +153,7 @@ final class ScreenshotUITests: XCTestCase {
     app = start(tieBreakToTen)
     play(app, "MMMM MMMM MMMM MMMM")  // set 1 Me 4–0
     play(app, "MMMM OOOO OOOO OOOO OOOO")  // set 2 Opponent 1–4
-    play(app, "MMMM MMMM OOOO M")  // set 3 at 2–1
+    play(app, "MMMM MMMM OOOO M")  // match tie-break at 9–4
     app.showControls()
     app.openEndConfirmation()
     app.endConfirmationButton.tap()

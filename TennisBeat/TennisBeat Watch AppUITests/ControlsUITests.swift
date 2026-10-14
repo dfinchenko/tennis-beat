@@ -191,10 +191,15 @@ final class ControlsUITests: XCTestCase {
 
 extension XCUIApplication {
   /// The destructive "End match" action. watchOS drops accessibility identifiers on
-  /// `confirmationDialog` actions, so the contract's `confirm.end` can't be set; the EN
-  /// label finds it.
+  /// `confirmationDialog` actions, so the contract's `confirm.end` can't be set; its label
+  /// finds it, in EN, PL or UK (screenshots run in all three).
   @MainActor
-  var endConfirmationButton: XCUIElement { buttons["End match"].firstMatch }
+  var endConfirmationButton: XCUIElement {
+    let labels = ["End match", "Zakończ mecz", "Завершити матч"]
+    return buttons.matching(
+      NSPredicate(format: "label IN %@ AND identifier != 'controls.end'", labels)
+    ).firstMatch
+  }
 
   /// The system Cancel of the confirmation (a Close button on watchOS).
   @MainActor

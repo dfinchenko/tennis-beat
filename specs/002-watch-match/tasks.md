@@ -385,7 +385,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - in a `ScrollView`, with no heart-rate or kcal rows.
 - [X] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings` ("Match ended early" exists since PR 3): Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
 - [X] T067 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
-- [ ] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
+- [x] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
 
 **Checkpoint (PR 4 merged)**: US5 is fully covered.
 
