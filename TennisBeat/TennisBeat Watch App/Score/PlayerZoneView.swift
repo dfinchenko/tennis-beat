@@ -15,29 +15,33 @@ struct PlayerZoneView: View {
   private var id: String { "zone.\(zone.player.rawValue)" }
 
   var body: some View {
+    // The court-side pill goes after sets and games when it fits there, and on its own row
+    // when it doesn't (long pills at the largest text size on the 40 mm watch), so no text
+    // is truncated (Story 7 s6).
+    ViewThatFits(in: .horizontal) {
+      content(pillOnOwnRow: false)
+      content(pillOnOwnRow: true)
+    }
+    .padding(.horizontal, 12)
+    .frame(maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+    .background(fill, in: .rect(cornerRadius: 24))
+    .contentShape(.rect(cornerRadius: 24))
+  }
+
+  private func content(pillOnOwnRow: Bool) -> some View {
     HStack(alignment: .center, spacing: 4) {
-      VStack(alignment: .leading, spacing: 2) {
+      VStack(alignment: .leading, spacing: pillOnOwnRow ? 0 : 2) {
         HStack(spacing: 4) {
           Text(zone.label)
             .font(.watchHeadline)
             .foregroundStyle(accent)
             .lineLimit(1)
-            .minimumScaleFactor(0.7)
+            .minimumScaleFactor(0.6)
           if zone.isServer {
             Image(systemName: "tennisball.fill")
               .font(.watchFootnote)
               .foregroundStyle(accent)
               .accessibilityIdentifier(exposeValues ? "\(id).serve" : "")
-          }
-          if let side = zone.courtSide {
-            Text(side)
-              .font(.watchCaption)
-              .foregroundStyle(Color.brandOnBall)
-              .lineLimit(1)
-              .minimumScaleFactor(0.6)
-              .padding(.horizontal, 6)
-              .background(accent, in: .capsule)
-              .accessibilityIdentifier(exposeValues ? "\(id).side" : "")
           }
         }
         HStack(spacing: 8) {
@@ -47,9 +51,11 @@ struct PlayerZoneView: View {
           Text(zone.games, format: .number)
             .foregroundStyle(accent)
             .accessibilityIdentifier(exposeValues ? "\(id).games" : "")
+          if !pillOnOwnRow { pill }
         }
         .font(.watchNumber)
         .monospacedDigit()
+        if pillOnOwnRow { pill }
       }
 
       Spacer(minLength: 0)
@@ -61,13 +67,20 @@ struct PlayerZoneView: View {
         .foregroundStyle(accent)
         .lineLimit(1)
         .minimumScaleFactor(0.5)
-        // The points win the width; the label column shrinks first.
-        .layoutPriority(1)
         .accessibilityIdentifier(exposeValues ? "\(id).points" : "")
     }
-    .padding(.horizontal, 12)
-    .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .background(fill, in: .rect(cornerRadius: 24))
-    .contentShape(.rect(cornerRadius: 24))
+  }
+
+  @ViewBuilder private var pill: some View {
+    if let side = zone.courtSide {
+      Text(side)
+        .font(.watchCaption)
+        .foregroundStyle(Color.brandOnBall)
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+        .padding(.horizontal, 6)
+        .background(accent, in: .capsule)
+        .accessibilityIdentifier(exposeValues ? "\(id).side" : "")
+    }
   }
 }
