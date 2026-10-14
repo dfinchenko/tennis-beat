@@ -27,3 +27,13 @@ Changes to tests that existed before this branch (no ITF rule is involved in any
 
 New tests in this branch were written before the code they check. One change was made while they were still failing, before the screen worked:
 - `ScoringUITests.testR7GuardZoneValuesOnlyWithExposeArgument`: the expected element type of `zone.me` with `-uiTestExposeValues` is `.other` (a container), not `.button`. Research R7 said XCUITest "may report a zone as a container"; the simulator confirmed it. In production it is `.button`, as written. The same run showed that watchOS XCUITest lists texts that are hidden from VoiceOver, so the zone value identifiers are set only with `-uiTestExposeValues`; the guard's expectation (no `zone.me.points` in production) is unchanged.
+
+## Branch `feat/002-controls` (PR 3: Controls)
+
+- `ScoreScreenModelTests.decidingPointChoice` (US2 s7): the VoiceOver check for "Receiver chooses the side" / «Stronę wybiera odbierający» / «Сторону обирає приймаючий» now reads the score summary (case-insensitive) instead of the server's zone label. Denys's #20 R1-3 decision gave the zone personalised phrases ("Serving. Opponent chooses the side."), and the summary still reads the receiver's choice. ITF NA-02 is unchanged: the side is the receiver's choice in both texts.
+- `ScoringUITests` scripted sequences (SC-002) gained a server correction on Controls every 11th step, as T052 asks; every value is still compared with the engine replay after each step.
+
+New tests in this branch were written before the code they check. Changes made while they were still failing, before the screen worked (no assertion loosened):
+- `ControlsUITests`: the End confirmation's destructive button is found by its EN label "End match", not by `confirm.end`. watchOS drops accessibility identifiers on `confirmationDialog` actions (the simulator's tree shows the button with no identifier), so contract §1's `confirm.end` can't be reached. The system Cancel is the dialog's Close button (`AX_ActionContentControllerCancelButton`).
+- `XCUIApplication.showControls()` / `showScore()` check that an element is on the visible page horizontally (`isOnPage`), not fully on screen: on the 40 mm watch the second row of controls starts below the visible area, and the Controls page keeps its scroll position between visits. Taps still scroll to their target.
+- The End confirmation helper waits for the dialog's Close button (`AX_ActionContentControllerCancelButton`), whose identifier doesn't depend on the language, so the PL and UK screenshot runs reach it.

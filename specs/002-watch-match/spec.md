@@ -303,7 +303,8 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 | VoiceOver: score summary, Me serving | %1$@–%2$@, I'm serving, from the right / from the left | %1$@–%2$@, serwuję, z prawej / z lewej | %1$@–%2$@, подаю, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
 | VoiceOver: score summary, Opponent serving | %1$@–%2$@, Opponent serving, from the right / from the left | %1$@–%2$@, serwuje przeciwnik, z prawej / z lewej | %1$@–%2$@, подає суперник, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
 | VoiceOver: score summary, deciding point | %1$@–%2$@, I'm serving / Opponent serving, receiver chooses the side | %1$@–%2$@, serwuję / serwuje przeciwnik, stronę wybiera odbierający | %1$@–%2$@, подаю / подає суперник, сторону обирає приймаючий | draft, follows R2-1 |
-| VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. Serving from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. Serwuje z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. Подає справа / зліва. | draft; games and sets use plural forms |
+| VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. + Me: Serving from the right / left. · Opponent: Serving from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. + Me: Serwuję, z prawej / z lewej. · Opponent: Serwuje przeciwnik, z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. + Me: Подаю, справа / зліва. · Opponent: Подає суперник, справа / зліва. | draft; games and sets use plural forms; serve phrase decided by Denys 2026-10-14 (#20 R1-2), PL draft |
+| VoiceOver: zone, deciding point | Me: Serving. Opponent chooses the side. · Opponent: Opponent serving. You choose the side. | Me: Serwuję. Stronę wybiera przeciwnik. · Opponent: Serwuje przeciwnik. Stronę wybieram ja. | Me: Подаю. Сторону обирає суперник. · Opponent: Подає суперник. Сторону обираю я. | draft, decided by Denys 2026-10-14 (#20 R1-3); the summary keeps "receiver chooses the side" |
 | VoiceOver: zone action | Add point for %@ | Dodaj punkt: %@ | Додати очко: %@ | draft |
 | VoiceOver: announcements | Game: %@ · Set: %@ · Match: %@ · Server: %@ | Gem: %@ · Set: %@ · Mecz: %@ · Serwuje: %@ | Гейм: %@ · Сет: %@ · Матч: %@ · Подає: %@ | draft; %@ is the winner or the new server |
 | VoiceOver: paused | Paused. %@ | Pauza. %@ | Пауза. %@ | draft (R1-3); %@ is the game state, omitted if none |
@@ -383,3 +384,12 @@ Denys decided the review 2 findings on 2026-10-13 ([report](https://github.com/d
 - **R2-2** — Story 7 s7 lists games and sets as the plural counts; minutes use system formatting (R1-8).
 - **R2-3** — The Server control is available during a match in progress, paused or not (Story 4 s9), as R1-5.
 - **R2-4** — The set-chip VoiceOver string has a match tie-break variant, so "10–7" is read as tie-break points: "Match tie-break: 10–7, won" (Story 5 s6, copy table).
+
+### PR #20 review decisions
+
+Denys decided the #20 review findings on 2026-10-14 ([report](https://github.com/dfinchenko/tennis-beat/pull/20#issuecomment-6168160558)).
+
+- **R1-1** — The scripted UI runs stay at 7 format combinations; the model-level test covers all 24 formats.
+- **R1-2** — The zone's serve phrase is first person for Me («Подаю, справа», «Serwuję, z prawej») and names the Opponent («Подає суперник, справа»), matching the summary strings (copy table).
+- **R1-3** — On the deciding point the zone says who chooses the side: Me serving, "Serving. Opponent chooses the side."; Opponent serving, "Opponent serving. You choose the side." (copy table, drafts).
+- **Court-side pill** — after sets and games, or on its own row when it doesn't fit (approved; `docs/design/screens/watch-3-score.md`).

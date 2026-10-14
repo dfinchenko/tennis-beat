@@ -138,8 +138,23 @@ final class ScoringUITests: XCTestCase {
     }
   }
 
-  /// Taps `setup` checking every step, then `taps` seeded random taps with a header Undo
-  /// every 7th step, comparing the screen with a replayed engine `Match` after each step.
+  private enum Step {
+    case point(Player)
+    case undo
+    case correctServer
+
+    var name: String {
+      switch self {
+      case .point(let player): player.rawValue
+      case .undo: "undo"
+      case .correctServer: "server"
+      }
+    }
+  }
+
+  /// Taps `setup` checking every step, then `taps` seeded random steps: a header Undo every
+  /// 7th step and a server correction on Controls every 11th, comparing the screen with a
+  /// replayed engine `Match` after each step.  ITF: CE-02
   @MainActor
   private func play(
     length: String, setLength: String, atFortyAll: String, thirdSet: String = "fullSet",
@@ -156,25 +171,33 @@ final class ScoringUITests: XCTestCase {
     try check(app, match, step: "start")
 
     var generator = SeededGenerator(seed: seed)
-    let random = (0..<taps).map { index -> Player? in
-      index % 7 == 6 ? nil : (Bool.random(using: &generator) ? .me : .opponent)
+    let random = (0..<taps).map { index -> Step in
+      if index % 11 == 10 { return .correctServer }
+      if index % 7 == 6 { return .undo }
+      return .point(Bool.random(using: &generator) ? .me : .opponent)
     }
-    for (index, action) in (setup.map(Optional.some) + random).enumerated() {
+    for (index, step) in (setup.map(Step.point) + random).enumerated() {
       guard match.state.status == .inProgress else { break }
-      if let player = action {
+      switch step {
+      case .point(let player):
         app.element("zone.\(player.rawValue)").tap()
         try match.recordPoint(wonBy: player, at: Date())
-      } else {
+      case .undo:
         guard match.events.count > 1 else { continue }
         app.element("undo").tap()
         match.undo()
+      case .correctServer:
+        app.showControls()
+        app.tap("controls.server")
+        app.showScore()
+        try match.correctFirstServer(to: match.effectiveFirstServer.other)
       }
       if match.state.status != .inProgress {
         // The match is won: the summary opens (US5 s1); its content is PR 4.
         XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
         return
       }
-      try check(app, match, step: "step \(index) (\(action.map(\.rawValue) ?? "undo"))")
+      try check(app, match, step: "step \(index) (\(step.name))")
     }
   }
 

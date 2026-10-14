@@ -26,6 +26,8 @@ struct ScoreView: View {
           }
           .buttonStyle(.plain)
           .disabled(!session.acceptsPoints)
+          // Q4: the zones dim while paused; "Paused" in the status line says why.
+          .opacity(session.isPaused ? 0.5 : 1)
           .modifier(ExposeChildren(isOn: exposeValues))
           .accessibilityLabel(zone.accessibilityLabel)
           .accessibilityHint(zone.accessibilityHint)

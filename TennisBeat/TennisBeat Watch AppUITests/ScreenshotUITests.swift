@@ -1,6 +1,6 @@
 import XCTest
 
-/// Takes the PR screenshots of the setup and score screens. Runs only when the test runner has
+/// Takes the PR screenshots of the setup, score and Controls screens. Runs only when the test runner has
 /// `SCREENSHOT_LANGUAGE` set (for example `TEST_RUNNER_SCREENSHOT_LANGUAGE=uk`), so CI skips it.
 final class ScreenshotUITests: XCTestCase {
   override func setUpWithError() throws {
@@ -82,6 +82,34 @@ final class ScreenshotUITests: XCTestCase {
     play(app, "M" + "OOOO" + games(3))  // game Me, then to 4–4: a tie-break
     play(app, String(repeating: "MO", count: 11) + "M")  // 12–11
     attach(app, "11-score-tie-break-two-digits")
+  }
+
+  /// T058: Controls, Paused at deuce (Controls and Score), and the End confirmation.
+  @MainActor
+  func testControlsScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var arguments = ["-resetFormat"]
+    if let category = environment["SCREENSHOT_TEXT_SIZE"] {
+      arguments += ["-UIPreferredContentSizeCategoryName", category]
+    }
+    let app = XCUIApplication.launched(arguments, language: language)
+    app.tap("setup.start", until: "firstServer.me")
+    app.tap("firstServer.me", until: "zone.me")
+    for point in "MMMOOO" {
+      app.element(point == "M" ? "zone.me" : "zone.opponent").tap()
+    }
+    app.showControls()
+    attach(app, "12-controls")
+    app.tap("controls.pauseResume")
+    attach(app, "13-controls-paused")
+    app.showScore()
+    attach(app, "14-score-paused-deuce")
+    app.showControls()
+    app.openEndConfirmation()
+    attach(app, "15-end-confirmation")
   }
 
   @MainActor

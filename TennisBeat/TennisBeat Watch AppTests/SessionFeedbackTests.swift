@@ -6,7 +6,7 @@ import WatchKit
 @testable import TennisBeat_Watch_App
 
 /// SC-003, FR-011, FR-012, FR-013, FR-024: haptics and announcements per command
-/// (contract §4). Pause, resume, correction and early end are added in PR 3.
+/// (contract §4).
 @MainActor
 struct SessionFeedbackTests {
   private let clock = FakeClock()
@@ -254,4 +254,51 @@ struct SessionFeedbackTests {
     session.undo()  // 40–30: empty status
     #expect(announcer.announcements.isEmpty)
   }
+
+  // MARK: Controls (US3 s7, US4 s10, FR-008)
+
+  @Test("US3 s7 pause, resume, correction and early end play no haptic; all but resume cancel a pending one")
+  func controlsPlayNoHaptic() {
+    let session = makeSession()
+    tap("MMMM", on: session)  // game 1: change of ends pending
+    haptics.reset()
+    session.pause()
+    #expect(haptics.calls == [.cancelPending])
+    session.resume()
+    #expect(haptics.calls == [.cancelPending])
+    session.correctServer()
+    #expect(haptics.calls == [.cancelPending, .cancelPending])
+    session.endEarly()
+    #expect(haptics.calls == [.cancelPending, .cancelPending, .cancelPending])
+    #expect(haptics.haptics.isEmpty)
+    #expect(session.route == .summary)  // positive control: the commands ran
+  }
+
+  @Test("US4 s10 US7 s3 a correction announces the new server")  // ITF: CE-02
+  func announceServer() {
+    let session = makeSession()
+    tap("M", on: session)
+    announcer.reset()
+    session.correctServer()
+    #expect(announcer.announcements == ["Server: Opponent"])
+    session.correctServer()
+    #expect(announcer.announcements.last == "Server: Me")
+  }
+
+  @Test("FR-008 R1-3 pausing announces \"Paused\" with the game state; resume announces the state")  // ITF: GM-02
+  func announcePause() {
+    let session = makeSession()
+    tap("MMMOOO", on: session)
+    announcer.reset()
+    session.pause()
+    #expect(announcer.announcements == ["Paused. Deuce"])
+    session.resume()
+    #expect(announcer.announcements == ["Paused. Deuce", "Deuce"])
+    let quiet = makeSession()
+    announcer.reset()
+    quiet.pause()
+    quiet.resume()
+    #expect(announcer.announcements == ["Paused"])
+  }
 }
+

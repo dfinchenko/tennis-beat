@@ -132,4 +132,39 @@ struct ScoreAccessibilityTests {
       model("MMMOOO", paused: true, locale: ScoreScreenModelTests.uk).statusAccessibilityText
         == "Пауза. Рівно")
   }
+
+  @Test(
+    "US7 s1 the zone's serve phrase is first person for Me, and names the Opponent (#20 R1-2)",
+    arguments: [
+      (ScoreScreenModelTests.en, "Serving from the right.", "Serving from the left."),
+      (ScoreScreenModelTests.uk, "Подаю, справа.", "Подає суперник, зліва."),
+      (ScoreScreenModelTests.pl, "Serwuję, z prawej.", "Serwuje przeciwnik, z lewej."),
+    ])  // ITF: SV-03
+  func zoneServePhrase(locale: Locale, meRight: String, opponentLeft: String) {
+    let me = model("", locale: locale)[.me].accessibilityLabel
+    #expect(me.hasSuffix(" " + meRight), "\(me)")
+    let opponent = model("O", firstServer: .opponent, locale: locale)[.opponent]
+      .accessibilityLabel
+    #expect(opponent.hasSuffix(" " + opponentLeft), "\(opponent)")
+  }
+
+  @Test(
+    "US7 s1 on the deciding point the zone says who chooses the side (#20 R1-3)",
+    arguments: [
+      (ScoreScreenModelTests.en, "Serving. Opponent chooses the side.",
+       "Opponent serving. You choose the side."),
+      (ScoreScreenModelTests.uk, "Подаю. Сторону обирає суперник.",
+       "Подає суперник. Сторону обираю я."),
+      (ScoreScreenModelTests.pl, "Serwuję. Stronę wybiera przeciwnik.",
+       "Serwuje przeciwnik. Stronę wybieram ja."),
+    ])  // ITF: NA-02
+  func zoneDecidingPoint(locale: Locale, meServing: String, opponentServing: String) {
+    let noAd = PointOutcomeTests.format(.bestOfThree, .six, .noAd)
+    let me = model("MMMOOO", format: noAd, locale: locale)[.me].accessibilityLabel
+    #expect(me.hasSuffix(" " + meServing), "\(me)")
+    let opponent = model("MMMOOO", format: noAd, firstServer: .opponent, locale: locale)[
+      .opponent
+    ].accessibilityLabel
+    #expect(opponent.hasSuffix(" " + opponentServing), "\(opponent)")
+  }
 }

@@ -88,3 +88,55 @@ extension XCUIApplication {
     }
   }
 }
+
+extension XCUIApplication {
+  /// Swipes from Score to the Controls page (Story 4 s1) and waits for it.
+  @MainActor
+  func showControls(file: StaticString = #filePath, line: UInt = #line) {
+    for _ in 0..<2 {
+      swipeRight()
+      if isOnPage("controls.server") { return }
+    }
+    XCTFail("Controls did not appear", file: file, line: line)
+  }
+
+  /// Swipes from Controls back to Score and waits for it.
+  @MainActor
+  func showScore(file: StaticString = #filePath, line: UInt = #line) {
+    for _ in 0..<2 {
+      swipeLeft()
+      if isOnPage("zone.me") { return }
+    }
+    XCTFail("Score did not appear", file: file, line: line)
+  }
+
+  /// Waits up to 3 s until `id` lies fully on screen. Both match pages stay in the tree, and
+  /// the watch simulator reports off-screen elements as hittable, so the frame decides.
+  @MainActor
+  func isOnScreen(_ id: String) -> Bool {
+    let target = element(id)
+    let deadline = Date().addingTimeInterval(3)
+    repeat {
+      if target.exists, frame.contains(target.frame) { return true }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    } while Date() < deadline
+    return false
+  }
+
+  /// Waits up to 3 s until `id` is on the visible page: the match pages sit side by side,
+  /// so an element of the other page lies off screen horizontally. Vertical position is
+  /// ignored, because the Controls page keeps its scroll position between visits.
+  @MainActor
+  func isOnPage(_ id: String) -> Bool {
+    let target = element(id)
+    let deadline = Date().addingTimeInterval(3)
+    repeat {
+      if target.exists, target.frame.minX >= frame.minX - 1, target.frame.maxX <= frame.maxX + 1 {
+        return true
+      }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    } while Date() < deadline
+    return false
+  }
+}
+

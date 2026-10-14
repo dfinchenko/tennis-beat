@@ -148,23 +148,27 @@ struct SessionTests {
     #expect(session.clock?.elapsed(at: clock.now()) == 60)
   }
 
-  @Test("US2 s11 after any taps and undos the screen model equals the engine's for the same events")
+  @Test("US2 s11 after any taps, undos, corrections and pauses the screen model equals the engine's")
   func modelMatchesEngine() throws {
     var rng = SplitMix64(seed: SplitMix64.testSeed)
     for format in FormatChoice.allCombinations.compactMap(\.matchFormat) {
       let session = playing(format)
       for _ in 0..<150 {
-        switch UInt8.random(in: 0..<7, using: &rng) {
+        switch UInt8.random(in: 0..<10, using: &rng) {
         case 0: session.undo()
         case 1, 2, 3: session.addPoint(for: .me)
-        default: session.addPoint(for: .opponent)
+        case 4, 5, 6: session.addPoint(for: .opponent)
+        case 7: session.correctServer()
+        case 8: session.pause()
+        default: session.resume()
         }
         let match = try #require(session.match)
         let replayed = try Match(events: match.events)
+        let paused = session.isPaused
         #expect(
-          ScoreScreenModel(state: match.state, isPaused: false, locale: Locale(identifier: "en"))
+          ScoreScreenModel(state: match.state, isPaused: paused, locale: Locale(identifier: "en"))
             == ScoreScreenModel(
-              state: replayed.state, isPaused: false, locale: Locale(identifier: "en")))
+              state: replayed.state, isPaused: paused, locale: Locale(identifier: "en")))
         #expect(match.state == replayed.state)
       }
     }
@@ -223,6 +227,142 @@ struct SessionTests {
     session.undo()
     let after = try #require(session.match?.state)
     #expect(after == before, "\(name)")
+    #expect(after.points == before.points)
+    #expect(after.server == before.server)
+    #expect(after.courtSide == before.courtSide)
+  }
+
+  // MARK: Controls (User Story 4)
+
+  @Test("US4 s5 while paused no point is added")
+  func pausedAddsNothing() {
+    let session = playing()
+    session.pause()
+    #expect(session.isPaused)
+    #expect(!session.acceptsPoints)
+    session.addPoint(for: .me)
+    #expect(session.match?.events.count == 1)
+    session.resume()
+    session.addPoint(for: .me)
+    #expect(session.match?.events.count == 2)  // positive control
+  }
+
+  @Test("US4 s5 s6 the clock stops while paused and continues on resume")
+  func pauseStopsClock() {
+    let session = playing()
+    clock.advance(by: 30)
+    session.pause()
+    clock.advance(by: 120)
+    #expect(session.clock?.elapsed(at: clock.now()) == 30)
+    session.resume()
+    clock.advance(by: 10)
+    #expect(session.clock?.elapsed(at: clock.now()) == 40)
+  }
+
+  @Test("US2 s3 after an early end a tap adds nothing")  // ITF: MT-08
+  func noPointAfterEarlyEnd() {
+    let session = playing()
+    tap("M", on: session)
+    session.endEarly()
+    session.addPoint(for: .me)
+    #expect(session.match?.events.last == .matchEndedEarly)
+  }
+
+  @Test("US4 s7 while paused Undo and Server work and keep the pause; End ends it")  // ITF: CE-02
+  func pausedControls() {
+    let session = playing()
+    tap("MO", on: session)
+    session.pause()
+    session.undo()
+    #expect(session.match?.events.count == 2)
+    #expect(session.isPaused)
+    session.correctServer()
+    #expect(session.match?.events.last == .firstServerCorrected(.opponent))
+    #expect(session.isPaused)
+    session.endEarly()
+    #expect(!session.isPaused)
+    #expect(session.route == .summary)
+    session.done()
+    #expect(!session.isPaused)
+    #expect(session.route == .setup)
+  }
+
+  @Test("US4 s9 Server records a correction; the score stays, server and side follow the engine")  // ITF: CE-02
+  func correctServer() throws {
+    let session = playing()
+    tap("MMO", on: session)
+    let before = try #require(session.match?.state)
+    session.correctServer()
+    let match = try #require(session.match)
+    #expect(match.events.last == .firstServerCorrected(.opponent))
+    #expect(match.effectiveFirstServer == .opponent)
+    #expect(match.state.points == before.points)
+    #expect(match.state.games == before.games)
+    #expect(match.state.server == .opponent)
+    #expect(match.state == (try Match(events: match.events)).state)
+    session.correctServer()
+    #expect(session.match?.events.last == .firstServerCorrected(.me))
+  }
+
+  @Test("US4 s9 Server works in a tie-break and while paused")  // ITF: CE-02, TB-02
+  func correctServerInTieBreak() throws {
+    let session = playing()
+    tap(MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent) + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MMM", on: session)
+    #expect(session.match?.state.isTieBreak == true)
+    session.pause()
+    let before = try #require(session.match?.state)
+    session.correctServer()
+    let after = try #require(session.match?.state)
+    #expect(after.points == before.points)
+    #expect(after.isTieBreak)
+    #expect(after.server != before.server)
+  }
+
+  @Test("US4 s12 End with a point ends the match early, stops the clock, opens the summary")  // ITF: MT-08
+  func endEarlyWithPoint() {
+    let session = playing()
+    tap("M", on: session)
+    clock.advance(by: 50)
+    session.endEarly()
+    #expect(session.match?.events.last == .matchEndedEarly)
+    #expect(session.match?.state.status == .unfinished)
+    #expect(session.route == .summary)
+    clock.advance(by: 100)
+    #expect(session.clock?.elapsed(at: clock.now()) == 50)
+  }
+
+  @Test("US4 s13 End with no point discards the match and opens New match")  // ITF: MT-08
+  func endEarlyWithoutPoint() {
+    let session = playing()
+    session.endEarly()
+    #expect(session.match == nil)
+    #expect(session.clock == nil)
+    #expect(session.route == .setup)
+  }
+
+  @Test("Edge: End after only undone points discards the match")
+  func endEarlyAfterUndonePoints() {
+    let session = playing()
+    tap("MO", on: session)
+    session.undo()
+    session.undo()
+    session.correctServer()  // a correction is not a point
+    session.endEarly()
+    #expect(session.match == nil)
+    #expect(session.route == .setup)
+  }
+
+  @Test("Edge: pause and resume in a tie-break leave the tie-break, points, server and side unchanged")  // ITF: TB-02, TB-04
+  func pauseInTieBreak() throws {
+    let session = playing()
+    tap(MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent) + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MOM", on: session)
+    let before = try #require(session.match?.state)
+    #expect(before.isTieBreak)
+    session.pause()
+    #expect(session.match?.state == before)
+    session.resume()
+    let after = try #require(session.match?.state)
+    #expect(after == before)
     #expect(after.points == before.points)
     #expect(after.server == before.server)
     #expect(after.courtSide == before.courtSide)
