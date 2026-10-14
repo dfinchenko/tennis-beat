@@ -20,10 +20,16 @@ Black background.
   - **Game status** (decided by Denys on 2026-10-07). A status line at the top shows the game state: «Рівно» / "Deuce" / «Równowaga» at deuce in Advantage games, and «Вирішальне очко» / "Deciding point" / «Punkt decydujący» at 40–40 in No-Ad games.
 - Tapping a zone scores a point for that player.
 
+## Changes by spec 002
+- **Status line** (changed by spec 002, FR-008, Q4): it shows "Deuce", "Deciding point", "Tie-break" or "Match tie-break" from the engine, and is empty otherwise; a match tie-break shows only "Match tie-break". While the match is paused it shows "Paused" instead. It sits under the elapsed time, where the heart-rate row is in the mock-up.
+- **VoiceOver summary first** (changed by spec 002, Story 7 s1, s2, R2-1): the first element after the header reads the server's score first, then who serves and the side, with separate Me and Opponent strings ("30–15, I'm serving, from the left"), then the status ("…. Deuce", "…. Paused. Deuce"). The status line itself is hidden from VoiceOver. Each zone is one element: "Me, 30. 3 games, 1 set. Serving from the right.", hint "Add point for Me".
+- **Court-side pill** sits in the numbers row, after sets and games (changed by spec 002). When it doesn't fit there (PL «z prawej», UK «на вибір» at the largest standard text size on the 40 mm watch), it moves to its own row under the numbers. Next to the label and the serve icon, as in the mock-up, it truncates at that size.
+- **Heart-rate row** is hidden in spec 002 (changed by spec 002); spec 003 adds it.
+
 ## Components
 - Player tap zone (label, server glyph, sets, games, point score).
 - Round icon button (Undo).
-- Timer and heart-rate header.
+- Timer and heart-rate header (heart rate from spec 003).
 
 ## Texts (UK)
 | Element | Text |

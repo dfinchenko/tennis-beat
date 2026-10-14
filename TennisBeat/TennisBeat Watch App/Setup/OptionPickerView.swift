@@ -8,14 +8,14 @@ struct OptionPickerView: View {
 
   var body: some View {
     @Bindable var session = session
-    List(row.options, id: \.self) { raw in
-      let isSelected = row.selected(in: session.formatChoice) == raw
+    List(row.options) { option in
+      let isSelected = row.selectedOption(in: session.formatChoice).raw == option.raw
       Button {
-        row.select(raw, in: &session.formatChoice)
+        row.select(option.raw, in: &session.formatChoice)
         dismiss()
       } label: {
         HStack {
-          Text(row.title(for: raw))
+          Text(option.title)
             .font(.watchTitle)
           Spacer()
           if isSelected {
@@ -26,7 +26,7 @@ struct OptionPickerView: View {
         }
       }
       .accessibilityAddTraits(isSelected ? .isSelected : [])
-      .accessibilityIdentifier("picker.option.\(raw)")
+      .accessibilityIdentifier("picker.option.\(option.raw)")
     }
     .navigationTitle(Text(row.caption))
   }

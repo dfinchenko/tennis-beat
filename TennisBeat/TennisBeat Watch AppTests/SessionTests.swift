@@ -61,6 +61,23 @@ struct SessionTests {
     #expect(session.clock == nil)
   }
 
+  @Test("US1 s10 tapping Coin toss again makes a new toss")  // ITF: SV-01
+  func coinTossTossedAgain() {
+    var tosses = 0
+    let session = MatchSession(
+      store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
+      now: clock.now,
+      coinToss: {
+        tosses += 1
+        return tosses.isMultiple(of: 2) ? .opponent : .me
+      })
+    #expect(tosses == 0)  // positive control: no toss before Coin toss is tapped
+    #expect(session.tossCoin() == .me)
+    #expect(session.tossCoin() == .opponent)
+    #expect(tosses == 2)
+    #expect(session.match == nil)
+  }
+
   @Test("FR-022 elapsed time counts from the start")
   func elapsedFromStart() {
     let session = makeSession()
@@ -68,4 +85,147 @@ struct SessionTests {
     clock.advance(by: 75)
     #expect(session.clock?.elapsed(at: clock.now()) == 75)
   }
+
+  // MARK: Scoring (User Story 2, US4 header Undo)
+
+  private func playing(
+    _ format: MatchFormat = PointOutcomeTests.format(), firstServer: Player = .me
+  ) -> MatchSession {
+    let session = MatchSession(
+      store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
+      now: clock.now, makeFormat: { _ in format })
+    session.start(firstServer: firstServer)
+    return session
+  }
+
+  private func tap(_ points: String, on session: MatchSession) {
+    for character in points where character != " " {
+      session.addPoint(for: character == "M" ? .me : .opponent)
+    }
+  }
+
+  @Test("US2 s2 a tap adds exactly one point for that player")
+  func addPointAddsOne() throws {
+    let session = playing()
+    clock.advance(by: 12)
+    session.addPoint(for: .me)
+    let events = try #require(session.match?.events)
+    #expect(events.count == 2)
+    #expect(events.last == .point(winner: .me, recordedAt: clock.current))
+    session.addPoint(for: .opponent)
+    #expect(session.match?.events.last == .point(winner: .opponent, recordedAt: clock.current))
+  }
+
+  @Test("Edge: very fast taps add two points in order")
+  func fastTaps() {
+    let session = playing()
+    session.addPoint(for: .opponent)
+    session.addPoint(for: .me)
+    let winners = session.match?.events.dropFirst().compactMap { event -> Player? in
+      if case .point(let winner, _) = event { winner } else { nil }
+    }
+    #expect(winners == [.opponent, .me])
+  }
+
+  @Test("US2 s3 after the match is won a tap adds nothing")  // ITF: MT-08
+  func noPointAfterWin() {
+    let session = playing(PointOutcomeTests.format(.oneSet))
+    tap(MatchScript.games(6, for: .me), on: session)
+    let count = session.match?.events.count
+    #expect(session.match?.state.status == .won(.me))
+    #expect(!session.acceptsPoints)
+    session.addPoint(for: .opponent)
+    #expect(session.match?.events.count == count)
+  }
+
+  @Test("US2 s3 the match won opens the summary and stops the clock")
+  func wonOpensSummary() {
+    let session = playing(PointOutcomeTests.format(.oneSet))
+    clock.advance(by: 60)
+    tap(MatchScript.games(6, for: .opponent), on: session)
+    #expect(session.route == .summary)
+    clock.advance(by: 300)
+    #expect(session.clock?.elapsed(at: clock.now()) == 60)
+  }
+
+  @Test("US2 s11 after any taps and undos the screen model equals the engine's for the same events")
+  func modelMatchesEngine() throws {
+    var rng = SplitMix64(seed: SplitMix64.testSeed)
+    for format in FormatChoice.allCombinations.compactMap(\.matchFormat) {
+      let session = playing(format)
+      for _ in 0..<150 {
+        switch UInt8.random(in: 0..<7, using: &rng) {
+        case 0: session.undo()
+        case 1, 2, 3: session.addPoint(for: .me)
+        default: session.addPoint(for: .opponent)
+        }
+        let match = try #require(session.match)
+        let replayed = try Match(events: match.events)
+        #expect(
+          ScoreScreenModel(state: match.state, isPaused: false, locale: Locale(identifier: "en"))
+            == ScoreScreenModel(
+              state: replayed.state, isPaused: false, locale: Locale(identifier: "en")))
+        #expect(match.state == replayed.state)
+      }
+    }
+  }
+
+  @Test("Edge: a language change rebuilds only the strings; the match is unaffected")
+  func languageChange() throws {
+    let session = playing()
+    tap("MMO", on: session)
+    let state = try #require(session.match?.state)
+    let english = ScoreScreenModel(state: state, isPaused: false, locale: Locale(identifier: "en"))
+    let ukrainian = ScoreScreenModel(state: state, isPaused: false, locale: Locale(identifier: "uk"))
+    #expect(english.summaryAccessibilityLabel != ukrainian.summaryAccessibilityLabel)
+    for player in Player.allCases {
+      #expect(english[player].points == ukrainian[player].points)
+      #expect(english[player].games == ukrainian[player].games)
+      #expect(english[player].sets == ukrainian[player].sets)
+      #expect(english[player].isServer == ukrainian[player].isServer)
+    }
+    #expect(session.match?.state == state)
+  }
+
+  @Test("US4 s2 header Undo removes the last event")
+  func undoRemovesLast() throws {
+    let session = playing()
+    tap("MO", on: session)
+    let before = try #require(session.match?.events)
+    session.undo()
+    #expect(session.match?.events == Array(before.dropLast()))
+  }
+
+  @Test("US4 s3 Undo is unavailable with only the setup")
+  func cannotUndoSetup() {
+    let session = playing()
+    #expect(!session.canUndo)
+    session.undo()
+    #expect(session.match?.events.count == 1)
+    session.addPoint(for: .me)
+    #expect(session.canUndo)  // positive control
+  }
+
+  @Test(
+    "US4 s4 undo across a game, a set and a match tie-break boundary restores score, server and side",
+    arguments: [
+      ("game", MatchScript.games(1, for: .me) + "MMM", "M"),
+      ("set", MatchScript.games(5, for: .me) + "MMM", "M"),
+      ("match tie-break", MatchScript.games(6, for: .me) + MatchScript.games(5, for: .opponent) + "OOO", "O"),
+      ("match tie-break point", MatchScript.games(6, for: .me) + MatchScript.games(6, for: .opponent) + "MMMOO", "O"),
+    ])  // ITF: SV-02, TB-02
+  func undoAcrossBoundary(_ name: String, setup: String, last: String) throws {
+    let session = playing(PointOutcomeTests.format(matchTieBreak: true))
+    tap(setup, on: session)
+    let before = try #require(session.match?.state)
+    tap(last, on: session)
+    #expect(session.match?.state != before, "\(name): the point changed nothing")
+    session.undo()
+    let after = try #require(session.match?.state)
+    #expect(after == before, "\(name)")
+    #expect(after.points == before.points)
+    #expect(after.server == before.server)
+    #expect(after.courtSide == before.courtSide)
+  }
 }
+

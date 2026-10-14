@@ -86,9 +86,12 @@ jobs:
           udid="$(xcrun simctl list devices available -j | python3 -c '
           import json, sys
           devices = json.load(sys.stdin)["devices"]
-          watches = [d for runtime, ds in sorted(devices.items()) if "watchOS" in runtime for d in ds]
+          def version(runtime):  # "…SimRuntime.watchOS-26-10" -> (26, 10), so 26.10 sorts after 26.2
+              return tuple(int(part) for part in runtime.rsplit("watchOS-", 1)[1].split("-") if part.isdigit())
+          runtimes = sorted((r for r in devices if "watchOS-" in r), key=version, reverse=True)
+          watches = [d for r in runtimes for d in devices[r]]  # newest runtime first
           pinned = [d for d in watches if "(40mm)" in d["name"]]
-          chosen = pinned[-1:] or watches[:1]  # newest runtime first, else the first watch
+          chosen = pinned[:1] or watches[:1]  # a 40 mm watch on the newest runtime that has one
           print(chosen[0]["udid"] if chosen else "")
           ')"
           echo "udid=$udid" >> "$GITHUB_OUTPUT"
@@ -96,9 +99,16 @@ jobs:
           xcrun simctl list devices available | grep -F "$udid" || true
       - name: Boot the simulator
         if: steps.sim.outputs.udid != ''
+        # A stuck boot fails here, not at the job timeout (#19 R1-3).
+        timeout-minutes: 10
         run: |
+          set -euo pipefail
           # UI tests tap only after the device has finished booting (#18 R1-1).
-          xcrun simctl boot "${{ steps.sim.outputs.udid }}" || true
+          # Only "already booted" is ignored; any other boot error fails the step.
+          if ! out="$(xcrun simctl boot "${{ steps.sim.outputs.udid }}" 2>&1)"; then
+            echo "$out"
+            echo "$out" | grep -q "current state: Booted"
+          fi
           xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
       - name: Watch tests
         if: steps.sim.outputs.udid != ''

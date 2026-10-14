@@ -18,3 +18,12 @@ None. Test harness only:
 - CI boots the pinned 40 mm simulator and waits for `simctl bootstatus` before testing.
 
 Every assertion and expected value is unchanged.
+
+## Branch `feat/002-score` (PR 2: Score + haptics)
+
+Changes to tests that existed before this branch (no ITF rule is involved in any of them):
+- `SetupFlowUITests` — `testUS1s5FormatRememberedAfterRelaunch`, `testUS1s7s8FirstServerStartsMatch`, `testUS1s9CoinTossResult`, `testUS1s10BackNavigation`: the score screen is recognised by `zone.me` / `zone.opponent` instead of the PR 1 placeholder `score.placeholder`, which this PR removes. `testUS1s7s8…` and `testUS1s9…` also check the `score.summary` label at 0–0 ("0–0, I'm serving, from the right" / "0–0, Opponent serving, from the right"; ITF SV-01, SV-03). This is a stricter check than before, not a looser one.
+- `XCUIApplication.launched` gained a `readyElement` parameter (default `setup.format`, unchanged behaviour), and `waitUntilNewMatchIsReady()` became `waitUntilReady(_:)` (#19 R1-2).
+
+New tests in this branch were written before the code they check. One change was made while they were still failing, before the screen worked:
+- `ScoringUITests.testR7GuardZoneValuesOnlyWithExposeArgument`: the expected element type of `zone.me` with `-uiTestExposeValues` is `.other` (a container), not `.button`. Research R7 said XCUITest "may report a zone as a container"; the simulator confirmed it. In production it is `.button`, as written. The same run showed that watchOS XCUITest lists texts that are hidden from VoiceOver, so the zone value identifiers are set only with `-uiTestExposeValues`; the guard's expectation (no `zone.me.points` in production) is unchanged.

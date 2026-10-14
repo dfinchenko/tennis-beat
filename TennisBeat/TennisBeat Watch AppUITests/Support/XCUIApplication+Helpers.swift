@@ -6,30 +6,29 @@ extension XCUIApplication {
   static let launchTimeout: TimeInterval = 20
 
   /// Launches with `arguments` in `language` (English unless stated) and returns once
-  /// New match is ready for taps.
+  /// `readyElement` (by default the first New match row) is ready for taps.
   @MainActor
   static func launched(
-    _ arguments: [String], language: String = "en", file: StaticString = #filePath,
-    line: UInt = #line
+    _ arguments: [String], language: String = "en", readyElement: String = "setup.format",
+    file: StaticString = #filePath, line: UInt = #line
   ) -> XCUIApplication {
     let app = XCUIApplication()
     app.launchArguments =
       arguments + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
     app.launch()
-    app.waitUntilNewMatchIsReady(file: file, line: line)
+    app.waitUntilReady(readyElement, file: file, line: line)
     return app
   }
 
-  /// Waits, with an explicit timeout and no fixed sleep, until the first New match row
-  /// exists and is hittable: the app has finished launching and accepts taps.
+  /// Waits, with an explicit timeout and no fixed sleep, until `id` exists and is
+  /// hittable: the app has finished launching and accepts taps.
   @MainActor
-  func waitUntilNewMatchIsReady(file: StaticString = #filePath, line: UInt = #line) {
-    let firstRow = element("setup.format")
+  func waitUntilReady(_ id: String, file: StaticString = #filePath, line: UInt = #line) {
     let ready = XCTNSPredicateExpectation(
-      predicate: NSPredicate(format: "exists == true AND hittable == true"), object: firstRow)
+      predicate: NSPredicate(format: "exists == true AND hittable == true"), object: element(id))
     let result = XCTWaiter().wait(for: [ready], timeout: Self.launchTimeout)
     XCTAssertEqual(
-      result, .completed, "New match was not ready within \(Self.launchTimeout) s",
+      result, .completed, "\(id) was not ready within \(Self.launchTimeout) s",
       file: file, line: line)
   }
 
@@ -70,5 +69,22 @@ extension XCUIApplication {
       if element(next).waitForExistence(timeout: 3) { return }
     }
     XCTFail("\(next) did not appear after tapping \(id)", file: file, line: line)
+  }
+}
+
+extension XCUIApplication {
+  /// Runs the accessibility audit (all types) and fails once per issue, naming the element,
+  /// so a failure says which element is wrong.
+  @MainActor
+  func auditNamingElements(file: StaticString = #filePath, line: UInt = #line) throws {
+    try performAccessibilityAudit { issue in
+      let element = issue.element.map {
+        "\($0.elementType) '\($0.identifier)' \($0.frame) label '\($0.label)'"
+      }
+      XCTFail(
+        "\(issue.compactDescription): \(element ?? "no element") — \(issue.detailedDescription)",
+        file: file, line: line)
+      return true  // reported above
+    }
   }
 }

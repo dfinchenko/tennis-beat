@@ -10,6 +10,7 @@
 		AF8DFD9030757FEE00B70DF0 /* TennisBeat Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = AF8DFD8F30757FEE00B70DF0 /* TennisBeat Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		AFC0FE0130760000000A0004 /* TennisCore in Frameworks */ = {isa = PBXBuildFile; productRef = AFC0FE0130760000000A0002 /* TennisCore */; };
 		AFC0FE0130760000000A0005 /* TennisCore in Frameworks */ = {isa = PBXBuildFile; productRef = AFC0FE0130760000000A0003 /* TennisCore */; };
+		AFC0FE0130760000000A0007 /* TennisCore in Frameworks */ = {isa = PBXBuildFile; productRef = AFC0FE0130760000000A0006 /* TennisCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -136,6 +137,7 @@
 		AF8DFDA530757FEF00B70DF0 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			files = (
+				AFC0FE0130760000000A0007 /* TennisCore in Frameworks */,
 			);
 		};
 /* End PBXFrameworksBuildPhase section */
@@ -297,6 +299,9 @@
 				AF8DFDAB30757FEF00B70DF0 /* TennisBeat Watch AppUITests */,
 			);
 			name = "TennisBeat Watch AppUITests";
+			packageProductDependencies = (
+				AFC0FE0130760000000A0006 /* TennisCore */,
+			);
 			productName = "TennisBeat Watch AppUITests";
 			productReference = AF8DFDA830757FEF00B70DF0 /* TennisBeat Watch AppUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
@@ -989,6 +994,10 @@
 			productName = TennisCore;
 		};
 		AFC0FE0130760000000A0003 /* TennisCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = TennisCore;
+		};
+		AFC0FE0130760000000A0006 /* TennisCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = TennisCore;
 		};

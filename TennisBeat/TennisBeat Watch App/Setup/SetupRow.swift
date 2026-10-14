@@ -18,22 +18,29 @@ enum SetupRow: String, CaseIterable, Hashable, Identifiable {
     }
   }
 
-  /// The raw values offered by this row, in display order.
-  var options: [String] {
+  /// One value a row offers: its stored raw value and its title.
+  struct Option: Identifiable {
+    let raw: String
+    let title: LocalizedStringResource
+    var id: String { raw }
+  }
+
+  /// The values offered by this row, in display order.
+  var options: [Option] {
     switch self {
-    case .format: FormatChoice.Length.allCases.map(\.rawValue)
-    case .setLength: FormatChoice.SetGames.allCases.map(\.rawValue)
-    case .atFortyAll: FormatChoice.AtFortyAll.allCases.map(\.rawValue)
-    case .thirdSet: FormatChoice.ThirdSet.allCases.map(\.rawValue)
+    case .format: FormatChoice.Length.allCases.map(Option.init)
+    case .setLength: FormatChoice.SetGames.allCases.map(Option.init)
+    case .atFortyAll: FormatChoice.AtFortyAll.allCases.map(Option.init)
+    case .thirdSet: FormatChoice.ThirdSet.allCases.map(Option.init)
     }
   }
 
-  func selected(in choice: FormatChoice) -> String {
+  func selectedOption(in choice: FormatChoice) -> Option {
     switch self {
-    case .format: choice.length.rawValue
-    case .setLength: choice.setLength.rawValue
-    case .atFortyAll: choice.atFortyAll.rawValue
-    case .thirdSet: choice.thirdSet.rawValue
+    case .format: Option(choice.length)
+    case .setLength: Option(choice.setLength)
+    case .atFortyAll: Option(choice.atFortyAll)
+    case .thirdSet: Option(choice.thirdSet)
     }
   }
 
@@ -47,23 +54,57 @@ enum SetupRow: String, CaseIterable, Hashable, Identifiable {
     }
   }
 
-  /// The localized text for one of this row's raw values.
-  func title(for raw: String) -> LocalizedStringResource {
-    switch raw {
-    case "oneSet": "setup.format.oneSet"
-    case "bestOfThree": "setup.format.bestOfThree"
-    case "four": "setup.setLength.value \(4)"
-    case "six": "setup.setLength.value \(6)"
-    case "eight": "setup.setLength.value \(8)"
-    case "advantage": "setup.atFortyAll.advantage"
-    case "decidingPoint": "setup.atFortyAll.decidingPoint"
-    case "tieBreakToTen": "setup.thirdSet.tieBreakToTen"
-    default: "setup.thirdSet.fullSet"
-    }
-  }
-
   /// The rows New match shows for a choice: Third set only for best of 3 (Story 1 s3).
   static func visible(for choice: FormatChoice) -> [SetupRow] {
     allCases.filter { $0 != .thirdSet || choice.isThirdSetVisible }
+  }
+}
+
+/// A row value with a title of its own; every case is listed, so none can fall back to
+/// another's text (R1-3 of #18).
+protocol SetupOptionValue: RawRepresentable<String> {
+  var title: LocalizedStringResource { get }
+}
+
+extension SetupRow.Option {
+  init(_ value: some SetupOptionValue) {
+    self.init(raw: value.rawValue, title: value.title)
+  }
+}
+
+extension FormatChoice.Length: SetupOptionValue {
+  var title: LocalizedStringResource {
+    switch self {
+    case .oneSet: "setup.format.oneSet"
+    case .bestOfThree: "setup.format.bestOfThree"
+    }
+  }
+}
+
+extension FormatChoice.SetGames: SetupOptionValue {
+  var title: LocalizedStringResource {
+    switch self {
+    case .four: "setup.setLength.value \(4)"
+    case .six: "setup.setLength.value \(6)"
+    case .eight: "setup.setLength.value \(8)"
+    }
+  }
+}
+
+extension FormatChoice.AtFortyAll: SetupOptionValue {
+  var title: LocalizedStringResource {
+    switch self {
+    case .advantage: "setup.atFortyAll.advantage"
+    case .decidingPoint: "setup.atFortyAll.decidingPoint"
+    }
+  }
+}
+
+extension FormatChoice.ThirdSet: SetupOptionValue {
+  var title: LocalizedStringResource {
+    switch self {
+    case .fullSet: "setup.thirdSet.fullSet"
+    case .tieBreakToTen: "setup.thirdSet.tieBreakToTen"
+    }
   }
 }

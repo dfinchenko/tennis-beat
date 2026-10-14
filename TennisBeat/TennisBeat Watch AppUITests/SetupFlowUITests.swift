@@ -84,8 +84,7 @@ final class SetupFlowUITests: XCTestCase {
     choose(app, row: "setup.atFortyAll", option: "decidingPoint")
     choose(app, row: "setup.setLength", option: "four")
     app.tap("setup.start", until: "firstServer.me")
-    app.tap("firstServer.me", until: "score.placeholder")
-    XCTAssertTrue(app.element("score.placeholder").waitForExistence(timeout: 5))
+    app.tap("firstServer.me", until: "zone.me")
     app.terminate()
 
     app = launch([])
@@ -102,8 +101,24 @@ final class SetupFlowUITests: XCTestCase {
     XCTAssertEqual(app.element("firstServer.me").label, "Me")
     XCTAssertEqual(app.element("firstServer.opponent").label, "Opponent")
     XCTAssertEqual(app.element("firstServer.coinToss").label, "Coin toss")
-    app.tap("firstServer.me", until: "score.placeholder")
-    XCTAssertTrue(app.element("score.placeholder").waitForExistence(timeout: 5))
+    app.tap("firstServer.me", until: "zone.me")
+    // The score screen at 0–0, Me marked as server, from the right (ITF: SV-03).
+    XCTAssertEqual(app.element("score.summary").label, "0–0, I'm serving, from the right")
+  }
+
+  /// US1 s8: the drawn serve mark and court-side pill are on the first server's zone only.
+  /// ITF: SV-01, SV-03
+  @MainActor
+  func testUS1s8FirstServerMarkedRight() {
+    let app = launch(["-resetFormat", "-uiTestExposeValues"])
+    app.tap("setup.start", until: "firstServer.opponent")
+    app.tap("firstServer.opponent", until: "zone.opponent")
+    XCTAssertTrue(app.element("zone.opponent.serve").waitForExistence(timeout: 5))
+    XCTAssertEqual(app.element("zone.opponent.side").label, "Right")
+    XCTAssertEqual(app.element("zone.opponent.points").label, "0")
+    XCTAssertEqual(app.element("zone.me.points").label, "0")
+    XCTAssertFalse(app.element("zone.me.serve").exists)
+    XCTAssertFalse(app.element("zone.me.side").exists)
   }
 
   /// US1 s9: the coin toss shows its result, and Start starts the match.  ITF: SV-01
@@ -115,8 +130,8 @@ final class SetupFlowUITests: XCTestCase {
     let result = app.element("coinToss.result")
     XCTAssertTrue(result.waitForExistence(timeout: 5))
     XCTAssertEqual(result.label, "First server: Opponent")
-    app.tap("coinToss.start", until: "score.placeholder")
-    XCTAssertTrue(app.element("score.placeholder").waitForExistence(timeout: 5))
+    app.tap("coinToss.start", until: "zone.opponent")
+    XCTAssertEqual(app.element("score.summary").label, "0–0, Opponent serving, from the right")
   }
 
   /// US1 s10: going back never starts a match and keeps the settings.
@@ -132,7 +147,7 @@ final class SetupFlowUITests: XCTestCase {
     app.tap("firstServer.coinToss", until: "coinToss.result")
     goBack(app, until: "firstServer.coinToss")
     XCTAssertTrue(app.element("firstServer.coinToss").waitForExistence(timeout: 5))
-    XCTAssertFalse(app.element("score.placeholder").exists)
+    XCTAssertFalse(app.element("zone.me").exists)
   }
 
   /// US7 s7: an unsupported language shows English.
