@@ -51,3 +51,6 @@ Changes to tests that existed before this branch:
 
 Changes to tests that existed before this branch:
 - `SummaryModelTests.noHealthFields`: the summary's fields are `title`, `chips`, `duration` and `spokenDuration` instead of the first three (#23 R1-3: VoiceOver reads the duration in spoken units). Spec US5-S8: still no heart-rate or calorie field; the new field is the same duration in words.
+- `SummaryUITests.testUS5s2s4s7WinShowsTitleChipsAndDuration`: the duration row, which only had to exist, must also have the label "Duration" and a value in spoken units ending in "seconds" (#23 R1-3). Stricter than before. Spec US5-S7 (the duration is shown) and the spec's "PR #23 review decisions", R1-3 (spoken units).
+- `SummaryUITests.testSC005AuditSummaryAccessibilitySize`: also checks that the first set chip lies inside the screen at the largest accessibility size (#23 R1-4). Stricter than before. Spec US7-S6 (no clipped text at large sizes).
+- Note (#24 R1-5): the `feat/002-summary` section above was annotated after #23 merged, as Denys decided in #23 R1-1 and R1-2: the MT-08 and US3-S7 citations, and the note that the End-button helper is not an expectation change. No expectation in it changed.

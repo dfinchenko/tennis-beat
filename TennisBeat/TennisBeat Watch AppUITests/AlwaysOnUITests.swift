@@ -39,6 +39,15 @@ final class AlwaysOnUITests: XCTestCase {
     XCTAssertTrue(app.element("zone.me.side").exists)
   }
 
+  /// #24 R1-2: if the wrist drops on the Controls page, its time also shows whole minutes.
+  @MainActor
+  func testDimmedControlsShowMinutesOnly() {
+    let app = score(["-uiTestAlwaysOn"])
+    app.showControls()
+    let elapsed = app.element("controls.elapsed").label
+    XCTAssertNotNil(elapsed.wholeMatch(of: /\d+ min/), elapsed)
+  }
+
   @MainActor
   func testUS6s3DimmedZonesTakeNoTaps() {
     let app = score(["-uiTestAlwaysOn"])

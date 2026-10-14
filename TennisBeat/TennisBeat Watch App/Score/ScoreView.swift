@@ -29,8 +29,9 @@ struct ScoreView: View {
               .accessibilityHidden(!exposeValues)
           }
           .buttonStyle(.plain)
-          .disabled(!session.acceptsPoints)
-          // Always On: a lowered wrist must not score (Story 6 s3).
+          // Always On: a lowered wrist must not score, by touch or by a VoiceOver activation
+          // (Story 6 s3, #24 R1-4).
+          .disabled(!model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))
           .allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))
           // Q4: the zones dim while paused; "Paused" in the status line says why.
           .opacity(session.isPaused ? 0.5 : 1)

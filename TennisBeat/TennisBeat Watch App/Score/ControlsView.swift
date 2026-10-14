@@ -7,6 +7,7 @@ import TennisCore
 struct ControlsView: View {
   @Environment(MatchSession.self) private var session
   @State private var isConfirmingEnd = false
+  @Environment(\.isLuminanceReduced) private var isLuminanceReduced
   private let exposeValues = LaunchOptions.current.exposeValues
   /// Text heights at the current size, for the round-button size below.
   @ScaledMetric(relativeTo: .body) private var elapsedHeight: CGFloat = 21
@@ -65,7 +66,8 @@ struct ControlsView: View {
   private func content(diameter: CGFloat) -> some View {
     VStack(spacing: Metrics.rowSpacing) {
       if let clock = session.clock {
-        ElapsedTimeView(clock: clock, identifier: "controls.elapsed")
+        // Whole minutes if the wrist drops on this page (#24 R1-2).
+        ElapsedTimeView(clock: clock, identifier: "controls.elapsed", isDimmed: isLuminanceReduced)
       }
       // A 2×2 grid while every label fits on one line; one column otherwise, so long
       // labels (UK «Продовжити» at large sizes) wrap between words, never inside one.
