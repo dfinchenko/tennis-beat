@@ -27,3 +27,7 @@ Changes to tests that existed before this branch (no ITF rule is involved in any
 
 New tests in this branch were written before the code they check. One change was made while they were still failing, before the screen worked:
 - `ScoringUITests.testR7GuardZoneValuesOnlyWithExposeArgument`: the expected element type of `zone.me` with `-uiTestExposeValues` is `.other` (a container), not `.button`. Research R7 said XCUITest "may report a zone as a container"; the simulator confirmed it. In production it is `.button`, as written. The same run showed that watchOS XCUITest lists texts that are hidden from VoiceOver, so the zone value identifiers are set only with `-uiTestExposeValues`; the guard's expectation (no `zone.me.points` in production) is unchanged.
+
+## Branch `feat/002-controls` (PR 3: Controls)
+
+- `ScoreScreenModelTests.decidingPointChoice` (US2 s7): the VoiceOver check for "Receiver chooses the side" / «Stronę wybiera odbierający» / «Сторону обирає приймаючий» now reads the score summary (case-insensitive) instead of the server's zone label. Denys's #20 R1-3 decision gave the zone personalised phrases ("Serving. Opponent chooses the side."), and the summary still reads the receiver's choice. ITF NA-02 is unchanged: the side is the receiver's choice in both texts.

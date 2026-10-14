@@ -72,12 +72,17 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
       let sentence = text(
         "score.zone \(label) \(Self.spoken(state.points[player], locale: locale)) \(Self.gamesPhrase(games, locale: locale)) \(Self.setsPhrase(sets, locale: locale))"
       )
+      // First person for Me, the Opponent named (#20 R1-2); on the deciding point the
+      // zone says who chooses the side (#20 R1-3).  ITF: NA-02
       let serving: String? =
         if isServer {
-          switch state.courtSide {
-          case .right: text("score.zone.serving.right")
-          case .left: text("score.zone.serving.left")
-          case .receiversChoice: text("score.zone.serving.choice")
+          switch (player, state.courtSide) {
+          case (.me, .right): text("score.zone.serving.me.right")
+          case (.me, .left): text("score.zone.serving.me.left")
+          case (.me, .receiversChoice): text("score.zone.serving.me.choice")
+          case (.opponent, .right): text("score.zone.serving.opponent.right")
+          case (.opponent, .left): text("score.zone.serving.opponent.left")
+          case (.opponent, .receiversChoice): text("score.zone.serving.opponent.choice")
           }
         } else { nil }
       return Zone(

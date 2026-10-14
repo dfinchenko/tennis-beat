@@ -102,7 +102,8 @@ struct ScoreScreenModelTests {
   func decidingPointChoice(locale: Locale, pill: String, spoken: String) {
     let score = model("MMMOOO", format: PointOutcomeTests.format(.bestOfThree, .six, .noAd), locale: locale)
     #expect(score[.me].courtSide == pill)
-    #expect(score[.me].accessibilityLabel.contains(spoken))
+    // The summary reads the receiver's choice; the zone says who chooses (#20 R1-3).
+    #expect(score.summaryAccessibilityLabel.localizedCaseInsensitiveContains(spoken))
   }
 
   @Test("US2 s8 the status line shows exactly one game state, empty otherwise")  // ITF: GM-02, NA-01, TB-01, MT-03

@@ -721,32 +721,32 @@
         }
       }
     },
-    "score.zone.serving.choice": {
-      "comment": "VoiceOver zone, the server on the No-Ad deciding point (ITF NA-02)",
+    "score.zone.serving.me.choice": {
+      "comment": "VoiceOver zone: Me serving on the No-Ad deciding point; the opponent chooses the side (ITF NA-02, #20 R1-3)",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serving. Receiver chooses the side."
+            "value": "Serving. Opponent chooses the side."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serwuje. Stronę wybiera odbierający."
+            "value": "Serwuję. Stronę wybiera przeciwnik."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подає. Сторону обирає приймаючий."
+            "value": "Подаю. Сторону обирає суперник."
           }
         }
       }
     },
-    "score.zone.serving.left": {
-      "comment": "VoiceOver zone, the server, from the left",
+    "score.zone.serving.me.left": {
+      "comment": "VoiceOver zone: Me serving from the left (#20 R1-2)",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -758,19 +758,19 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serwuje z lewej."
+            "value": "Serwuję, z lewej."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подає зліва."
+            "value": "Подаю, зліва."
           }
         }
       }
     },
-    "score.zone.serving.right": {
-      "comment": "VoiceOver zone, the server, from the right",
+    "score.zone.serving.me.right": {
+      "comment": "VoiceOver zone: Me serving from the right (#20 R1-2)",
       "extractionState": "manual",
       "localizations": {
         "en": {
@@ -782,13 +782,85 @@
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serwuje z prawej."
+            "value": "Serwuję, z prawej."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Подає справа."
+            "value": "Подаю, справа."
+          }
+        }
+      }
+    },
+    "score.zone.serving.opponent.choice": {
+      "comment": "VoiceOver zone: Opponent serving on the No-Ad deciding point; Me chooses the side (ITF NA-02, #20 R1-3)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opponent serving. You choose the side."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serwuje przeciwnik. Stronę wybieram ja."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подає суперник. Сторону обираю я."
+          }
+        }
+      }
+    },
+    "score.zone.serving.opponent.left": {
+      "comment": "VoiceOver zone: Opponent serving from the left (#20 R1-2)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serving from the left."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serwuje przeciwnik, z lewej."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подає суперник, зліва."
+          }
+        }
+      }
+    },
+    "score.zone.serving.opponent.right": {
+      "comment": "VoiceOver zone: Opponent serving from the right (#20 R1-2)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serving from the right."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Serwuje przeciwnik, z prawej."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Подає суперник, справа."
           }
         }
       }
