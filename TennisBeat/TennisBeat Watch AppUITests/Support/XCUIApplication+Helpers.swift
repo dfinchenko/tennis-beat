@@ -1,14 +1,36 @@
 import XCTest
 
 extension XCUIApplication {
-  /// Launches with `arguments` in `language` (English unless stated).
+  /// How long a cold launch may take before New match is ready (R1-1 of #18). A fresh
+  /// parallel simulator clone can take well over 10 s.
+  static let launchTimeout: TimeInterval = 20
+
+  /// Launches with `arguments` in `language` (English unless stated) and returns once
+  /// New match is ready for taps.
   @MainActor
-  static func launched(_ arguments: [String], language: String = "en") -> XCUIApplication {
+  static func launched(
+    _ arguments: [String], language: String = "en", file: StaticString = #filePath,
+    line: UInt = #line
+  ) -> XCUIApplication {
     let app = XCUIApplication()
     app.launchArguments =
       arguments + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
     app.launch()
+    app.waitUntilNewMatchIsReady(file: file, line: line)
     return app
+  }
+
+  /// Waits, with an explicit timeout and no fixed sleep, until the first New match row
+  /// exists and is hittable: the app has finished launching and accepts taps.
+  @MainActor
+  func waitUntilNewMatchIsReady(file: StaticString = #filePath, line: UInt = #line) {
+    let firstRow = element("setup.format")
+    let ready = XCTNSPredicateExpectation(
+      predicate: NSPredicate(format: "exists == true AND hittable == true"), object: firstRow)
+    let result = XCTWaiter().wait(for: [ready], timeout: Self.launchTimeout)
+    XCTAssertEqual(
+      result, .completed, "New match was not ready within \(Self.launchTimeout) s",
+      file: file, line: line)
   }
 
   /// Any element with this accessibility identifier.
@@ -37,8 +59,8 @@ extension XCUIApplication {
     target.tap()
   }
 
-  /// Taps `id` until `next` appears. The watch simulator sometimes swallows a tap right after
-  /// launch, so one retry is allowed.
+  /// Taps `id` until `next` appears. The watch simulator can still swallow a single tap,
+  /// so one retry is allowed.
   @MainActor
   func tap(
     _ id: String, until next: String, file: StaticString = #filePath, line: UInt = #line

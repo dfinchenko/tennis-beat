@@ -31,4 +31,6 @@ Rules assessment:
 Findings:
 - [blocker|major|minor] path/to/file.swift:line — problem — suggested fix
 ```
-Any Conflict or blocker means CHANGES_REQUESTED.
+Any Conflict, blocker or major finding means CHANGES_REQUESTED. PASS is allowed only when every finding is minor.
+
+The implementer sets the PR's `Reviewed-SHA` line to your SHA only after a PASS. After CHANGES_REQUESTED the line stays `Reviewed-SHA: pending` until a later review of the fixed head passes.
