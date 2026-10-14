@@ -45,11 +45,17 @@ struct SummaryView: View {
               durationValue(model.duration)
             }
           }
-          // VoiceOver reads the time in spoken units, not the h:mm:ss digits (#23 R1-3).
-          .accessibilityElement(children: .ignore)
-          .accessibilityLabel(Text("summary.duration"))
-          .accessibilityValue(model.spokenDuration)
-          .accessibilityIdentifier("summary.duration")
+          .accessibilityHidden(true)
+          .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+          .overlay {
+            // One VoiceOver element over the whole row, at least 44 pt (the audit's minimum,
+            // T074), read in spoken units, not the h:mm:ss digits (#23 R1-3).
+            Color.clear
+              .accessibilityElement()
+              .accessibilityLabel(Text("summary.duration"))
+              .accessibilityValue(model.spokenDuration)
+              .accessibilityIdentifier("summary.duration")
+          }
 
           Button(action: session.done) {
             Text("summary.done")

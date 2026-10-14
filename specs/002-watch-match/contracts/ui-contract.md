@@ -25,6 +25,8 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | `-resetFormat` | Clears `lastFormat.v1` before launch (first-use defaults, Story 1 s1) |
 | `-coinToss me` / `-coinToss opponent` | Fixes the coin-toss result (Story 1 s9) |
 | `-uiTestExposeValues` | Zones use `.accessibilityElement(children: .contain)` so their child values are visible to XCUITest (R3-1). Never used for accessibility audits or VoiceOver checks |
+| `-uiTestAlwaysOn` | The match screens render as in Always On (`isLuminanceReduced` is true), for the US6 UI tests and the Watch 5 screenshots; the simulator can't lower the wrist on demand (PR 5) |
+| `-uiTestPoints MMO…` | Plays these points (M = Me, O = Opponent) once when the first match opens, so Always On tests and screenshots reach a score; Always On zones take no taps (PR 5) |
 
 Without these arguments the app behaves as in production. None of these arguments exists in a Release build (`#if DEBUG`).
 

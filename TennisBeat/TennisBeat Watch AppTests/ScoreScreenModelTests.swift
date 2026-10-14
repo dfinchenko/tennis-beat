@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import TennisCore
 import Testing
 
@@ -18,6 +19,11 @@ struct ScoreScreenModelTests {
   ) -> ScoreScreenModel {
     let match = MatchScript.match(format, firstServer: firstServer, points: points)
     return ScoreScreenModel(state: match.state, isPaused: paused, locale: locale)
+  }
+
+  private func dimmed(_ points: String, paused: Bool = false) -> ScoreScreenModel {
+    let match = MatchScript.match(PointOutcomeTests.format(), points: points)
+    return ScoreScreenModel(state: match.state, isPaused: paused, locale: Self.en, isDimmed: true)
   }
 
   @Test(
@@ -100,7 +106,8 @@ struct ScoreScreenModelTests {
       (uk, "на вибір", "Сторону обирає приймаючий"),
     ])  // ITF: NA-02
   func decidingPointChoice(locale: Locale, pill: String, spoken: String) {
-    let score = model("MMMOOO", format: PointOutcomeTests.format(.bestOfThree, .six, .noAd), locale: locale)
+    let score = model(
+      "MMMOOO", format: PointOutcomeTests.format(.bestOfThree, .six, .noAd), locale: locale)
     #expect(score[.me].courtSide == pill)
     // The summary reads the receiver's choice; the zone says who chooses (#20 R1-3).
     #expect(score.summaryAccessibilityLabel.localizedCaseInsensitiveContains(spoken))
@@ -117,7 +124,8 @@ struct ScoreScreenModelTests {
     #expect(model(toSixAll).statusText == "Tie-break")
     let matchTieBreak = PointOutcomeTests.format(matchTieBreak: true)
     // Only "Match tie-break", although a match tie-break is also a tie-break.
-    #expect(model(g(6, .me) + g(6, .opponent), format: matchTieBreak).statusText == "Match tie-break")
+    #expect(
+      model(g(6, .me) + g(6, .opponent), format: matchTieBreak).statusText == "Match tie-break")
   }
 
   @Test("US2 s8 the status line in PL and UK", arguments: [(pl, "Równowaga"), (uk, "Рівно")])
@@ -135,5 +143,85 @@ struct ScoreScreenModelTests {
   func pausedOnScreen() {
     #expect(model("MMMOOO", paused: true).statusText == "Paused")
     #expect(model("", paused: true).statusText == "Paused")
+  }
+
+  // MARK: Always On (US6, FR-021)
+
+  nonisolated static let dimmedCases: [(Locale, TimeInterval, String)] = [
+    (en, 2_579, "42 min"),  // 42:59, rounded down
+    (en, 5_040, "84 min"),
+    (en, 59, "0 min"),
+    (pl, 2_520, "42 min"),
+    (uk, 2_520, "42 хв"),
+  ]
+
+  @Test(
+    "US6 s1 the dimmed time is whole minutes in the system's abbreviated format, rounded down",
+    arguments: dimmedCases)
+  func dimmedMinutes(locale: Locale, seconds: TimeInterval, expected: String) {
+    #expect(ScoreScreenModel.dimmedElapsed(seconds, locale: locale) == expected)
+  }
+
+  @Test("US6 s2 Q8 dimmed: no Undo, no serve icon, no court-side pill, no status line")
+  func dimmedHides() {
+    let deuce = dimmed("MMMOOO")
+    #expect(!deuce.showsUndo)
+    #expect(deuce.statusText.isEmpty)
+    for zone in deuce.zones {
+      #expect(!zone.showsServeMark)
+      #expect(zone.courtSide == nil)
+    }
+    // Paused and dimmed: "Paused" is hidden too.
+    #expect(dimmed("M", paused: true).statusText.isEmpty)
+  }
+
+  @Test("US6 s2 positive control: not dimmed, the server's mark, pill, status and Undo show")
+  func notDimmedShows() {
+    let deuce = model("MMMOOO")
+    #expect(deuce.showsUndo)
+    #expect(deuce.statusText == "Deuce")
+    #expect(deuce[.me].showsServeMark)
+    #expect(deuce[.me].courtSide != nil)
+    #expect(!deuce[.opponent].showsServeMark)
+  }
+
+  @Test("US6 s2 dimmed keeps the score and the VoiceOver texts")
+  func dimmedKeepsScore() {
+    let lit = model("MMO")
+    let dark = dimmed("MMO")
+    #expect(dark[.me].points == lit[.me].points)
+    #expect(dark[.opponent].points == lit[.opponent].points)
+    #expect(dark.summaryAccessibilityLabel == lit.summaryAccessibilityLabel)
+  }
+
+  @Test("R5 the dimmed redraws fall on whole elapsed minutes, after a 90 s pause")
+  func elapsedMinuteSchedule() {
+    let start = Date(timeIntervalSinceReferenceDate: 800_000_000)
+    var clock = MatchClock(startedAt: start)
+    clock.pause(at: start + 30)
+    clock.resume(at: start + 120)
+    let from = start + 120  // elapsed 0:30
+    let entries = Array(
+      ElapsedMinuteSchedule(clock: clock).entries(from: from, mode: .lowFrequency).prefix(4))
+    #expect(entries.first == from)
+    let minutes = entries.dropFirst().map { clock.elapsed(at: $0) }
+    for (minute, elapsed) in zip([60.0, 120, 180], minutes) {
+      #expect(abs(elapsed - minute) < 0.001)
+    }
+    // Starting on a whole minute, the next redraw is the following minute.
+    let onMinute = Array(
+      ElapsedMinuteSchedule(clock: clock).entries(from: start + 150, mode: .lowFrequency)
+        .prefix(2))
+    #expect(abs(clock.elapsed(at: onMinute[1]) - 120) < 0.001)
+  }
+
+  @Test("R5 while paused the dimmed time doesn't change, so there is no later redraw")
+  func elapsedMinuteSchedulePaused() {
+    let start = Date(timeIntervalSinceReferenceDate: 800_000_000)
+    var clock = MatchClock(startedAt: start)
+    clock.pause(at: start + 30)
+    let entries = Array(
+      ElapsedMinuteSchedule(clock: clock).entries(from: start + 40, mode: .lowFrequency).prefix(3))
+    #expect(entries == [start + 40])
   }
 }
