@@ -61,6 +61,23 @@ struct SessionTests {
     #expect(session.clock == nil)
   }
 
+  @Test("US1 s10 tapping Coin toss again makes a new toss")  // ITF: SV-01
+  func coinTossTossedAgain() {
+    var tosses = 0
+    let session = MatchSession(
+      store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
+      now: clock.now,
+      coinToss: {
+        tosses += 1
+        return tosses.isMultiple(of: 2) ? .opponent : .me
+      })
+    #expect(tosses == 0)  // positive control: no toss before Coin toss is tapped
+    #expect(session.tossCoin() == .me)
+    #expect(session.tossCoin() == .opponent)
+    #expect(tosses == 2)
+    #expect(session.match == nil)
+  }
+
   @Test("FR-022 elapsed time counts from the start")
   func elapsedFromStart() {
     let session = makeSession()

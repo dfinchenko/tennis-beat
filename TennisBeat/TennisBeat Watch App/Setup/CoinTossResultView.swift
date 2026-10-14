@@ -14,6 +14,7 @@ struct CoinTossResultView: View {
           .font(.watchTitle)
           .foregroundStyle(Color.watchTextPrimary)
           .fixedSize(horizontal: false, vertical: true)
+          .accessibilityAddTraits(.isHeader)
           .accessibilityIdentifier("coinToss.result")
 
         Button {
@@ -21,7 +22,7 @@ struct CoinTossResultView: View {
         } label: {
           Text("setup.start")
             .font(.watchTitle)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .multilineTextAlignment(.center)
         }
         .buttonStyle(CapsuleButtonStyle(fill: .brandBall, text: .brandOnBall))
         .accessibilityIdentifier("coinToss.start")

@@ -24,7 +24,7 @@ struct NewMatchView: View {
         } label: {
           Text("setup.start")
             .font(.watchTitle)
-            .frame(maxWidth: .infinity, minHeight: 44)
+            .multilineTextAlignment(.center)
         }
         .buttonStyle(CapsuleButtonStyle(fill: .brandBall, text: .brandOnBall))
         .accessibilityIdentifier("setup.start")
@@ -42,7 +42,7 @@ private struct SettingRow: View {
   let action: () -> Void
 
   var body: some View {
-    let value = row.title(for: row.selected(in: choice))
+    let value = row.selectedOption(in: choice).title
     Button(action: action) {
       VStack(alignment: .leading, spacing: 2) {
         Text(row.caption)
@@ -65,14 +65,18 @@ private struct SettingRow: View {
   }
 }
 
-/// Full-width capsule button (Watch 1 Start, Watch 2 choices).
+/// Full-width capsule button (Watch 1 Start, Watch 2 choices). The vertical padding keeps
+/// a label that wraps at large text sizes off the capsule's ends (R1-4 of #18).
 struct CapsuleButtonStyle: ButtonStyle {
   let fill: Color
   let text: Color
+  var minHeight: CGFloat = 44
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
       .foregroundStyle(text)
+      .padding(.vertical, 7)
+      .frame(maxWidth: .infinity, minHeight: minHeight)
       .padding(.horizontal, 12)
       .background(fill, in: .capsule)
       .opacity(configuration.isPressed ? 0.7 : 1)

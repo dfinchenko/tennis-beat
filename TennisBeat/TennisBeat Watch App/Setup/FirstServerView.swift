@@ -42,9 +42,9 @@ struct FirstServerView: View {
     Button(action: action) {
       Text(title)
         .font(.watchTitle)
-        .frame(maxWidth: .infinity, minHeight: 52)
+        .multilineTextAlignment(.center)
     }
-    .buttonStyle(CapsuleButtonStyle(fill: fill, text: text))
+    .buttonStyle(CapsuleButtonStyle(fill: fill, text: text, minHeight: 52))
     .accessibilityIdentifier(id)
   }
 }
