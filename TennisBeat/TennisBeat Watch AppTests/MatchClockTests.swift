@@ -110,4 +110,16 @@ struct MatchClockTests {
     }
     #expect(pausesLeft == 0)  // positive control: the script did pause 4 times
   }
+
+  @Test("US5 s9 reopen after a stop excludes the time stopped and runs again")
+  func reopen() {
+    var clock = MatchClock(startedAt: start)
+    clock.stop(at: start + 100)
+    clock.reopen(at: start + 700)
+    #expect(clock.stoppedAt == nil)
+    #expect(!clock.isPaused)
+    #expect(clock.elapsed(at: start + 700) == 100)
+    #expect(clock.elapsed(at: start + 760) == 160)
+  }
 }
+

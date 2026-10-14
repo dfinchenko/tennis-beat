@@ -47,6 +47,24 @@ final class ControlsUITests: XCTestCase {
     XCTAssertFalse(app.element("controls.undo").isEnabled)
   }
 
+  /// #21 decision: on 40 mm at the default text size all four controls fit without
+  /// scrolling, with round buttons of at least 48 pt (64 pt on larger watches).
+  @MainActor
+  func testControlsFitWithoutScrollingAtDefaultSize() throws {
+    let app = score()
+    app.showControls()
+    let screen = app.frame
+    for id in ["controls.undo", "controls.pauseResume", "controls.server", "controls.end"] {
+      XCTAssertTrue(screen.contains(app.element(id).frame), "\(id) \(app.element(id).frame)")
+    }
+    let circle = app.element("controls.circle.end").frame
+    XCTAssertGreaterThanOrEqual(circle.width, 48)
+    XCTAssertLessThanOrEqual(circle.width, 64)
+    if screen.width > 162 {  // larger than 40 mm
+      XCTAssertEqual(circle.width, 64, accuracy: 0.5)
+    }
+  }
+
   // MARK: Undo (US4 s2, s3)
 
   @MainActor
@@ -109,8 +127,7 @@ final class ControlsUITests: XCTestCase {
     XCTAssertTrue(app.element("zone.me.points").waitForLabel("15"))
     app.showControls()
     app.openEndConfirmation()
-    app.endConfirmationCancel.tap()
-    XCTAssertTrue(app.endConfirmationButton.waitForNonExistence(timeout: 3))
+    app.dismissEndConfirmation()
     XCTAssertTrue(app.element("controls.end").exists)
     app.showScore()
     XCTAssertEqual(label(app, "zone.me.points"), "15")
@@ -174,15 +191,32 @@ final class ControlsUITests: XCTestCase {
 
 extension XCUIApplication {
   /// The destructive "End match" action. watchOS drops accessibility identifiers on
-  /// `confirmationDialog` actions, so the contract's `confirm.end` can't be set; the EN
-  /// label finds it.
+  /// `confirmationDialog` actions, so the contract's `confirm.end` can't be set; its label
+  /// finds it, in EN, PL or UK (screenshots run in all three).
   @MainActor
-  var endConfirmationButton: XCUIElement { buttons["End match"].firstMatch }
+  var endConfirmationButton: XCUIElement {
+    let labels = ["End match", "Zakończ mecz", "Завершити матч"]
+    return buttons.matching(
+      NSPredicate(format: "label IN %@ AND identifier != 'controls.end'", labels)
+    ).firstMatch
+  }
 
   /// The system Cancel of the confirmation (a Close button on watchOS).
   @MainActor
   var endConfirmationCancel: XCUIElement {
     buttons["AX_ActionContentControllerCancelButton"].firstMatch
+  }
+
+  /// Closes the confirmation with its system Cancel (Close). A tap that lands while the
+  /// dialog is still animating in is swallowed (CI, #21), so it retries until the dialog
+  /// has gone.
+  @MainActor
+  func dismissEndConfirmation(file: StaticString = #filePath, line: UInt = #line) {
+    for _ in 0..<3 {
+      if endConfirmationCancel.exists { endConfirmationCancel.tap() }
+      if endConfirmationCancel.waitForNonExistence(timeout: 3) { return }
+    }
+    XCTFail("the End confirmation did not close", file: file, line: line)
   }
 
   /// Taps End (scrolling to it) until the confirmation shows; one retry for a swallowed tap.

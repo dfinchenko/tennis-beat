@@ -261,11 +261,17 @@ struct SessionTests {
 
   @Test("US2 s3 after an early end a tap adds nothing")  // ITF: MT-08
   func noPointAfterEarlyEnd() {
-    let session = playing()
+    let haptics = RecordingHaptics()
+    let session = MatchSession(
+      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(), now: clock.now,
+      makeFormat: { _ in PointOutcomeTests.format() })
+    session.start(firstServer: .me)
     tap("M", on: session)
     session.endEarly()
+    haptics.reset()
     session.addPoint(for: .me)
     #expect(session.match?.events.last == .matchEndedEarly)
+    #expect(haptics.calls.isEmpty)  // #21 R1-2: no haptic requested
   }
 
   @Test("US4 s7 while paused Undo and Server work and keep the pause; End ends it")  // ITF: CE-02
@@ -366,6 +372,86 @@ struct SessionTests {
     #expect(after.points == before.points)
     #expect(after.server == before.server)
     #expect(after.courtSide == before.courtSide)
+  }
+
+  // MARK: Summary (User Story 5)
+
+  @Test("US5 s9 Undo from the summary returns to match point; summary time isn't counted")  // ITF: MT-01
+  func undoFromSummary() throws {
+    let session = playing(PointOutcomeTests.format(.oneSet))
+    tap(MatchScript.games(5, for: .me) + "MMM", on: session)
+    let matchPoint = try #require(session.match?.state)
+    clock.advance(by: 100)
+    tap("M", on: session)
+    #expect(session.route == .summary)
+    clock.advance(by: 600)  // time on the summary
+    session.undo()
+    #expect(session.route == .playing)
+    #expect(session.match?.state == matchPoint)
+    #expect(!session.isPaused)
+    #expect(session.clock?.elapsed(at: clock.now()) == 100)
+    clock.advance(by: 5)
+    #expect(session.clock?.elapsed(at: clock.now()) == 105)  // the time continues
+  }
+
+  @Test("Edge: Undo of an early end returns to the same score, not paused, time continuing")  // ITF: MT-08
+  func undoEarlyEnd() throws {
+    let session = playing()
+    tap("MO", on: session)
+    session.pause()
+    clock.advance(by: 30)
+    session.endEarly()
+    let before = session.match?.events.dropLast()
+    clock.advance(by: 200)
+    session.undo()
+    #expect(session.route == .playing)
+    #expect(session.match.map { Array($0.events) } == before.map(Array.init))
+    #expect(session.match?.state.status == .inProgress)
+    #expect(!session.isPaused)
+    #expect(session.acceptsPoints)
+    let elapsed = try #require(session.clock?.elapsed(at: clock.now()))
+    clock.advance(by: 10)
+    #expect(session.clock?.elapsed(at: clock.now()) == elapsed + 10)
+  }
+
+  @Test("US5 s10 Done opens New match with the format kept, and forgets the match")
+  func doneKeepsFormat() {
+    let store = makeStore()
+    let session = MatchSession(
+      store: store, haptics: RecordingHaptics(), announcer: RecordingAnnouncer(), now: clock.now)
+    session.formatChoice.setLength = .four
+    session.formatChoice.atFortyAll = .decidingPoint
+    session.start(firstServer: .me)
+    tap("M", on: session)
+    session.endEarly()
+    session.done()
+    #expect(session.route == .setup)
+    #expect(session.match == nil)
+    #expect(session.clock == nil)
+    #expect(session.formatChoice.setLength == .four)
+    #expect(session.formatChoice.atFortyAll == .decidingPoint)
+  }
+
+  @Test("US3 s7 undo of the match point or of an early end from the summary plays no haptic")  // ITF: EN-05
+  func undoFromSummaryNoHaptic() {
+    let haptics = RecordingHaptics()
+    let session = MatchSession(
+      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(), now: clock.now,
+      makeFormat: { _ in PointOutcomeTests.format(.oneSet) })
+    session.start(firstServer: .me)
+    // 6–3 on an odd game: the state before the match point is not a change of ends, but
+    // the match point would be one without EN-05.
+    tap(MatchScript.games(5, for: .me) + MatchScript.games(3, for: .opponent) + "MMMM", on: session)
+    #expect(session.route == .summary)
+    haptics.reset()
+    session.undo()
+    #expect(haptics.haptics.isEmpty)
+    #expect(haptics.calls == [.cancelPending])
+    session.endEarly()
+    haptics.reset()
+    session.undo()
+    #expect(haptics.haptics.isEmpty)
+    #expect(session.route == .playing)  // positive control
   }
 }
 

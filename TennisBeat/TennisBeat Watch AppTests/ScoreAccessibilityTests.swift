@@ -136,7 +136,7 @@ struct ScoreAccessibilityTests {
   @Test(
     "US7 s1 the zone's serve phrase is first person for Me, and names the Opponent (#20 R1-2)",
     arguments: [
-      (ScoreScreenModelTests.en, "Serving from the right.", "Serving from the left."),
+      (ScoreScreenModelTests.en, "Serving from the right.", "Opponent serving, from the left."),
       (ScoreScreenModelTests.uk, "Подаю, справа.", "Подає суперник, зліва."),
       (ScoreScreenModelTests.pl, "Serwuję, z prawej.", "Serwuje przeciwnik, z lewej."),
     ])  // ITF: SV-03
@@ -152,7 +152,7 @@ struct ScoreAccessibilityTests {
     "US7 s1 on the deciding point the zone says who chooses the side (#20 R1-3)",
     arguments: [
       (ScoreScreenModelTests.en, "Serving. Opponent chooses the side.",
-       "Opponent serving. You choose the side."),
+       "Opponent serving. I choose the side."),
       (ScoreScreenModelTests.uk, "Подаю. Сторону обирає суперник.",
        "Подає суперник. Сторону обираю я."),
       (ScoreScreenModelTests.pl, "Serwuję. Stronę wybiera przeciwnik.",

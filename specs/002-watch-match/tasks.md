@@ -336,7 +336,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - a `ScrollView` so that large text never clips.
 - [X] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", the "Server: %@" announcement, and "Match ended early" (for the minimal summary) (copy table).
 - [X] T057 [US4] Update `docs/design/screens/watch-4-controls.md` (R1-9): the Server control is decided as the first-server correction [ITF: CE-02], not CE-01; Pause shows Resume while paused; End opens the "End match?" confirmation. Note "changed by spec 002".
-- [ ] T058 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
+- [X] T058 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
 
 **Checkpoint (PR 3 merged)**: US4 is fully covered, along with US3 s7 and SC-004.
 
@@ -350,8 +350,8 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T059 PR checklist step 1 for PR 4: worktree `.worktrees/002-summary`, branch `feat/002-summary`.
-- [ ] T060 [P] [US5] `UnitTests/SummaryModelTests.swift`:
+- [X] T059 PR checklist step 1 for PR 4: worktree `.worktrees/002-summary`, branch `feat/002-summary`.
+- [X] T060 [P] [US5] `UnitTests/SummaryModelTests.swift`:
   - US5 s2: Win when Me won, Loss when the Opponent won;
   - US5 s3: "Match ended early", never Win or Loss;
   - US5 s4: chips "6:4", "3:6", a match tie-break "10:7" (`// ITF: MT-05`), and a tie-break set "7:6" (Q11);
@@ -360,12 +360,12 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US5 s7: the duration is `clock.elapsed(at: stoppedAt)` formatted `.hourMinuteSecond`;
   - US5 s8: the model has no heart-rate or calorie field (a compile-time shape check in the test);
   - US7 s8 (summary): a lost set is marked by `isLost` (dimmed) **and** by its VoiceOver text ending "lost" / «przegrany» / «програний», and the chips keep set order.
-- [ ] T061 [P] [US5] `UnitTests/SessionTests.swift`, summary part:
+- [X] T061 [P] [US5] `UnitTests/SessionTests.swift`, summary part:
   - US5 s1: the match-winning point → `.summary`, and the clock is stopped;
   - US5 s9 and Edge "Undo after the match is won": `undo()` from `.summary` → `.playing` at match point, `isPaused == false`, and `elapsed` excludes the summary time; the same for an early end ("Undo of an early end");
   - US5 s10: `done()` → `.setup`, `match == nil`, and the format is kept;
   - US3 s7 (summary part, moved from PR 2): undo of the match point and of an early end from `.summary` record **no** haptic; `// ITF: EN-05`.
-- [ ] T062 [P] [US5] `UITests/SummaryUITests.swift`:
+- [X] T062 [P] [US5] `UITests/SummaryUITests.swift`:
   - play a 1-set match to Win with `-coinToss me`: `summary.title` reads "Win", the chips match, and `summary.duration` exists;
   - Undo → Score at match point;
   - End early → "Match ended early" with an "*" chip;
@@ -375,17 +375,17 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Implementation
 
-- [ ] T063 [US5] `MatchClock.reopen(at:)`, and `MatchSession.undo()` from `.summary`: reopen, `isPaused = false`, `.playing`.
-- [ ] T064 [P] [US5] `App/Match/SummaryModel.swift`, as [data-model.md § SummaryModel](data-model.md#summarymodel-value-pure).
-- [ ] T065 [US5] `App/Summary/SummaryView.swift` (Watch 6), replacing the minimal summary:
+- [X] T063 [US5] `MatchClock.reopen(at:)`, and `MatchSession.undo()` from `.summary`: reopen, `isPaused = false`, `.playing`.
+- [X] T064 [P] [US5] `App/Match/SummaryModel.swift`, as [data-model.md § SummaryModel](data-model.md#summarymodel-value-pure).
+- [X] T065 [US5] `App/Summary/SummaryView.swift` (Watch 6), replacing the minimal summary:
   - the title in Large Title `brand/ball`;
   - a chip row on `surface-raised`, with lost sets in `text-tertiary`; each chip is one VoiceOver element; the chips wrap at large sizes;
   - a Duration row;
   - Done (primary capsule) and Undo (secondary, under Done, Q7);
   - in a `ScrollView`, with no heart-rate or kcal rows.
-- [ ] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings` ("Match ended early" exists since PR 3): Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
-- [ ] T067 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
-- [ ] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
+- [X] T066 [US7] Add the strings for this PR to `App/Localizable.xcstrings` ("Match ended early" exists since PR 3): Duration, Undo (summary), the set-chip VoiceOver strings, and the separate match tie-break chip key (R2-4), from the copy table.
+- [X] T067 [US5] Update `docs/design/screens/watch-6-summary.md`: the secondary Undo button under Done (Q7), the unfinished chip with "*" (Q5), the hidden heart-rate and kcal rows (spec 003). Note "changed by spec 002" (R1-9).
+- [x] T068 [US5] PR checklist steps 3–7 for PR 4. Screenshots: Win, Loss, Match ended early, a match tie-break win, in EN, PL and UK at the largest sizes. Device check for Denys: the summary is readable after a real match.
 
 **Checkpoint (PR 4 merged)**: US5 is fully covered.
 

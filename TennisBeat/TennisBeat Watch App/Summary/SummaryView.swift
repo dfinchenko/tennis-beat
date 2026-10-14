@@ -1,35 +1,143 @@
 import SwiftUI
 import TennisCore
 
-/// Watch 6 — Summary, minimal until PR 4: the result and Done (Story 5 s2, s3, s10).
+/// Watch 6 — Summary: the result, a chip per set, the duration, Done and Undo (Story 5,
+/// FR-019, FR-020). It scrolls, and there are no heart-rate or calorie rows (spec 003).
 struct SummaryView: View {
   @Environment(MatchSession.self) private var session
+  @Environment(\.locale) private var locale
 
   var body: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 12) {
-        Text(title)
-          .font(.watchLargeTitle)
-          .foregroundStyle(Color.brandBall)
-          .accessibilityAddTraits(.isHeader)
-          .accessibilityIdentifier("summary.title")
+    if let match = session.match, let clock = session.clock {
+      let model = SummaryModel(state: match.state, clock: clock, locale: locale)
+      ScrollView {
+        VStack(alignment: .leading, spacing: 10) {
+          Text(model.title)
+            .font(.watchLargeTitle)
+            .foregroundStyle(Color.brandBall)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("summary.title")
 
-        Button(action: session.done) {
-          Text("summary.done")
-            .font(.watchTitle)
-            .multilineTextAlignment(.center)
+          // The chips wrap at large text sizes; order and VoiceOver carry the meaning too.
+          FlowLayout(spacing: 6) {
+            ForEach(Array(model.chips.enumerated()), id: \.offset) { index, chip in
+              Text(chip.text)
+                .font(.watchNumber)
+                .monospacedDigit()
+                .foregroundStyle(chip.isLost ? Color.watchTextTertiary : Color.watchTextPrimary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 4)
+                .background(Color.watchSurfaceRaised, in: .capsule)
+                .accessibilityLabel(chip.accessibilityLabel)
+                .accessibilityIdentifier("summary.chip.\(index + 1)")
+            }
+          }
+
+          ViewThatFits(in: .horizontal) {
+            HStack {
+              durationLabel
+              Spacer(minLength: 8)
+              durationValue(model.duration)
+            }
+            VStack(alignment: .leading, spacing: 2) {
+              durationLabel
+              durationValue(model.duration)
+            }
+          }
+          .accessibilityElement(children: .combine)
+          .accessibilityIdentifier("summary.duration")
+
+          Button(action: session.done) {
+            Text("summary.done")
+              .font(.watchTitle)
+              .multilineTextAlignment(.center)
+          }
+          .buttonStyle(CapsuleButtonStyle(fill: .brandBall, text: .brandOnBall))
+          .accessibilityIdentifier("summary.done")
+
+          // Q7: a secondary Undo under Done.
+          Button(action: session.undo) {
+            Text("score.undo")
+              .font(.watchTitle)
+              .multilineTextAlignment(.center)
+          }
+          .buttonStyle(CapsuleButtonStyle(fill: .watchSurfaceRaised, text: .watchTextPrimary))
+          .accessibilityIdentifier("summary.undo")
         }
-        .buttonStyle(CapsuleButtonStyle(fill: .brandBall, text: .brandOnBall))
-        .accessibilityIdentifier("summary.done")
       }
     }
   }
 
-  private var title: LocalizedStringResource {
-    switch session.match?.state.status {
-    case .won(.me): "summary.win"
-    case .won(.opponent): "summary.loss"
-    default: "summary.endedEarly"  // US5 s3: never Win or Loss for an unfinished match
+  private var durationLabel: some View {
+    Text("summary.duration")
+      .font(.watchBody)
+      .foregroundStyle(Color.watchTextSecondary)
+  }
+
+  private func durationValue(_ duration: String) -> some View {
+    Text(duration)
+      .font(.watchNumber)
+      .monospacedDigit()
+      .foregroundStyle(Color.watchTextPrimary)
+  }
+}
+
+/// Lays out children in rows, wrapping to the next row when one doesn't fit.
+private struct FlowLayout: Layout {
+  var spacing: CGFloat
+
+  func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+    let rows = arrange(width: proposal.width ?? .infinity, subviews: subviews)
+    let height = rows.map(\.height).reduce(0, +) + spacing * CGFloat(max(rows.count - 1, 0))
+    let width = rows.map(\.width).max() ?? 0
+    return CGSize(width: proposal.width ?? width, height: height)
+  }
+
+  func placeSubviews(
+    in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()
+  ) {
+    var y = bounds.minY
+    for row in arrange(width: bounds.width, subviews: subviews) {
+      var x = bounds.minX
+      for index in row.indices {
+        let size = subviews[index].sizeThatFits(.unspecified)
+        subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+        x += size.width + spacing
+      }
+      y += row.height + spacing
     }
   }
+
+  private struct Row {
+    var indices: [Int] = []
+    var width: CGFloat = 0
+    var height: CGFloat = 0
+  }
+
+  private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
+    var rows: [Row] = []
+    var row = Row()
+    for index in subviews.indices {
+      let size = subviews[index].sizeThatFits(.unspecified)
+      let added = row.indices.isEmpty ? size.width : row.width + spacing + size.width
+      if added > width, !row.indices.isEmpty {
+        rows.append(row)
+        row = Row()
+      }
+      row.width = row.indices.isEmpty ? size.width : row.width + spacing + size.width
+      row.height = max(row.height, size.height)
+      row.indices.append(index)
+    }
+    if !row.indices.isEmpty { rows.append(row) }
+    return rows
+  }
+}
+
+#Preview {
+  let session = MatchSession.preview
+  session.start(firstServer: .me)
+  session.addPoint(for: .me)
+  session.endEarly()
+  return SummaryView().environment(session)
 }

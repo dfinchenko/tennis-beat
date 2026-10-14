@@ -1,6 +1,6 @@
 import XCTest
 
-/// Takes the PR screenshots of the setup, score and Controls screens. Runs only when the test runner has
+/// Takes the PR screenshots of the setup, score, Controls and summary screens. Runs only when the test runner has
 /// `SCREENSHOT_LANGUAGE` set (for example `TEST_RUNNER_SCREENSHOT_LANGUAGE=uk`), so CI skips it.
 final class ScreenshotUITests: XCTestCase {
   override func setUpWithError() throws {
@@ -110,6 +110,63 @@ final class ScreenshotUITests: XCTestCase {
     app.showControls()
     app.openEndConfirmation()
     attach(app, "15-end-confirmation")
+  }
+
+  /// T068: Win, Loss, Match ended early and a match tie-break win.
+  @MainActor
+  func testSummaryScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var size: [String] = []
+    if let category = environment["SCREENSHOT_TEXT_SIZE"] {
+      size = ["-UIPreferredContentSizeCategoryName", category]
+    }
+    func start(_ format: String) -> XCUIApplication {
+      let app = XCUIApplication.launched(["-lastFormat.v1", format] + size, language: language)
+      app.tap("setup.start", until: "firstServer.me")
+      app.tap("firstServer.me", until: "zone.me")
+      return app
+    }
+    func play(_ app: XCUIApplication, _ points: String) {
+      for point in points where point != " " {
+        app.element(point == "M" ? "zone.me" : "zone.opponent").tap()
+      }
+    }
+    let oneSetOfFour = "{length=oneSet;setLength=four;atFortyAll=advantage;thirdSet=fullSet;}"
+    let tieBreakToTen =
+      "{length=bestOfThree;setLength=four;atFortyAll=advantage;thirdSet=tieBreakToTen;}"
+
+    var app = start(oneSetOfFour)
+    play(app, "MMMM OOOO MMMM MMMM MMMM")  // 4–1
+    XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+    attach(app, "16-summary-win")
+    app.terminate()
+
+    app = start(oneSetOfFour)
+    play(app, "OOOO MMMM OOOO OOOO OOOO")  // 1–4
+    XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+    attach(app, "17-summary-loss")
+    app.terminate()
+
+    app = start(tieBreakToTen)
+    play(app, "MMMM MMMM MMMM MMMM")  // set 1 Me 4–0
+    play(app, "MMMM OOOO OOOO OOOO OOOO")  // set 2 Opponent 1–4
+    play(app, "MMMM MMMM OOOO M")  // match tie-break at 9–4
+    app.showControls()
+    app.openEndConfirmation()
+    app.endConfirmationButton.tap()
+    XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+    attach(app, "18-summary-ended-early")
+    app.terminate()
+
+    app = start(tieBreakToTen)
+    play(app, "MMMM MMMM MMMM MMMM")  // set 1 Me 4–0
+    play(app, "OOOO OOOO OOOO OOOO")  // set 2 Opponent 0–4
+    play(app, String(repeating: "MO", count: 7) + "MMM")  // match tie-break 10–7
+    XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+    attach(app, "19-summary-match-tie-break")
   }
 
   @MainActor
