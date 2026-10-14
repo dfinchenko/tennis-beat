@@ -43,5 +43,11 @@ New tests in this branch were written before the code they check. Changes made w
 Changes to tests that existed before this branch:
 - `ScoreAccessibilityTests.zoneServePhrase` (EN): the Opponent's zone phrase is "Opponent serving, from the left." instead of "Serving from the left." (Denys, #21 R1-3). ITF SV-03 is unchanged: only the wording changed, the side is the same.
 - `ScoreAccessibilityTests.zoneDecidingPoint` (EN): "Opponent serving. I choose the side." instead of "Opponent serving. You choose the side." (Denys, #21 R1-3). ITF NA-02 is unchanged: the receiver (Me) chooses the side in both texts.
-- `SessionTests.noPointAfterEarlyEnd` also checks that no haptic is requested (#21 R1-2). This is a stricter check than before.
-- `ControlsUITests.testUS4s11EndCancelChangesNothing` closes the dialog through `dismissEndConfirmation()`, which retries Close until the dialog has gone. On CI a Close tap made while the dialog was still animating in was swallowed (#21 CI run 38587292247). The assertion (Cancel changes nothing) is unchanged.
+- `SessionTests.noPointAfterEarlyEnd` also checks that no haptic is requested (#21 R1-2). This is a stricter check than before. ITF MT-08 (further points are rejected after an early end); spec US3-S7 (no haptic after an early end).
+- `ControlsUITests.testUS4s11EndCancelChangesNothing` closes the dialog through `dismissEndConfirmation()`, which retries Close until the dialog has gone. On CI a Close tap made while the dialog was still animating in was swallowed (#21 CI run 38587292247). The assertion (Cancel changes nothing) is unchanged, so under the #23 R1-2 definition this is a test-helper change, not an expectation change; it stays listed because it was listed before the definition changed.
+- Not an expectation change (#23 R1-2), noted for the record: `endConfirmationButton` finds the End confirmation's destructive button by its EN, PL or UK label and skips `controls.end`, so the PL and UK screenshot runs can tap it. Every test asserts the same as before.
+
+## Branch `feat/002-always-on` (PR 5: Always On)
+
+Changes to tests that existed before this branch:
+- None yet.
