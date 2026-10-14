@@ -1549,6 +1549,150 @@
         }
       }
     },
+    "summary.chip.matchTieBreak.lost %lld %lld": {
+      "comment": "VoiceOver match tie-break chip (R2-4); %1$lld Me's points, %2$lld the Opponent's (lost); ITF MT-05",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match tie-break: %1$lld–%2$lld, lost"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Super tie-break: %1$lld–%2$lld, przegrany"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Матч-тай-брейк: %1$lld–%2$lld, програний"
+          }
+        }
+      }
+    },
+    "summary.chip.matchTieBreak.unfinished %lld %lld": {
+      "comment": "VoiceOver match tie-break chip (R2-4); %1$lld Me's points, %2$lld the Opponent's (unfinished); ITF MT-05",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match tie-break: %1$lld–%2$lld, unfinished"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Super tie-break: %1$lld–%2$lld, niedokończony"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Матч-тай-брейк: %1$lld–%2$lld, незавершений"
+          }
+        }
+      }
+    },
+    "summary.chip.matchTieBreak.won %lld %lld": {
+      "comment": "VoiceOver match tie-break chip (R2-4); %1$lld Me's points, %2$lld the Opponent's (won); ITF MT-05",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match tie-break: %1$lld–%2$lld, won"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Super tie-break: %1$lld–%2$lld, wygrany"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Матч-тай-брейк: %1$lld–%2$lld, виграний"
+          }
+        }
+      }
+    },
+    "summary.chip.set.lost %lld %lld %lld": {
+      "comment": "VoiceOver set chip; %1$lld set number, %2$lld Me's games, %3$lld the Opponent's (lost)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, lost"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, przegrany"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сет %1$lld: %2$lld–%3$lld, програний"
+          }
+        }
+      }
+    },
+    "summary.chip.set.unfinished %lld %lld %lld": {
+      "comment": "VoiceOver set chip; %1$lld set number, %2$lld Me's games, %3$lld the Opponent's (unfinished)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, unfinished"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, niedokończony"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сет %1$lld: %2$lld–%3$lld, незавершений"
+          }
+        }
+      }
+    },
+    "summary.chip.set.won %lld %lld %lld": {
+      "comment": "VoiceOver set chip; %1$lld set number, %2$lld Me's games, %3$lld the Opponent's (won)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, won"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set %1$lld: %2$lld–%3$lld, wygrany"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Сет %1$lld: %2$lld–%3$lld, виграний"
+          }
+        }
+      }
+    },
     "summary.done": {
       "comment": "Summary button back to New match",
       "extractionState": "manual",
@@ -1569,6 +1713,30 @@
           "stringUnit": {
             "state": "translated",
             "value": "Готово"
+          }
+        }
+      }
+    },
+    "summary.duration": {
+      "comment": "Summary row: match time without pauses",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Czas trwania"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тривалість"
           }
         }
       }

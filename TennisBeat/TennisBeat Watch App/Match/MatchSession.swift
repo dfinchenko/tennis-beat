@@ -5,7 +5,7 @@ import TennisCore
 /// The one live match and the screen route (data-model.md § MatchSession).
 ///
 /// Views read this object and call its commands; they never call the engine themselves.
-/// Setup, start, scoring, Undo and the Controls commands; the full summary arrives in PR 4.
+/// Setup, start, scoring, Undo, the Controls commands and the summary.
 @Observable
 final class MatchSession {
   enum Route: Hashable { case setup, playing, summary }
@@ -111,14 +111,21 @@ final class MatchSession {
     }
   }
 
-  /// Removes the last event (Story 4 s2). No haptic, even when the state brought back
-  /// calls for a change of ends (Story 3 s7); only a status change is announced.
+  /// Removes the last event (Story 4 s2). From the summary it brings the match back at
+  /// match point, or before the early end, with the clock running again and the time on
+  /// the summary not counted (Story 5 s9). No haptic, even when the state brought back calls
+  /// for a change of ends (Story 3 s7); only a status change is announced.
   func undo() {
     haptics.cancelPending()
-    guard route == .playing, canUndo, var match else { return }
+    guard route == .playing || route == .summary, canUndo, var match else { return }
     let before = match.state
     match.undo()
     self.match = match
+    if route == .summary {
+      clock?.reopen(at: now())
+      isPaused = false
+      route = .playing
+    }
     announce([statusChange(from: before, to: match.state)].compactMap(\.self))
   }
 

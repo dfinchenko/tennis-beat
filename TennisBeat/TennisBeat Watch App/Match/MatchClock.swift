@@ -3,7 +3,7 @@ import Foundation
 /// Elapsed match time (data-model.md § MatchClock, research R5).
 ///
 /// Wall-clock time since the start minus pauses, so it stays right after the app returns
-/// from the background. Reopening after the summary arrives with the Summary (PR 4).
+/// from the background.
 nonisolated struct MatchClock: Hashable, Sendable {
   let startedAt: Date
   /// Closed pauses.
@@ -37,6 +37,14 @@ nonisolated struct MatchClock: Hashable, Sendable {
     guard stoppedAt == nil else { return }
     resume(at: date)
     stoppedAt = date
+  }
+
+  /// Runs again after Undo from the summary; the time spent stopped is not counted and the
+  /// match is not paused (Story 5 s9, Edge "Undo of an early end").
+  mutating func reopen(at date: Date) {
+    guard let stoppedAt else { return }
+    excluded.append(DateInterval(start: stoppedAt, end: max(date, stoppedAt)))
+    self.stoppedAt = nil
   }
 
   /// Never negative; fixed while paused or stopped.
