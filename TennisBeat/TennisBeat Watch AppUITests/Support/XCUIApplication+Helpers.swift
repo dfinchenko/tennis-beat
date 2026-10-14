@@ -71,3 +71,20 @@ extension XCUIApplication {
     XCTFail("\(next) did not appear after tapping \(id)", file: file, line: line)
   }
 }
+
+extension XCUIApplication {
+  /// Runs the accessibility audit (all types) and fails once per issue, naming the element,
+  /// so a failure says which element is wrong.
+  @MainActor
+  func auditNamingElements(file: StaticString = #filePath, line: UInt = #line) throws {
+    try performAccessibilityAudit { issue in
+      let element = issue.element.map {
+        "\($0.elementType) '\($0.identifier)' \($0.frame) label '\($0.label)'"
+      }
+      XCTFail(
+        "\(issue.compactDescription): \(element ?? "no element") — \(issue.detailedDescription)",
+        file: file, line: line)
+      return true  // reported above
+    }
+  }
+}

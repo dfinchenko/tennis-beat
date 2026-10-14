@@ -9,12 +9,9 @@ struct RootView: View {
     case .setup:
       SetupFlowView()
     case .playing:
-      // Placeholder until the score screen (PR 2).
-      Text(verbatim: "0–0")
-        .font(.watchScore)
-        .accessibilityIdentifier("score.placeholder")
+      MatchPagesView()
     case .summary:
-      EmptyView()
+      SummaryView()
     }
   }
 }
