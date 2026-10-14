@@ -43,7 +43,11 @@ final class SummaryUITests: XCTestCase {
     XCTAssertEqual(app.element("summary.title").label, "Win")
     XCTAssertEqual(app.element("summary.chip.1").label, "Set 1: 4–1, won")
     XCTAssertFalse(app.element("summary.chip.2").exists)
-    XCTAssertTrue(app.element("summary.duration").exists)
+    // #23 R1-3: VoiceOver reads "Duration" and the time in spoken units, not h:mm:ss.
+    let duration = app.element("summary.duration")
+    XCTAssertEqual(duration.label, "Duration")
+    XCTAssertTrue(
+      (duration.value as? String)?.hasSuffix("seconds") == true, "\(duration.value ?? "")")
   }
 
   @MainActor
@@ -94,6 +98,9 @@ final class SummaryUITests: XCTestCase {
     ])
     winMatch(app)
     XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+    // #23 R1-4: no chip is wider than the screen.
+    let screen = app.windows.firstMatch.frame
+    XCTAssertTrue(screen.contains(app.element("summary.chip.1").frame))
     try app.auditNamingElements()
   }
 }

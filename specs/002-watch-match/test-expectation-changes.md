@@ -50,4 +50,4 @@ Changes to tests that existed before this branch:
 ## Branch `feat/002-always-on` (PR 5: Always On)
 
 Changes to tests that existed before this branch:
-- None yet.
+- `SummaryModelTests.noHealthFields`: the summary's fields are `title`, `chips`, `duration` and `spokenDuration` instead of the first three (#23 R1-3: VoiceOver reads the duration in spoken units). Spec US5-S8: still no heart-rate or calorie field; the new field is the same duration in words.

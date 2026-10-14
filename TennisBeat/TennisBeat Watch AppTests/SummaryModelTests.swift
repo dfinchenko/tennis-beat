@@ -89,9 +89,13 @@ struct SummaryModelTests {
     let toMatchTieBreak = g(6, .me) + g(6, .opponent)
     #expect(try texts(summary(toMatchTieBreak, format: format, endEarly: true)) == ["6:0", "0:6"])
     #expect(
-      try texts(summary(toMatchTieBreak + "M", format: format, endEarly: true)) == ["6:0", "0:6", "1:0*"])
+      try texts(summary(toMatchTieBreak + "M", format: format, endEarly: true)) == [
+        "6:0", "0:6", "1:0*",
+      ])
     #expect(
-      try texts(summary(toMatchTieBreak + "O", format: format, endEarly: true)) == ["6:0", "0:6", "0:1*"])
+      try texts(summary(toMatchTieBreak + "O", format: format, endEarly: true)) == [
+        "6:0", "0:6", "0:1*",
+      ])
   }
 
   // MARK: Lost sets and VoiceOver (US5 s6, US7 s8)
@@ -130,7 +134,9 @@ struct SummaryModelTests {
   func matchTieBreakSpoken(locale: Locale, expected: String) throws {
     let format = PointOutcomeTests.format(matchTieBreak: true)
     let points = g(6, .me) + g(6, .opponent) + String(repeating: "MO", count: 7) + "MMM"
-    #expect(try summary(points, format: format, locale: locale).chips.last?.accessibilityLabel == expected)
+    #expect(
+      try summary(points, format: format, locale: locale).chips.last?.accessibilityLabel == expected
+    )
   }
 
   // MARK: Duration (US5 s7, s8)
@@ -141,13 +147,28 @@ struct SummaryModelTests {
       try summary(g(6, .me), format: PointOutcomeTests.format(.oneSet), elapsed: 5_050).duration
         == "1:24:10")
     #expect(
-      try summary(g(6, .me), format: PointOutcomeTests.format(.oneSet), elapsed: 754).duration == "0:12:34")
+      try summary(g(6, .me), format: PointOutcomeTests.format(.oneSet), elapsed: 754).duration
+        == "0:12:34")
+  }
+
+  @Test(
+    "US5 s7 #23 R1-3 VoiceOver reads the duration in spoken units",
+    arguments: [
+      (ScoreScreenModelTests.en, 5_050.0, "1 hour, 24 minutes, 10 seconds"),
+      (ScoreScreenModelTests.en, 754.0, "12 minutes, 34 seconds"),
+      (ScoreScreenModelTests.pl, 5_050.0, "1 godzina, 24 minuty i 10 sekund"),
+      (ScoreScreenModelTests.uk, 5_050.0, "1 година, 24 хвилини і 10 секунд"),
+    ])
+  func spokenDuration(locale: Locale, elapsed: TimeInterval, expected: String) throws {
+    let model = try summary(
+      g(6, .me), format: PointOutcomeTests.format(.oneSet), elapsed: elapsed, locale: locale)
+    #expect(model.spokenDuration == expected)
   }
 
   @Test("US5 s8 the summary has no heart-rate or calorie field")
   func noHealthFields() throws {
     let model = try summary(g(6, .me), format: PointOutcomeTests.format(.oneSet))
     let fields = Set(Mirror(reflecting: model).children.compactMap(\.label))
-    #expect(fields == ["title", "chips", "duration"])
+    #expect(fields == ["title", "chips", "duration", "spokenDuration"])
   }
 }
