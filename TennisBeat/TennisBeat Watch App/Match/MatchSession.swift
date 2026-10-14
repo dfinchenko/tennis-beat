@@ -5,7 +5,7 @@ import TennisCore
 /// The one live match and the screen route (data-model.md § MatchSession).
 ///
 /// Views read this object and call its commands; they never call the engine themselves.
-/// Setup, start, scoring and the header Undo; Controls and the full summary arrive in PR 3–4.
+/// Setup, start, scoring, Undo and the Controls commands; the full summary arrives in PR 4.
 @Observable
 final class MatchSession {
   enum Route: Hashable { case setup, playing, summary }
@@ -66,6 +66,16 @@ final class MatchSession {
   /// Something other than the setup to undo (Story 4 s3, FR-015).
   var canUndo: Bool { (match?.events.count ?? 0) > 1 }
 
+  /// At least one point in the event list (FR-018).
+  var hasPlayedPoint: Bool {
+    match?.events.contains { if case .point = $0 { true } else { false } } ?? false
+  }
+
+  /// Server correction, pause and End need a match in progress (Story 4 s9, FR-016).
+  private var isInProgress: Bool {
+    route == .playing && match?.state.status == .inProgress
+  }
+
   /// Adds one point (Story 2 s2). Haptics and announcements come only from the outcome
   /// of this point (FR-010..FR-012, research R2–R4).
   func addPoint(for player: Player) {
@@ -112,6 +122,64 @@ final class MatchSession {
     announce([statusChange(from: before, to: match.state)].compactMap(\.self))
   }
 
+  /// Stops the clock and the tap zones until Resume (Story 4 s5, FR-016). No haptic.
+  func pause() {
+    haptics.cancelPending()
+    guard isInProgress, !isPaused, let match else { return }
+    clock?.pause(at: now())
+    isPaused = true
+    announce([statusChange(from: match.state, to: match.state, wasPaused: false)].compactMap(\.self))
+  }
+
+  /// Continues the clock and the tap zones (Story 4 s6). No haptic.
+  func resume() {
+    guard isPaused, let match else { return }
+    clock?.resume(at: now())
+    isPaused = false
+    announce([statusChange(from: match.state, to: match.state, wasPaused: true)].compactMap(\.self))
+  }
+
+  /// Records a first-server correction to the other player and announces the new server
+  /// (Story 4 s9, s10). Works while paused and keeps the pause. No haptic.  ITF: CE-02
+  func correctServer() {
+    haptics.cancelPending()
+    guard isInProgress, var match else { return }
+    let before = match.state
+    do {
+      try match.correctFirstServer(to: match.effectiveFirstServer.other)
+    } catch {
+      return
+    }
+    self.match = match
+    let server = text(match.state.server == .me ? "player.me" : "player.opponent")
+    announce(
+      [text("announce.server \(server)"), statusChange(from: before, to: match.state)]
+        .compactMap(\.self))
+  }
+
+  /// Ends the match early after the confirmation (Story 4 s12, s13). With a point played it
+  /// records the early end and opens the summary; with none the match is discarded and New
+  /// match opens, so a 0-point match is never kept. No haptic.  ITF: MT-08
+  func endEarly() {
+    haptics.cancelPending()
+    guard route == .playing, var match else { return }
+    isPaused = false
+    guard hasPlayedPoint else {
+      self.match = nil
+      clock = nil
+      route = .setup
+      return
+    }
+    do {
+      try match.endEarly()
+    } catch {
+      return
+    }
+    self.match = match
+    clock?.stop(at: now())
+    route = .summary
+  }
+
   /// Leaves the summary for New match with the stored format (Story 5 s10).
   func done() {
     haptics.cancelPending()
@@ -127,11 +195,20 @@ final class MatchSession {
     ScoreScreenModel.text(resource, locale: locale())
   }
 
-  /// The new status-line text when it appears or changes (Story 7 s2).
-  private func statusChange(from before: MatchState, to after: MatchState) -> String? {
-    let old = ScoreScreenModel.gameState(before).map(text) ?? ""
-    let new = ScoreScreenModel.gameState(after).map(text) ?? ""
+  /// The new status text when it appears or changes (Story 7 s2): the game state, with
+  /// "Paused. " before it while paused (R1-3).
+  private func statusChange(
+    from before: MatchState, to after: MatchState, wasPaused: Bool? = nil
+  ) -> String? {
+    let old = statusText(before, paused: wasPaused ?? isPaused)
+    let new = statusText(after, paused: isPaused)
     return new.isEmpty || new == old ? nil : new
+  }
+
+  private func statusText(_ state: MatchState, paused: Bool) -> String {
+    let gameState = ScoreScreenModel.gameState(state).map(text) ?? ""
+    guard paused else { return gameState }
+    return gameState.isEmpty ? text("status.paused") : text("status.paused.state \(gameState)")
   }
 
   /// One combined announcement per command (research R4).

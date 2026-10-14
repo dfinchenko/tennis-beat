@@ -4,6 +4,7 @@ import SwiftUI
 /// with monospaced digits (FR-009, FR-022, research R5).
 struct ElapsedTimeView: View {
   let clock: MatchClock
+  var identifier = "elapsed"
 
   var body: some View {
     TimelineView(.periodic(from: clock.startedAt, by: 1)) { context in
@@ -13,7 +14,7 @@ struct ElapsedTimeView: View {
         .foregroundStyle(Color.brandBall)
         .lineLimit(1)
         .minimumScaleFactor(0.7)
-        .accessibilityIdentifier("elapsed")
+        .accessibilityIdentifier(identifier)
     }
   }
 

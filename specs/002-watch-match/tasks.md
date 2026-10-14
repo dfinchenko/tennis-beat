@@ -293,13 +293,13 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T048 PR checklist step 1 for PR 3: worktree `.worktrees/002-controls`, branch `feat/002-controls`.
-- [ ] T049 [P] [US4] `UnitTests/MatchClockTests.swift`, pause part:
+- [X] T048 PR checklist step 1 for PR 3: worktree `.worktrees/002-controls`, branch `feat/002-controls`.
+- [X] T049 [P] [US4] `UnitTests/MatchClockTests.swift`, pause part:
   - US4 s5 and s6: `pause` freezes `elapsed`, and `resume` continues from the same value;
   - US4 s8: several pauses are all excluded;
   - Edge "Pause, then End": `stop` while paused closes the pause, and the duration excludes it;
   - SC-004: a scripted 30-minute match with 4 pauses of 1–5 minutes and random 5–40 s steps, where `elapsed` at every step differs from (wall time − pauses) by ≤ 1 s.
-- [ ] T050 [P] [US4] `UnitTests/SessionTests.swift`, controls part:
+- [X] T050 [P] [US4] `UnitTests/SessionTests.swift`, controls part:
   - US4 s5: while paused, `acceptsPoints` is false and `addPoint` adds nothing;
   - US2 s3 (ended early): after `endEarly()`, `addPoint` adds nothing and requests no haptic; `// ITF: MT-08`;
   - US4 s7: while paused, `undo` and `correctServer` work and `isPaused` stays true; `endEarly` works and sets `isPaused = false`; `done()` also leaves `isPaused == false`;
@@ -308,11 +308,11 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - US4 s12: `endEarly()` with a point → `.matchEndedEarly`, the clock is stopped, `route == .summary`; `// ITF: MT-08`;
   - US4 s13 and Edge "early end at 0–0 or after only undone points": `endEarly()` with no point event → `match == nil`, `route == .setup`, nothing kept;
   - Edge "Pause during a tie-break" (constitution III boundary test, backlog #6): pause and resume inside a tie-break leave `isTieBreak`, the points, the server and the court side unchanged; `// ITF: TB-02, TB-04`.
-- [ ] T051 [P] [US4] `UnitTests/SessionFeedbackTests.swift`, controls part:
+- [X] T051 [P] [US4] `UnitTests/SessionFeedbackTests.swift`, controls part:
   - US3 s7: pause, resume, correction and early end record no haptic; pause, correction and early end call `cancelPending()` first (a pending change of ends is dropped);
   - US4 s10 / US7 s3: correction announces "Server: Opponent";
   - FR-008 / R1-3: while paused the status text is "Paused" and VoiceOver reads "Paused. Deuce".
-- [ ] T052 [P] [US4] `UITests/ControlsUITests.swift` (value checks launched with `-uiTestExposeValues`; the audit without it):
+- [X] T052 [P] [US4] `UITests/ControlsUITests.swift` (value checks launched with `-uiTestExposeValues`; the audit without it):
   - US4 s1: swipe right from Score → Controls with `controls.elapsed` and four labelled buttons; swipe back → Score;
   - US4 s2: Undo on Controls removes the last point;
   - US4 s3: Undo is disabled at 0–0;
@@ -327,15 +327,15 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Implementation
 
-- [ ] T053 [US4] `MatchClock.pause(at:)` and `resume(at:)`, with `stop` closing an open pause, as [data-model.md § MatchClock](data-model.md#matchclock-value).
-- [ ] T054 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4). The minimal summary from PR 2 shows "Match ended early" for `.unfinished` (US5 s3), so `main` is right between PR 3 and PR 4 (R3-3).
-- [ ] T055 [US4] `App/Score/ControlsView.swift` (Watch 4), replacing the placeholder page:
+- [X] T053 [US4] `MatchClock.pause(at:)` and `resume(at:)`, with `stop` closing an open pause, as [data-model.md § MatchClock](data-model.md#matchclock-value).
+- [X] T054 [US4] `MatchSession.pause()`, `resume()`, `correctServer()` and `endEarly()`, as in the data-model command table. `ScoreScreenModel.statusText` gets "Paused" priority, and the zones dim while paused (Q4). The minimal summary from PR 2 shows "Match ended early" for `.unfinished` (US5 s3), so `main` is right between PR 3 and PR 4 (R3-3).
+- [X] T055 [US4] `App/Score/ControlsView.swift` (Watch 4), replacing the placeholder page:
   - `controls.elapsed` at the top;
   - a 2×2 grid of 64 pt round buttons with labels: Undo (`surface-raised`), Pause/Resume (`control-pause`), Server ⇆ (`surface-raised`), End (`control-end`, stop square);
   - End opens `.confirmationDialog("End match?")` with a destructive "End match" button;
   - a `ScrollView` so that large text never clips.
-- [ ] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", the "Server: %@" announcement, and "Match ended early" (for the minimal summary) (copy table).
-- [ ] T057 [US4] Update `docs/design/screens/watch-4-controls.md` (R1-9): the Server control is decided as the first-server correction [ITF: CE-02], not CE-01; Pause shows Resume while paused; End opens the "End match?" confirmation. Note "changed by spec 002".
+- [X] T056 [US7] Add the strings for this PR to `App/Localizable.xcstrings`: Undo, Pause, Resume, Server, End, "End match?" / "End match", "Paused", "Paused. %@", the "Server: %@" announcement, and "Match ended early" (for the minimal summary) (copy table).
+- [X] T057 [US4] Update `docs/design/screens/watch-4-controls.md` (R1-9): the Server control is decided as the first-server correction [ITF: CE-02], not CE-01; Pause shows Resume while paused; End opens the "End match?" confirmation. Note "changed by spec 002".
 - [ ] T058 [US4] PR checklist steps 3–7 for PR 3. Screenshots: Controls, Paused at deuce, the End confirmation, in EN, PL and UK. Device checks for Denys: pause and resume on a real watch; the End confirmation is reachable with wet fingers.
 
 **Checkpoint (PR 3 merged)**: US4 is fully covered, along with US3 s7 and SC-004.

@@ -1,7 +1,7 @@
 import SwiftUI
 import TennisCore
 
-/// Watch 6 — Summary, minimal until PR 4: the result and Done (Story 5 s2, s10).
+/// Watch 6 — Summary, minimal until PR 4: the result and Done (Story 5 s2, s3, s10).
 struct SummaryView: View {
   @Environment(MatchSession.self) private var session
 
@@ -26,9 +26,10 @@ struct SummaryView: View {
   }
 
   private var title: LocalizedStringResource {
-    if case .won(let winner) = session.match?.state.status {
-      return winner == .me ? "summary.win" : "summary.loss"
+    switch session.match?.state.status {
+    case .won(.me): "summary.win"
+    case .won(.opponent): "summary.loss"
+    default: "summary.endedEarly"  // US5 s3: never Win or Loss for an unfinished match
     }
-    return "summary.win"  // Ended early arrives with PR 3
   }
 }
