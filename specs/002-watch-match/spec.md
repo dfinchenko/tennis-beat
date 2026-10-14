@@ -291,7 +291,7 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 | Court-side pill | Right · Left · Choice | z prawej · z lewej · wybór | справа · зліва · на вибір | approved (glossary) |
 | Status line | Deuce · Deciding point · Tie-break · Match tie-break | Równowaga · Punkt decydujący · Tie-break · Super tie-break | Рівно · Вирішальне очко · Тай-брейк · Матч-тай-брейк | glossary |
 | Paused indicator | Paused | Pauza | Пауза | draft (Q4) |
-| Controls | Undo · Pause · Resume · Server · End | Cofnij · Pauza · Wznów · Serwis · Zakończ | Скасувати · Пауза · Продовжити · Подача · Завершити | Undo, Pause glossary; rest draft (UK from mock-up) |
+| Controls | Undo · Pause · Resume · Server · End | Cofnij · Pauza · Wznów · Serwis · Zakończ | Скасувати · Пауза · Продовжити · Подача · Завершити | Undo, Pause glossary; UK «Подача» approved by Denys 2026-10-14 (#21 R1-5); rest draft (UK from mock-up) |
 | End confirmation | End match? / End match | Zakończyć mecz? / Zakończ mecz | Завершити матч? / Завершити матч | glossary-based draft; Cancel is the system button |
 | Summary titles | Win · Loss · Match ended early | Wygrana · Porażka · Mecz przerwany | Перемога · Поразка · Матч перервано | Win/Loss glossary; unfinished draft (Q5) |
 | Summary row / button | Duration · Done | Czas trwania · Gotowe | Тривалість · Готово | draft (UK from mock-up) |
@@ -303,8 +303,8 @@ Glossary terms are fixed. Rows marked *draft* are proposals for Denys; PL drafts
 | VoiceOver: score summary, Me serving | %1$@–%2$@, I'm serving, from the right / from the left | %1$@–%2$@, serwuję, z prawej / z lewej | %1$@–%2$@, подаю, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
 | VoiceOver: score summary, Opponent serving | %1$@–%2$@, Opponent serving, from the right / from the left | %1$@–%2$@, serwuje przeciwnik, z prawej / z lewej | %1$@–%2$@, подає суперник, справа / зліва | EN, UK decided by Denys 2026-10-13 (R2-1); PL draft; server's score first |
 | VoiceOver: score summary, deciding point | %1$@–%2$@, I'm serving / Opponent serving, receiver chooses the side | %1$@–%2$@, serwuję / serwuje przeciwnik, stronę wybiera odbierający | %1$@–%2$@, подаю / подає суперник, сторону обирає приймаючий | draft, follows R2-1 |
-| VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. + Me: Serving from the right / left. · Opponent: Serving from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. + Me: Serwuję, z prawej / z lewej. · Opponent: Serwuje przeciwnik, z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. + Me: Подаю, справа / зліва. · Opponent: Подає суперник, справа / зліва. | draft; games and sets use plural forms; serve phrase decided by Denys 2026-10-14 (#20 R1-2), PL draft |
-| VoiceOver: zone, deciding point | Me: Serving. Opponent chooses the side. · Opponent: Opponent serving. You choose the side. | Me: Serwuję. Stronę wybiera przeciwnik. · Opponent: Serwuje przeciwnik. Stronę wybieram ja. | Me: Подаю. Сторону обирає суперник. · Opponent: Подає суперник. Сторону обираю я. | draft, decided by Denys 2026-10-14 (#20 R1-3); the summary keeps "receiver chooses the side" |
+| VoiceOver: zone | %1$@, %2$@. %3$d games, %4$d sets. + Me: Serving from the right / left. · Opponent: Opponent serving, from the right / left. | %1$@, %2$@. %3$d gemy, %4$d sety. + Me: Serwuję, z prawej / z lewej. · Opponent: Serwuje przeciwnik, z prawej / z lewej. | %1$@, %2$@. %3$d гейми, %4$d сети. + Me: Подаю, справа / зліва. · Opponent: Подає суперник, справа / зліва. | draft; games and sets use plural forms; serve phrase decided by Denys 2026-10-14 (#20 R1-2), PL draft; EN Opponent phrase decided by Denys 2026-10-14 (#21 R1-3) |
+| VoiceOver: zone, deciding point | Me: Serving. Opponent chooses the side. · Opponent: Opponent serving. I choose the side. | Me: Serwuję. Stronę wybiera przeciwnik. · Opponent: Serwuje przeciwnik. Stronę wybieram ja. | Me: Подаю. Сторону обирає суперник. · Opponent: Подає суперник. Сторону обираю я. | draft, decided by Denys 2026-10-14 (#20 R1-3); EN "I choose the side" decided 2026-10-14 (#21 R1-3); the summary keeps "receiver chooses the side" |
 | VoiceOver: zone action | Add point for %@ | Dodaj punkt: %@ | Додати очко: %@ | draft |
 | VoiceOver: announcements | Game: %@ · Set: %@ · Match: %@ · Server: %@ | Gem: %@ · Set: %@ · Mecz: %@ · Serwuje: %@ | Гейм: %@ · Сет: %@ · Матч: %@ · Подає: %@ | draft; %@ is the winner or the new server |
 | VoiceOver: paused | Paused. %@ | Pauza. %@ | Пауза. %@ | draft (R1-3); %@ is the game state, omitted if none |
@@ -393,3 +393,13 @@ Denys decided the #20 review findings on 2026-10-14 ([report](https://github.com
 - **R1-2** — The zone's serve phrase is first person for Me («Подаю, справа», «Serwuję, z prawej») and names the Opponent («Подає суперник, справа»), matching the summary strings (copy table).
 - **R1-3** — On the deciding point the zone says who chooses the side: Me serving, "Serving. Opponent chooses the side."; Opponent serving, "Opponent serving. You choose the side." (copy table, drafts).
 - **Court-side pill** — after sets and games, or on its own row when it doesn't fit (approved; `docs/design/screens/watch-3-score.md`).
+
+### PR #21 review decisions
+
+Denys decided the #21 review findings on 2026-10-14 ([report](https://github.com/dfinchenko/tennis-beat/pull/21#issuecomment-6171897013)).
+
+- **R1-1, R1-2** — `endEarly()` ordering and the missing haptic check are fixed in 002 PR 4.
+- **R1-3** — EN Opponent zone phrase "Opponent serving, from the right / left."; on the deciding point "Opponent serving. I choose the side." (first person, as "I'm serving"). The copy table's intro line stays.
+- **R1-4** — The system confirmation dialog stays; the UI contract notes that tests find the End button by its label.
+- **R1-5** — UK «Подача» for the Server control is approved. Every PL draft is listed in one "Polish native review" issue ([#22](https://github.com/dfinchenko/tennis-beat/issues/22)), reviewed together before release.
+- **Controls size** — On 40 mm the round controls use the largest size at which all four fit without scrolling at the default text size, but not below 48 pt; 64 pt on larger watches. Scrolling is acceptable only at larger text sizes.

@@ -261,11 +261,17 @@ struct SessionTests {
 
   @Test("US2 s3 after an early end a tap adds nothing")  // ITF: MT-08
   func noPointAfterEarlyEnd() {
-    let session = playing()
+    let haptics = RecordingHaptics()
+    let session = MatchSession(
+      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(), now: clock.now,
+      makeFormat: { _ in PointOutcomeTests.format() })
+    session.start(firstServer: .me)
     tap("M", on: session)
     session.endEarly()
+    haptics.reset()
     session.addPoint(for: .me)
     #expect(session.match?.events.last == .matchEndedEarly)
+    #expect(haptics.calls.isEmpty)  // #21 R1-2: no haptic requested
   }
 
   @Test("US4 s7 while paused Undo and Server work and keep the pause; End ends it")  // ITF: CE-02

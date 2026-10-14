@@ -37,3 +37,11 @@ New tests in this branch were written before the code they check. Changes made w
 - `ControlsUITests`: the End confirmation's destructive button is found by its EN label "End match", not by `confirm.end`. watchOS drops accessibility identifiers on `confirmationDialog` actions (the simulator's tree shows the button with no identifier), so contract §1's `confirm.end` can't be reached. The system Cancel is the dialog's Close button (`AX_ActionContentControllerCancelButton`).
 - `XCUIApplication.showControls()` / `showScore()` check that an element is on the visible page horizontally (`isOnPage`), not fully on screen: on the 40 mm watch the second row of controls starts below the visible area, and the Controls page keeps its scroll position between visits. Taps still scroll to their target.
 - The End confirmation helper waits for the dialog's Close button (`AX_ActionContentControllerCancelButton`), whose identifier doesn't depend on the language, so the PL and UK screenshot runs reach it.
+
+## Branch `feat/002-summary` (PR 4: Summary)
+
+Changes to tests that existed before this branch:
+- `ScoreAccessibilityTests.zoneServePhrase` (EN): the Opponent's zone phrase is "Opponent serving, from the left." instead of "Serving from the left." (Denys, #21 R1-3). ITF SV-03 is unchanged: only the wording changed, the side is the same.
+- `ScoreAccessibilityTests.zoneDecidingPoint` (EN): "Opponent serving. I choose the side." instead of "Opponent serving. You choose the side." (Denys, #21 R1-3). ITF NA-02 is unchanged: the receiver (Me) chooses the side in both texts.
+- `SessionTests.noPointAfterEarlyEnd` also checks that no haptic is requested (#21 R1-2). This is a stricter check than before.
+- `ControlsUITests.testUS4s11EndCancelChangesNothing` closes the dialog through `dismissEndConfirmation()`, which retries Close until the dialog has gone. On CI a Close tap made while the dialog was still animating in was swallowed (#21 CI run 38587292247). The assertion (Cancel changes nothing) is unchanged.

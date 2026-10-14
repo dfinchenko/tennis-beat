@@ -15,7 +15,7 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | Score | `zone.me`, `zone.opponent` | Tap zones (buttons; with `-uiTestExposeValues` possibly containers, so look them up with `descendants(matching: .any)`) |
 | Score | `zone.<player>.points`, `.games`, `.sets`, `.serve`, `.side` | Displayed values, visible to UI tests **only with `-uiTestExposeValues`**; `.serve` and `.side` exist only for the server |
 | Controls | `controls.undo`, `controls.pauseResume`, `controls.server`, `controls.end`, `controls.elapsed` | Controls page |
-| End confirmation | `confirm.end` | Destructive "End match" |
+| End confirmation | `confirm.end` | Destructive "End match". Set in code, but watchOS gives `confirmationDialog` actions no identifier, so UI tests find the button by its label "End match" (EN) and the dialog by its system Close button `AX_ActionContentControllerCancelButton` (#21 R1-4) |
 | Summary | `summary.title`, `summary.chip.<n>`, `summary.duration`, `summary.done`, `summary.undo` | Summary (chips numbered from 1) |
 
 ## 2. Launch arguments (UI tests only)

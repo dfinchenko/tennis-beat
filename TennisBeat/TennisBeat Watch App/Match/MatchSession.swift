@@ -162,21 +162,22 @@ final class MatchSession {
   /// match opens, so a 0-point match is never kept. No haptic.  ITF: MT-08
   func endEarly() {
     haptics.cancelPending()
-    guard route == .playing, var match else { return }
-    isPaused = false
+    guard isInProgress, var match else { return }
     guard hasPlayedPoint else {
       self.match = nil
       clock = nil
+      isPaused = false
       route = .setup
       return
     }
     do {
       try match.endEarly()
     } catch {
-      return
+      return  // rejected: the session, the pause included, stays as it was (#21 R1-1)
     }
     self.match = match
     clock?.stop(at: now())
+    isPaused = false
     route = .summary
   }
 

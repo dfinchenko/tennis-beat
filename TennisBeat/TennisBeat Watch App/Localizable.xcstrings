@@ -962,13 +962,13 @@
       }
     },
     "score.zone.serving.opponent.choice": {
-      "comment": "VoiceOver zone: Opponent serving on the No-Ad deciding point; Me chooses the side (ITF NA-02, #20 R1-3)",
+      "comment": "VoiceOver zone: Opponent serving on the No-Ad deciding point; Me chooses the side (ITF NA-02, #20 R1-3, #21 R1-3)",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Opponent serving. You choose the side."
+            "value": "Opponent serving. I choose the side."
           }
         },
         "pl": {
@@ -986,13 +986,13 @@
       }
     },
     "score.zone.serving.opponent.left": {
-      "comment": "VoiceOver zone: Opponent serving from the left (#20 R1-2)",
+      "comment": "VoiceOver zone: Opponent serving from the left (#20 R1-2, #21 R1-3)",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serving from the left."
+            "value": "Opponent serving, from the left."
           }
         },
         "pl": {
@@ -1010,13 +1010,13 @@
       }
     },
     "score.zone.serving.opponent.right": {
-      "comment": "VoiceOver zone: Opponent serving from the right (#20 R1-2)",
+      "comment": "VoiceOver zone: Opponent serving from the right (#20 R1-2, #21 R1-3)",
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Serving from the right."
+            "value": "Opponent serving, from the right."
           }
         },
         "pl": {
