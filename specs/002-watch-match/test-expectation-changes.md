@@ -35,4 +35,5 @@ New tests in this branch were written before the code they check. One change was
 
 New tests in this branch were written before the code they check. Changes made while they were still failing, before the screen worked (no assertion loosened):
 - `ControlsUITests`: the End confirmation's destructive button is found by its EN label "End match", not by `confirm.end`. watchOS drops accessibility identifiers on `confirmationDialog` actions (the simulator's tree shows the button with no identifier), so contract §1's `confirm.end` can't be reached. The system Cancel is the dialog's Close button (`AX_ActionContentControllerCancelButton`).
-- `XCUIApplication.showControls()` waits for `controls.elapsed` to be on screen, not `controls.server`: on the 40 mm watch the second row of controls starts below the visible area, and taps scroll to it.
+- `XCUIApplication.showControls()` / `showScore()` check that an element is on the visible page horizontally (`isOnPage`), not fully on screen: on the 40 mm watch the second row of controls starts below the visible area, and the Controls page keeps its scroll position between visits. Taps still scroll to their target.
+- The End confirmation helper waits for the dialog's Close button (`AX_ActionContentControllerCancelButton`), whose identifier doesn't depend on the language, so the PL and UK screenshot runs reach it.

@@ -14,33 +14,24 @@ struct ControlsView: View {
         if let clock = session.clock {
           ElapsedTimeView(clock: clock, identifier: "controls.elapsed")
         }
-        Grid(horizontalSpacing: 8, verticalSpacing: 8) {
-          GridRow {
-            control(
-              "score.undo", systemImage: "arrow.uturn.backward", fill: .watchSurfaceRaised,
-              glyph: .watchTextPrimary, id: "controls.undo", action: session.undo
-            )
-            .disabled(!session.canUndo)
-            control(
-              session.isPaused ? "controls.resume" : "controls.pause",
-              systemImage: session.isPaused ? "play.fill" : "pause.fill",
-              fill: .watchControlPause, glyph: .brandBall, id: "controls.pauseResume"
-            ) {
-              session.isPaused ? session.resume() : session.pause()
+        // A 2×2 grid while every label fits on one line; one column otherwise, so long
+        // labels (UK «Продовжити» at large sizes) wrap between words, never inside one.
+        ViewThatFits(in: .horizontal) {
+          Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+            GridRow {
+              undo(singleLine: true)
+              pauseResume(singleLine: true)
+            }
+            GridRow {
+              server(singleLine: true)
+              end(singleLine: true)
             }
           }
-          GridRow {
-            // The first-server correction (ITF CE-02), not an order-of-service fix.
-            control(
-              "controls.server", systemImage: "arrow.left.arrow.right",
-              fill: .watchSurfaceRaised, glyph: .watchTextPrimary, id: "controls.server",
-              action: session.correctServer)
-            control(
-              "controls.end", systemImage: "stop.fill", fill: .watchControlEnd,
-              glyph: .statusEnd, id: "controls.end"
-            ) {
-              isConfirmingEnd = true
-            }
+          VStack(spacing: 8) {
+            undo(singleLine: false)
+            pauseResume(singleLine: false)
+            server(singleLine: false)
+            end(singleLine: false)
           }
         }
       }
@@ -57,9 +48,45 @@ struct ControlsView: View {
     }
   }
 
+  private func undo(singleLine: Bool) -> some View {
+    control(
+      "score.undo", systemImage: "arrow.uturn.backward", fill: .watchSurfaceRaised,
+      glyph: .watchTextPrimary, id: "controls.undo", singleLine: singleLine,
+      action: session.undo
+    )
+    .disabled(!session.canUndo)
+  }
+
+  private func pauseResume(singleLine: Bool) -> some View {
+    control(
+      session.isPaused ? "controls.resume" : "controls.pause",
+      systemImage: session.isPaused ? "play.fill" : "pause.fill", fill: .watchControlPause,
+      glyph: .brandBall, id: "controls.pauseResume", singleLine: singleLine
+    ) {
+      session.isPaused ? session.resume() : session.pause()
+    }
+  }
+
+  /// The first-server correction (ITF CE-02), not an order-of-service fix.
+  private func server(singleLine: Bool) -> some View {
+    control(
+      "controls.server", systemImage: "arrow.left.arrow.right", fill: .watchSurfaceRaised,
+      glyph: .watchTextPrimary, id: "controls.server", singleLine: singleLine,
+      action: session.correctServer)
+  }
+
+  private func end(singleLine: Bool) -> some View {
+    control(
+      "controls.end", systemImage: "stop.fill", fill: .watchControlEnd, glyph: .statusEnd,
+      id: "controls.end", singleLine: singleLine
+    ) {
+      isConfirmingEnd = true
+    }
+  }
+
   private func control(
     _ title: LocalizedStringResource, systemImage: String, fill: Color, glyph: Color,
-    id: String, action: @escaping () -> Void
+    id: String, singleLine: Bool, action: @escaping () -> Void
   ) -> some View {
     Button(action: action) {
       VStack(spacing: 4) {
@@ -73,7 +100,8 @@ struct ControlsView: View {
           .font(.watchBody)
           .foregroundStyle(Color.watchTextPrimary)
           .multilineTextAlignment(.center)
-          .fixedSize(horizontal: false, vertical: true)
+          .lineLimit(singleLine ? 1 : nil)
+          .fixedSize(horizontal: singleLine, vertical: true)
       }
       .frame(maxWidth: .infinity)
       .contentShape(.rect)

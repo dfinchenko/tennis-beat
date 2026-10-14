@@ -95,7 +95,7 @@ extension XCUIApplication {
   func showControls(file: StaticString = #filePath, line: UInt = #line) {
     for _ in 0..<2 {
       swipeRight()
-      if isOnScreen("controls.elapsed") { return }
+      if isOnPage("controls.server") { return }
     }
     XCTFail("Controls did not appear", file: file, line: line)
   }
@@ -105,7 +105,7 @@ extension XCUIApplication {
   func showScore(file: StaticString = #filePath, line: UInt = #line) {
     for _ in 0..<2 {
       swipeLeft()
-      if isOnScreen("zone.me") { return }
+      if isOnPage("zone.me") { return }
     }
     XCTFail("Score did not appear", file: file, line: line)
   }
@@ -118,6 +118,22 @@ extension XCUIApplication {
     let deadline = Date().addingTimeInterval(3)
     repeat {
       if target.exists, frame.contains(target.frame) { return true }
+      RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+    } while Date() < deadline
+    return false
+  }
+
+  /// Waits up to 3 s until `id` is on the visible page: the match pages sit side by side,
+  /// so an element of the other page lies off screen horizontally. Vertical position is
+  /// ignored, because the Controls page keeps its scroll position between visits.
+  @MainActor
+  func isOnPage(_ id: String) -> Bool {
+    let target = element(id)
+    let deadline = Date().addingTimeInterval(3)
+    repeat {
+      if target.exists, target.frame.minX >= frame.minX - 1, target.frame.maxX <= frame.maxX + 1 {
+        return true
+      }
       RunLoop.current.run(until: Date().addingTimeInterval(0.1))
     } while Date() < deadline
     return false

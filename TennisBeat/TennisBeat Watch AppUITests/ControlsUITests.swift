@@ -190,7 +190,8 @@ extension XCUIApplication {
   func openEndConfirmation(file: StaticString = #filePath, line: UInt = #line) {
     for _ in 0..<2 {
       tap("controls.end", file: file, line: line)
-      if endConfirmationButton.waitForExistence(timeout: 3) { return }
+      // The Close button's identifier doesn't depend on the language (screenshots run in PL, UK).
+      if endConfirmationCancel.waitForExistence(timeout: 3) { return }
     }
     XCTFail("the End confirmation did not appear", file: file, line: line)
   }
