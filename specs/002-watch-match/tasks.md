@@ -165,7 +165,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - `setup.atFortyAll.*`, `setup.thirdSet.*`, `setup.start`;
   - `firstServer.title`, `player.me`, `player.opponent`, `firstServer.coinToss`, `coinToss.result`.
 - [X] T025 [US1] Update `docs/design/screens/watch-1-new-match.md`: add the "Set length" row as the second row, with EN, PL and UK texts and a note "added by spec 002 Q1" (R1-9).
-- [ ] T026 [US1] PR checklist steps 3–7 for PR 1. Screenshots: New match (defaults and 1 set), a picker, First server, the coin-toss result, each in EN, PL and UK at the largest standard and an accessibility size on 40 mm. Device checks for Denys: SC-001 (two taps from launch to the score route). Metrics row for the 002 plan PR (its number is in `git log` on `main`).
+- [x] T026 [US1] PR checklist steps 3–7 for PR 1 (done in #18). Screenshots: New match (defaults and 1 set), a picker, First server, the coin-toss result, each in EN, PL and UK at the largest standard and an accessibility size on 40 mm. Device checks for Denys: SC-001 (two taps from launch to the score route). Metrics row for the 002 plan PR (its number is in `git log` on `main`).
 
 **Checkpoint (PR 1 merged)**: a match can be set up and started; US1 is fully covered.
 
@@ -277,7 +277,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
   Use the spec's copy table exactly.
 - [X] T046 [US2] Update `docs/design/screens/watch-3-score.md` (R1-9): the status line also shows Tie-break, Match tie-break and Paused (FR-008, Q4); the VoiceOver summary element comes first, with the status in it (Story 7 s1, s2, R2-1); the heart-rate row is hidden in 002 (spec 003). Note "changed by spec 002".
-- [ ] T047 [US2] PR checklist steps 3–7 for PR 2. Screenshots: 0–0, 30–15 Right, deuce, No-Ad deciding point (Choice), tie-break, match tie-break, "15"-wide tie-break points at the largest size. Device checks for Denys:
+- [x] T047 [US2] PR checklist steps 3–7 for PR 2 (done in #20). Screenshots: 0–0, 30–15 Right, deuce, No-Ad deciding point (Choice), tie-break, match tie-break, "15"-wide tie-break points at the largest size. Device checks for Denys:
   - US3 s8: the four haptics are told apart (R3 mapping, may change after this check);
   - SC-007: a set scored by feel, and Undo after a mis-tap in under 3 s.
 
@@ -410,7 +410,7 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 ### Implementation
 
 - [x] T073 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
-  - the dimmed fills and the point colours are lower-opacity `brand/opponent` and `brand/ball`, with sets and games in `text-secondary`;
+  - the dimmed fills and the point colours are lower-opacity `brand/opponent` and `brand/ball`, with sets and games in `text-secondary` (games changed to the dimmed player colour by the #24 decisions, T079/T080; #25 R1-3);
   - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))` in a `TimelineView` driven by `ElapsedMinuteSchedule` (research R5);
   - Undo, the serve icon, the pill and the status line are hidden;
   - `.transaction { $0.animation = nil }`;
