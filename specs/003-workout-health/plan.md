@@ -67,7 +67,7 @@ No new dependency.
 
 | Principle | Status | Evidence |
 | --- | --- | --- |
-| I. Spec before code | PASS | `spec.md` is `Status: Approved (2026-10-15, Denys)`. The spec edits in this branch are Denys's decisions only: R2-1 and R2-3 from #27 (**Review 2 decisions**), and R3-2, the PR order and the permission rule from his plan review (**Review 3 and plan decisions**). Denys re-approves the spec in this PR's approval commit. The artifact gate runs after `/speckit-tasks`. |
+| I. Spec before code | PASS | `spec.md` is `Status: Approved (2026-10-15, Denys)`. The spec edits in this branch are Denys's decisions only: R2-1 and R2-3 from #27 (**Review 2 decisions**), and R3-2, the PR order and the permission rule from his plan review (**Review 3 and plan decisions**). Every decision is in [Denys's #28 comment](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560), and the approval commit cites it (harness: decisions are PR comments). The artifact gate runs after `/speckit-tasks`. |
 | II. Tennis rules | PASS (N/A) | No scoring rule is touched; the engine is unchanged (FR-011, FR-018). Tests that replay matches keep their 002 ITF citations. |
 | III. Test first | PASS | Each PR starts with failing unit tests against the fake service, then UI tests, then code, with `test-first-evidence.md` rows. Boundary tests: Undo from the summary resumes the workout and keeps one save (Story 4 s5); the 10-minute timeout; pause during a tie-break also pauses the workout (spec Edge cases); the 30-second staleness boundary. Crash recovery of the match stays in spec 004; FR-009a's workout recovery is unit-tested (R10). |
 | IV. Evidence bound to a commit | PASS | `Reviewed-SHA` on every PR; `watch-tests` CI runs the unit and UI tests. |
