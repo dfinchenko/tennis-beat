@@ -6,15 +6,18 @@ extension XCUIApplication {
   static let launchTimeout: TimeInterval = 20
 
   /// Launches with `arguments` in `language` (English unless stated) and returns once
-  /// `readyElement` (by default the first New match row) is ready for taps.
+  /// `readyElement` (by default the first New match row) is ready for taps. Without an
+  /// explicit `-uiTestHealth` mode the app gets the "denied" fake (sheet answered, no
+  /// workouts), so every spec 002 test runs as before (spec 003 SC-005, research R12).
   @MainActor
   static func launched(
     _ arguments: [String], language: String = "en", readyElement: String = "setup.format",
     file: StaticString = #filePath, line: UInt = #line
   ) -> XCUIApplication {
     let app = XCUIApplication()
+    let health = arguments.contains("-uiTestHealth") ? [] : ["-uiTestHealth", "denied"]
     app.launchArguments =
-      arguments + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
+      arguments + health + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
     app.launch()
     app.waitUntilReady(readyElement, file: file, line: line)
     return app
@@ -139,4 +142,3 @@ extension XCUIApplication {
     return false
   }
 }
-

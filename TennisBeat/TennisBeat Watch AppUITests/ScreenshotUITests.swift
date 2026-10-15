@@ -7,6 +7,25 @@ final class ScreenshotUITests: XCTestCase {
     continueAfterFailure = false
   }
 
+  /// Spec 003: the Health onboarding, top and bottom (watch-0-health-onboarding.md).
+  @MainActor
+  func testHealthOnboardingScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var arguments = ["-uiTestHealth", "shouldRequest"]
+    if let size = environment["SCREENSHOT_TEXT_SIZE"] {
+      arguments += ["-UIPreferredContentSizeCategoryName", size]
+    }
+    let app = XCUIApplication.launched(
+      arguments, language: language, readyElement: "health.onboarding.continue")
+    app.element("health.onboarding").swipeDown()
+    attach(app, "0-health-onboarding")
+    app.reveal(app.element("health.onboarding.notNow"))
+    attach(app, "0b-health-onboarding-bottom")
+  }
+
   @MainActor
   func testSetupScreens() throws {
     let environment = ProcessInfo.processInfo.environment
