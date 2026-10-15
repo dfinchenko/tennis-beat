@@ -224,4 +224,23 @@ struct ScoreScreenModelTests {
       ElapsedMinuteSchedule(clock: clock).entries(from: start + 40, mode: .lowFrequency).prefix(3))
     #expect(entries == [start + 40])
   }
+
+  @Test("R5 once the clock has stopped the dimmed time doesn't change, so there is no later redraw")
+  func elapsedMinuteScheduleStopped() {
+    let start = Date(timeIntervalSinceReferenceDate: 800_000_000)
+    var clock = MatchClock(startedAt: start)
+    clock.stop(at: start + 90)
+    let entries = Array(
+      ElapsedMinuteSchedule(clock: clock).entries(from: start + 100, mode: .lowFrequency).prefix(3))
+    #expect(entries == [start + 100])
+    // Stopped during a pause: still no later redraw.
+    var pausedThenStopped = MatchClock(startedAt: start)
+    pausedThenStopped.pause(at: start + 30)
+    pausedThenStopped.stop(at: start + 50)
+    let stoppedEntries = Array(
+      ElapsedMinuteSchedule(clock: pausedThenStopped).entries(
+        from: start + 100, mode: .lowFrequency
+      ).prefix(3))
+    #expect(stoppedEntries == [start + 100])
+  }
 }

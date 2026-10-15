@@ -23,19 +23,16 @@ final class AccessibilityAuditUITests: XCTestCase {
     continueAfterFailure = true
   }
 
-  /// PL and UK at the default size; EN at the largest accessibility size, for the setup
-  /// screens (the match screens already audit it in EN). PL and UK at the largest size on
-  /// the scrolling match screens, where long labels clipped before (#24 R1-3); the score
-  /// screen stops at XXXL (Q9).
+  /// PL and UK at the default size and at the largest accessibility size on every screen
+  /// (#24 R1-3, R2-1); the score screen stops at XXXL (Q9). EN at the largest accessibility
+  /// size for the setup screens only: the match screens already audit it in EN.
   private func settings(for screen: Screen) -> [Setting] {
     let largest = ScoreAccessibilityUITests.largestAccessibility
     var all = [Setting(language: "pl", size: nil), Setting(language: "uk", size: nil)]
     if screen.isSetup {
       all.append(Setting(language: "en", size: largest))
     }
-    if [.controls, .endConfirmation, .summary].contains(screen) {
-      all += [Setting(language: "pl", size: largest), Setting(language: "uk", size: largest)]
-    }
+    all += [Setting(language: "pl", size: largest), Setting(language: "uk", size: largest)]
     return all
   }
 
