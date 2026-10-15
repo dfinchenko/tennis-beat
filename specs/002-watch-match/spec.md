@@ -181,7 +181,7 @@ With the wrist down, the dimmed screen still shows the score.
 
 **Acceptance Scenarios**:
 
-1. **Given** the score screen enters the dimmed (Always On) state, **Then** it shows the same zones with darker fills, grey sets and games, point displays in dimmed player colours, and the elapsed time in whole minutes only (e.g. "42 min"), using the system's abbreviated minutes format for the current language.
+1. **Given** the score screen enters the dimmed (Always On) state, **Then** it shows the same zones with darker fills, completed sets in grey, the current games and the point displays in dimmed player colours, and the elapsed time in whole minutes only (e.g. "42 min") in tertiary grey, using the system's abbreviated minutes format for the current language (changed by #24 decisions).
 2. **Given** the dimmed state, **Then** there are no seconds, no Undo button, no animations, no serve icon, no court-side pill and no status line (Q8).
 3. **Given** the dimmed state, **When** a point is added after the wrist is raised, **Then** the full score screen is back before the tap is handled; taps are never handled in the dimmed state.
 4. **Given** the dimmed state, **Then** the point displays, sets and games stay readable at arm's length (device check).
@@ -412,3 +412,14 @@ Denys decided the #23 review findings on 2026-10-14 ([report](https://github.com
 - **R1-2** — A test-helper change that does not change what a test expects (e.g. how it finds the End button) is not an expectation change; the definition in `docs/harness.md` says so.
 - **R1-3** — VoiceOver reads the summary duration in spoken units in EN, PL and UK (e.g. "1 hour, 24 minutes, 10 seconds").
 - **R1-4, R1-5, R1-6** — The summary chips never get wider than the screen; the Controls size constants are named; the #20 R1-3 entry notes that #21 R1-3 supersedes it.
+
+### PR #24 review decisions
+
+Denys decided the #24 review findings and the two Always On colour questions on 2026-10-15 ([report](https://github.com/dfinchenko/tennis-beat/pull/24#issuecomment-6185926038)). All are applied in the #24 follow-up PR.
+
+- **Always On colours** — The current games are in the dimmed player colour, as in the Watch 5 image; the completed sets stay grey (`watch/text-secondary`). The header minutes are in `watch/text-tertiary` (#8E8E93). Story 6 s1 is updated.
+- **R2-1** — PL and UK at the largest accessibility size are audited on the setup screens and Score too.
+- **R2-2** — The summary UI test's duration check no longer depends on the seconds being non-zero.
+- **R2-3** — A test covers the minute schedule with a stopped clock.
+- **Test-first evidence** — Every PR that adds tests records that they failed before the implementation (commit SHA and failing test names) in `test-first-evidence.md`; the reviewer checks it (`docs/harness.md`).
+

@@ -43,11 +43,13 @@ final class SummaryUITests: XCTestCase {
     XCTAssertEqual(app.element("summary.title").label, "Win")
     XCTAssertEqual(app.element("summary.chip.1").label, "Set 1: 4–1, won")
     XCTAssertFalse(app.element("summary.chip.2").exists)
-    // #23 R1-3: VoiceOver reads "Duration" and the time in spoken units, not h:mm:ss.
+    // #23 R1-3: VoiceOver reads "Duration" and the time in spoken units, not h:mm:ss. The
+    // match length varies, so any list of hours, minutes and seconds passes (#24 R2-2).
     let duration = app.element("summary.duration")
     XCTAssertEqual(duration.label, "Duration")
-    XCTAssertTrue(
-      (duration.value as? String)?.hasSuffix("seconds") == true, "\(duration.value ?? "")")
+    let value = duration.value as? String ?? ""
+    XCTAssertNotNil(
+      value.wholeMatch(of: /\d+ (hour|minute|second)s?(, \d+ (minute|second)s?)*/), value)
   }
 
   @MainActor

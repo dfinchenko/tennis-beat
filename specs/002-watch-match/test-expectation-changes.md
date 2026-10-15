@@ -54,3 +54,10 @@ Changes to tests that existed before this branch:
 - `SummaryUITests.testUS5s2s4s7WinShowsTitleChipsAndDuration`: the duration row, which only had to exist, must also have the label "Duration" and a value in spoken units ending in "seconds" (#23 R1-3). Stricter than before. Spec US5-S7 (the duration is shown) and the spec's "PR #23 review decisions", R1-3 (spoken units).
 - `SummaryUITests.testSC005AuditSummaryAccessibilitySize`: also checks that the first set chip lies inside the screen at the largest accessibility size (#23 R1-4). Stricter than before. Spec US7-S6 (no clipped text at large sizes).
 - Note (#24 R1-5): the `feat/002-summary` section above was annotated after #23 merged, as Denys decided in #23 R1-1 and R1-2: the MT-08 and US3-S7 citations, and the note that the End-button helper is not an expectation change. No expectation in it changed.
+
+## Branch `feat/002-always-on-followups` (#24 follow-ups)
+
+Changes to tests that existed before this branch:
+- `SummaryUITests.testUS5s2s4s7WinShowsTitleChipsAndDuration`: the duration's spoken value must be a list of hours, minutes and seconds in words (`\d+ (hour|minute|second)s?(, \d+ (minute|second)s?)*`) instead of ending in "seconds" (#24 R2-2). Looser only for a whole number of minutes ("1 minute"), which the old check wrongly failed; it still fails on an h:mm:ss value. Spec US5-S7 and the spec's "PR #23 review decisions", R1-3 (spoken units).
+- `AccessibilityAuditUITests` (setup screens and Score): the same audit now also runs in PL and UK at the largest accessibility size (#24 R2-1). More settings; no expectation changed.
+- `PlayerZoneView` games colour in Always On: no earlier test checked a colour, so no expectation changed; the new tests are in `AlwaysOnTests` (Story 6 s1 as changed by the spec's "PR #24 review decisions").

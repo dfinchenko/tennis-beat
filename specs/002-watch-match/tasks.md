@@ -424,6 +424,14 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 **Checkpoint (PR 5 merged)**: every story is covered; spec 002 is done.
 
+## Follow-up: #24 review decisions (spec "PR #24 review decisions")
+
+- [x] T077 Metrics row for #24 in `docs/harness.md`; the test-first evidence rule in `CLAUDE.md`, `docs/harness.md` and `.claude/agents/reviewer.md`; Story 6 s1 and `docs/design/screens/watch-5-always-on.md` updated to the decided colours.
+- [x] T078 [US6] Record #24's tests run against `201d54a`, the code before Always On, in `specs/002-watch-match/test-first-evidence.md`.
+- [x] T079 [P] [US6] Tests first (`AlwaysOnTests`): dimmed games in the dimmed player colour, completed sets grey (positive control: lit colours); the dimmed header in `watch/text-tertiary`. `ScoreScreenModelTests`: no redraw after the clock stops (R2-3). `AccessibilityAuditUITests`: PL and UK at the largest accessibility size on the setup screens and Score (R2-1). `SummaryUITests`: the spoken duration matched as a list of units (R2-2).
+- [x] T080 [US6] `PlayerZoneView.Palette`: games use the accent when dimmed; `ElapsedTimeView.color(isDimmed:)`: `watchTextTertiary`.
+- [x] T081 PR checklist steps 3–7; Always On screenshots in EN, PL and UK next to the design.
+
 ---
 
 ## Dependencies & Execution Order

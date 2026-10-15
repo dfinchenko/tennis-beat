@@ -34,7 +34,7 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 ## Workflow for every task
 1. Work in a dedicated git worktree and branch `feat/NNN-slug` (one agent session per worktree).
 2. Run the artifact gate. If it fails (missing/empty artifact or spec not `Status: Approved`), STOP and report.
-3. Write failing tests first, then code. Every bug fix starts with a failing regression test.
+3. Write failing tests first, then code. Every bug fix starts with a failing regression test. Commit the tests before the code, run them, and record that they failed: every PR that adds tests lists in `specs/<feature>/test-first-evidence.md` the commit SHA they ran against and the failing test names (compile errors count when the API didn't exist yet; a test of existing code fails against a recorded mutation instead). The reviewer checks it (see `docs/harness.md`).
 4. Engine tests cite the rule they check, e.g. `// ITF: Rule 5(b)` using the IDs in `docs/rules/itf-notes.md`.
 5. Build both app targets and run the affected flow in the simulator via XcodeBuildMCP; attach screenshots to the PR.
 6. Invoke the `reviewer` subagent. Do not pass it your own summary. It returns `Reviewed-SHA`. Post each report as a PR comment with numbered findings (R<review>-<n>) and their outcomes.
@@ -53,4 +53,4 @@ You (Claude Code) implement; Denys approves specs, reviews and merges PRs, and t
 - The app must work without Health permission and on the watch without the iPhone nearby.
 
 ## Definition of done
-Tests green for the current SHA, reviewer PASS for the same SHA, CI green, PR with screenshots, and — if UI, HealthKit or sync changed — a list of device checks for Denys (see `docs/harness.md`).
+Tests green for the current SHA, test-first evidence recorded for every added test, reviewer PASS for the same SHA, CI green, PR with screenshots, and — if UI, HealthKit or sync changed — a list of device checks for Denys (see `docs/harness.md`).
