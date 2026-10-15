@@ -11,11 +11,14 @@ The same structure as **Watch 3 — Score**, dimmed for Always On:
 - The zone fills and score colours are darker, lower-opacity versions of `brand/opponent` and `brand/ball`. Sets and games are in grey.
 - No server glyph is shown.
 
+- **Changed by spec 002 (Q8, R1-9):** the court-side pill and the status line are hidden too, not only the server glyph. Sets and games are both grey (`watch/text-secondary`), as Story 6 s1 says; the PNG shows the games in the dimmed player colour.
+- **Colours as built:** the dimmed player colours are `brand/opponent` and `brand/ball` at 60 % opacity (#416D99, #86992F on black, as sampled from the PNG), and the zone fills the same colours at 10 % (#0A1119, #161908).
+
 ## Texts (UK)
 | Element | Text |
 | --- | --- |
-| Header | 42 хв (minutes, via `FormatStyle`, with plural variations) |
+| Header | 42 хв: whole elapsed minutes, rounded down, in the system's abbreviated format (`Duration.formatted(.units(allowed: [.minutes], width: .abbreviated))`). No plural variations: the abbreviation doesn't change with the number (changed by spec 002, R1-8). |
 
 ## Notes for the spec
 - HIG and the device checklist: no seconds or animations, and the score must stay readable.
-- Leaving out the server glyph is a design choice for the spec to confirm.
+- Leaving out the server glyph was confirmed by the spec (Q8).

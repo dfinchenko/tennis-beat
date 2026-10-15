@@ -43,5 +43,14 @@ New tests in this branch were written before the code they check. Changes made w
 Changes to tests that existed before this branch:
 - `ScoreAccessibilityTests.zoneServePhrase` (EN): the Opponent's zone phrase is "Opponent serving, from the left." instead of "Serving from the left." (Denys, #21 R1-3). ITF SV-03 is unchanged: only the wording changed, the side is the same.
 - `ScoreAccessibilityTests.zoneDecidingPoint` (EN): "Opponent serving. I choose the side." instead of "Opponent serving. You choose the side." (Denys, #21 R1-3). ITF NA-02 is unchanged: the receiver (Me) chooses the side in both texts.
-- `SessionTests.noPointAfterEarlyEnd` also checks that no haptic is requested (#21 R1-2). This is a stricter check than before.
-- `ControlsUITests.testUS4s11EndCancelChangesNothing` closes the dialog through `dismissEndConfirmation()`, which retries Close until the dialog has gone. On CI a Close tap made while the dialog was still animating in was swallowed (#21 CI run 38587292247). The assertion (Cancel changes nothing) is unchanged.
+- `SessionTests.noPointAfterEarlyEnd` also checks that no haptic is requested (#21 R1-2). This is a stricter check than before. ITF MT-08 (further points are rejected after an early end); spec US3-S7 (no haptic after an early end).
+- `ControlsUITests.testUS4s11EndCancelChangesNothing` closes the dialog through `dismissEndConfirmation()`, which retries Close until the dialog has gone. On CI a Close tap made while the dialog was still animating in was swallowed (#21 CI run 38587292247). The assertion (Cancel changes nothing) is unchanged, so under the #23 R1-2 definition this is a test-helper change, not an expectation change; it stays listed because it was listed before the definition changed.
+- Not an expectation change (#23 R1-2), noted for the record: `endConfirmationButton` finds the End confirmation's destructive button by its EN, PL or UK label and skips `controls.end`, so the PL and UK screenshot runs can tap it. Every test asserts the same as before.
+
+## Branch `feat/002-always-on` (PR 5: Always On)
+
+Changes to tests that existed before this branch:
+- `SummaryModelTests.noHealthFields`: the summary's fields are `title`, `chips`, `duration` and `spokenDuration` instead of the first three (#23 R1-3: VoiceOver reads the duration in spoken units). Spec US5-S8: still no heart-rate or calorie field; the new field is the same duration in words.
+- `SummaryUITests.testUS5s2s4s7WinShowsTitleChipsAndDuration`: the duration row, which only had to exist, must also have the label "Duration" and a value in spoken units ending in "seconds" (#23 R1-3). Stricter than before. Spec US5-S7 (the duration is shown) and the spec's "PR #23 review decisions", R1-3 (spoken units).
+- `SummaryUITests.testSC005AuditSummaryAccessibilitySize`: also checks that the first set chip lies inside the screen at the largest accessibility size (#23 R1-4). Stricter than before. Spec US7-S6 (no clipped text at large sizes).
+- Note (#24 R1-5): the `feat/002-summary` section above was annotated after #23 merged, as Denys decided in #23 R1-1 and R1-2: the MT-08 and US3-S7 citations, and the note that the End-button helper is not an expectation change. No expectation in it changed.

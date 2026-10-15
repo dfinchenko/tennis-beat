@@ -60,7 +60,8 @@ final class ScreenshotUITests: XCTestCase {
     }
     let games = { (n: Int) in String(repeating: "MMMMOOOO", count: n) }  // n games each
 
-    var app = start("{length=bestOfThree;setLength=four;atFortyAll=advantage;thirdSet=tieBreakToTen;}")
+    var app = start(
+      "{length=bestOfThree;setLength=four;atFortyAll=advantage;thirdSet=tieBreakToTen;}")
     attach(app, "5-score-0-0")
     play(app, "MMO")
     attach(app, "6-score-30-15")
@@ -167,6 +168,37 @@ final class ScreenshotUITests: XCTestCase {
     play(app, String(repeating: "MO", count: 7) + "MMM")  // match tie-break 10–7
     XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
     attach(app, "19-summary-match-tie-break")
+  }
+
+  /// Watch 5 next to `docs/design/screens/watch-5-always-on.png`: Me won the first set 6–4
+  /// and leads 3–2, 30–15.
+  @MainActor
+  func testAlwaysOnScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var size: [String] = []
+    if let category = environment["SCREENSHOT_TEXT_SIZE"] {
+      size = ["-UIPreferredContentSizeCategoryName", category]
+    }
+    let points =
+      String(repeating: "OOOO", count: 4) + String(repeating: "MMMM", count: 6)  // 6–4
+      + String(repeating: "OOOO", count: 2) + String(repeating: "MMMM", count: 3) + "MMO"
+    for (name, alwaysOn) in [("20-always-on", true), ("21-score-lit", false)] {
+      let app = XCUIApplication.launched(
+        ["-resetFormat", "-uiTestPoints", points] + (alwaysOn ? ["-uiTestAlwaysOn"] : []) + size,
+        language: language)
+      app.tap("setup.start", until: "firstServer.me")
+      app.tap("firstServer.me", until: "zone.me")
+      // The points have been played once the summary reads 30–15 (or 15–30).
+      let played = XCTNSPredicateExpectation(
+        predicate: NSPredicate(format: "label CONTAINS '30' AND label CONTAINS '15'"),
+        object: app.element("score.summary"))
+      XCTAssertEqual(XCTWaiter().wait(for: [played], timeout: 10), .completed)
+      attach(app, name)
+      app.terminate()
+    }
   }
 
   @MainActor

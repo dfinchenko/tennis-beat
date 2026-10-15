@@ -45,8 +45,17 @@ struct SummaryView: View {
               durationValue(model.duration)
             }
           }
-          .accessibilityElement(children: .combine)
-          .accessibilityIdentifier("summary.duration")
+          .accessibilityHidden(true)
+          .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+          .overlay {
+            // One VoiceOver element over the whole row, at least 44 pt (the audit's minimum,
+            // T074), read in spoken units, not the h:mm:ss digits (#23 R1-3).
+            Color.clear
+              .accessibilityElement()
+              .accessibilityLabel(Text("summary.duration"))
+              .accessibilityValue(model.spokenDuration)
+              .accessibilityIdentifier("summary.duration")
+          }
 
           Button(action: session.done) {
             Text("summary.done")
@@ -101,7 +110,7 @@ private struct FlowLayout: Layout {
     for row in arrange(width: bounds.width, subviews: subviews) {
       var x = bounds.minX
       for index in row.indices {
-        let size = subviews[index].sizeThatFits(.unspecified)
+        let size = Self.size(of: subviews[index], width: bounds.width)
         subviews[index].place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
         x += size.width + spacing
       }
@@ -115,11 +124,19 @@ private struct FlowLayout: Layout {
     var height: CGFloat = 0
   }
 
+  /// A child's natural size, or its size at the full width when it would be wider, so a
+  /// chip at a large text size wraps instead of running off the screen (#23 R1-4).
+  private static func size(of subview: LayoutSubview, width: CGFloat) -> CGSize {
+    let natural = subview.sizeThatFits(.unspecified)
+    guard natural.width > width else { return natural }
+    return subview.sizeThatFits(ProposedViewSize(width: width, height: nil))
+  }
+
   private func arrange(width: CGFloat, subviews: Subviews) -> [Row] {
     var rows: [Row] = []
     var row = Row()
     for index in subviews.indices {
-      let size = subviews[index].sizeThatFits(.unspecified)
+      let size = Self.size(of: subviews[index], width: width)
       let added = row.indices.isEmpty ? size.width : row.width + spacing + size.width
       if added > width, !row.indices.isEmpty {
         rows.append(row)

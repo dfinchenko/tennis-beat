@@ -14,7 +14,10 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
     let games: Int
     let sets: Int
     let isServer: Bool
-    /// "Right" / "Left" / "Choice" for the server, nil for the receiver.  ITF: SV-03, TB-04, NA-02
+    /// The serve icon: on the server, never in Always On (Q8).
+    let showsServeMark: Bool
+    /// "Right" / "Left" / "Choice" for the server, nil for the receiver and in Always On (Q8).
+    /// ITF: SV-03, TB-04, NA-02
     let courtSide: String?
     let accessibilityLabel: String
     let accessibilityHint: String
@@ -22,8 +25,12 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
 
   /// Opponent on top, then Me (FR-005).
   let zones: [Zone]
-  /// The status line: "Paused", a game state, or empty (FR-008).
+  /// The status line: "Paused", a game state, or empty (FR-008); empty in Always On (Q8).
   let statusText: String
+  /// Undo in the header; hidden in Always On (FR-021).
+  let showsUndo: Bool
+  /// Whether the match takes points now (`MatchSession.acceptsPoints`).
+  let acceptsPoints: Bool
   /// "Paused. <state>", "<state>" or empty (R1-3).
   let statusAccessibilityText: String
   /// Read first: the server's score, who serves and the side, then the status (Story 7 s1, s2).
@@ -33,7 +40,11 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
     zones.first { $0.player == player }!
   }
 
-  init(state: MatchState, isPaused: Bool, locale: Locale) {
+  /// `isDimmed`: the Always On rendering (Watch 5, FR-021).
+  init(
+    state: MatchState, isPaused: Bool, locale: Locale, acceptsPoints: Bool = true,
+    isDimmed: Bool = false
+  ) {
     func text(_ resource: LocalizedStringResource) -> String {
       Self.text(resource, locale: locale)
     }
@@ -42,7 +53,9 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
     }
 
     let gameState = Self.gameState(state).map(text) ?? ""
-    statusText = isPaused ? text("status.paused") : gameState
+    statusText = isDimmed ? "" : isPaused ? text("status.paused") : gameState
+    showsUndo = !isDimmed
+    self.acceptsPoints = acceptsPoints
     statusAccessibilityText =
       if isPaused {
         gameState.isEmpty ? text("status.paused") : text("status.paused.state \(gameState)")
@@ -87,11 +100,24 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
         } else { nil }
       return Zone(
         player: player, label: label, points: Self.display(state.points[player], locale: locale),
-        games: games, sets: sets, isServer: isServer,
-        courtSide: isServer ? text(Self.side(state.courtSide)) : nil,
+        games: games, sets: sets, isServer: isServer, showsServeMark: isServer && !isDimmed,
+        courtSide: isServer && !isDimmed ? text(Self.side(state.courtSide)) : nil,
         accessibilityLabel: [sentence, serving].compactMap(\.self).joined(separator: " "),
         accessibilityHint: text("score.zone.hint \(label)"))
     }
+  }
+
+  /// In Always On the zones take no taps, even while the match accepts points (Story 6 s3).
+  func zonesAcceptTaps(isLuminanceReduced: Bool) -> Bool {
+    acceptsPoints && !isLuminanceReduced
+  }
+
+  /// The Always On header: whole elapsed minutes in the system's abbreviated format, rounded
+  /// down, "42 min" / «42 хв» (Story 6 s1, R1-8, research R5).
+  static func dimmedElapsed(_ seconds: TimeInterval, locale: Locale) -> String {
+    Duration.seconds(Int(seconds)).formatted(
+      .units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down))
+        .locale(locale))
   }
 
   // MARK: Pieces (also used by the session's announcements)

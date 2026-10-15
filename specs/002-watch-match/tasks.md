@@ -399,25 +399,25 @@ US7 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests (write first, see them fail)
 
-- [ ] T069 PR checklist step 1 for PR 5: worktree `.worktrees/002-always-on`, branch `feat/002-always-on`.
-- [ ] T070 [P] [US6] `UnitTests/ScoreScreenModelTests.swift`, dimmed part:
+- [x] T069 PR checklist step 1 for PR 5: worktree `.worktrees/002-always-on`, branch `feat/002-always-on`.
+- [x] T070 [P] [US6] `UnitTests/ScoreScreenModelTests.swift`, dimmed part:
   - US6 s1: the dimmed time text is whole minutes in the abbreviated system format ("42 min", "84 min"; PL and UK via `Locale`), rounded down: 42:59 → "42 min";
   - `ElapsedMinuteSchedule`: with a clock started at T and a 90 s pause, its entries are the dates at which `elapsed` equals 1, 2, 3… whole minutes (± 1 ms);
   - US6 s2: the dimmed model has no seconds, no Undo, no serve icon, no court-side pill and no status (Q8).
-- [ ] T071 [P] [US6] `UnitTests/AlwaysOnTests.swift`, US6 s3: `ScoreScreenModel.zonesAcceptTaps(isLuminanceReduced:)` is false when the luminance is reduced, even while `session.acceptsPoints` is true (positive control: true when not reduced). `ScoreView` passes this value to `.allowsHitTesting`.
-- [ ] T072 [P] [US7] `UITests/AccessibilityAuditUITests.swift`: the final SC-005 pass across all screens and languages (each earlier PR already audited its own screens in EN). `performAccessibilityAudit()` on every screen (New match, the picker, First server, the coin-toss result, Score, Controls, the End confirmation, Summary) in EN. Then repeat with `-AppleLanguages (pl)` and `(uk)`, and with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, failing on any clipped-text issue (US7 s6, s7).
+- [x] T071 [P] [US6] `UnitTests/AlwaysOnTests.swift`, US6 s3: `ScoreScreenModel.zonesAcceptTaps(isLuminanceReduced:)` is false when the luminance is reduced, even while `session.acceptsPoints` is true (positive control: true when not reduced). `ScoreView` passes this value to `.allowsHitTesting`.
+- [x] T072 [P] [US7] `UITests/AccessibilityAuditUITests.swift`: the final SC-005 pass across all screens and languages (each earlier PR already audited its own screens in EN). `performAccessibilityAudit()` on every screen (New match, the picker, First server, the coin-toss result, Score, Controls, the End confirmation, Summary) in EN. Then repeat with `-AppleLanguages (pl)` and `(uk)`, and with `-UIPreferredContentSizeCategoryName UICTContentSizeCategoryAccessibilityXXXL`, failing on any clipped-text issue (US7 s6, s7).
 
 ### Implementation
 
-- [ ] T073 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
+- [x] T073 [US6] `ScoreView` and `ElapsedTimeView` read `isLuminanceReduced`. When it is true:
   - the dimmed fills and the point colours are lower-opacity `brand/opponent` and `brand/ball`, with sets and games in `text-secondary`;
   - the header is minutes-only `Duration.formatted(.units(allowed: [.minutes], width: .abbreviated, fractionalPart: .hide(rounded: .down)))` in a `TimelineView` driven by `ElapsedMinuteSchedule` (research R5);
   - Undo, the serve icon, the pill and the status line are hidden;
   - `.transaction { $0.animation = nil }`;
   - `.allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced:))` on the zones, false when dimmed (FR-021, Story 6 s3).
-- [ ] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8 is tested in T032 (score) and T060 (summary); here, check the remaining screens' screenshots for colour-only meaning (First server buttons differ by label and position).
-- [ ] T075 [US6] Update `docs/design/screens/watch-5-always-on.md` (R1-9): Q8 also hides the court-side pill and the status line; the header minutes use the system's abbreviated format, with no plural variations (R1-8). Note "changed by spec 002".
-- [ ] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
+- [x] T074 [US7] Fix every audit finding from T072 in the screen it concerns. US7 s8 is tested in T032 (score) and T060 (summary); here, check the remaining screens' screenshots for colour-only meaning (First server buttons differ by label and position).
+- [x] T075 [US6] Update `docs/design/screens/watch-5-always-on.md` (R1-9): Q8 also hides the court-side pill and the status line; the header minutes use the system's abbreviated format, with no plural variations (R1-8). Note "changed by spec 002".
+- [x] T076 PR checklist steps 3–7 for PR 5. Screenshots: Always On in EN, PL and UK, next to `docs/design/screens/watch-5-always-on.png`. Device checks for Denys:
   - US6 s4: readable at arm's length (complete only after spec 003, Q10);
   - the harness Dynamic Type check on his watch (Q9);
   - a full match with no iPhone nearby and no network (FR-027).

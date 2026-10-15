@@ -16,6 +16,16 @@ struct TennisBeat_Watch_AppApp: App {
     WindowGroup {
       RootView()
         .environment(session)
+        .modifier(ForcedAlwaysOn(isOn: LaunchOptions.current.alwaysOn))
+    }
+  }
+
+  /// `-uiTestAlwaysOn`: as if the wrist were lowered.
+  private struct ForcedAlwaysOn: ViewModifier {
+    let isOn: Bool
+
+    func body(content: Content) -> some View {
+      if isOn { content.environment(\.isLuminanceReduced, true) } else { content }
     }
   }
 

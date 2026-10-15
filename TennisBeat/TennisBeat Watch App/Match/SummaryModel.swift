@@ -18,6 +18,9 @@ nonisolated struct SummaryModel: Hashable, Sendable {
   let chips: [Chip]
   /// The match time without pauses, h:mm:ss in the current language (Story 5 s7).
   let duration: String
+  /// The same time in spoken units for VoiceOver: "1 hour, 24 minutes, 10 seconds"
+  /// (#23 R1-3).
+  let spokenDuration: String
 
   init(state: MatchState, clock: MatchClock, locale: Locale) {
     func text(_ resource: LocalizedStringResource) -> String {
@@ -63,7 +66,9 @@ nonisolated struct SummaryModel: Hashable, Sendable {
     if state.status == .unfinished {
       let played =
         state.games.me + state.games.opponent > 0
-        || Player.allCases.contains { state.points[$0] != .zero && state.points[$0] != .tieBreak(0) }
+        || Player.allCases.contains {
+          state.points[$0] != .zero && state.points[$0] != .tieBreak(0)
+        }
       if played {
         if state.isMatchTieBreak {
           chips.append(
@@ -81,9 +86,10 @@ nonisolated struct SummaryModel: Hashable, Sendable {
     }
     self.chips = chips
 
-    let seconds = Int(clock.elapsed(at: clock.stoppedAt ?? clock.startedAt))
-    duration = Duration.seconds(seconds).formatted(
-      .time(pattern: .hourMinuteSecond).locale(locale))
+    let elapsed = Duration.seconds(Int(clock.elapsed(at: clock.stoppedAt ?? clock.startedAt)))
+    duration = elapsed.formatted(.time(pattern: .hourMinuteSecond).locale(locale))
+    spokenDuration = elapsed.formatted(
+      .units(allowed: [.hours, .minutes, .seconds], width: .wide).locale(locale))
   }
 
   private static func tieBreakPoints(_ display: PointDisplay) -> Int {

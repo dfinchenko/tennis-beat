@@ -391,7 +391,7 @@ Denys decided the #20 review findings on 2026-10-14 ([report](https://github.com
 
 - **R1-1** — The scripted UI runs stay at 7 format combinations; the model-level test covers all 24 formats.
 - **R1-2** — The zone's serve phrase is first person for Me («Подаю, справа», «Serwuję, z prawej») and names the Opponent («Подає суперник, справа»), matching the summary strings (copy table).
-- **R1-3** — On the deciding point the zone says who chooses the side: Me serving, "Serving. Opponent chooses the side."; Opponent serving, "Opponent serving. You choose the side." (copy table, drafts).
+- **R1-3** — On the deciding point the zone says who chooses the side: Me serving, "Serving. Opponent chooses the side."; Opponent serving, "Opponent serving. You choose the side." (copy table, drafts). The EN Opponent wording is superseded by #21 R1-3.
 - **Court-side pill** — after sets and games, or on its own row when it doesn't fit (approved; `docs/design/screens/watch-3-score.md`).
 
 ### PR #21 review decisions
@@ -403,3 +403,12 @@ Denys decided the #21 review findings on 2026-10-14 ([report](https://github.com
 - **R1-4** — The system confirmation dialog stays; the UI contract notes that tests find the End button by its label.
 - **R1-5** — UK «Подача» for the Server control is approved. Every PL draft is listed in one "Polish native review" issue ([#22](https://github.com/dfinchenko/tennis-beat/issues/22)), reviewed together before release.
 - **Controls size** — On 40 mm the round controls use the largest size at which all four fit without scrolling at the default text size, but not below 48 pt; 64 pt on larger watches. Scrolling is acceptable only at larger text sizes.
+
+### PR #23 review decisions
+
+Denys decided the #23 review findings on 2026-10-14 ([report](https://github.com/dfinchenko/tennis-beat/pull/23#issuecomment-6176943590)). All six are fixed in 002 PR 5.
+
+- **R1-1** — When no ITF rule covers a behavior, a `test-expectation-changes.md` entry cites the spec requirement or scenario ID instead (e.g. FR-012, US3-S4). The rule is in `CLAUDE.md`, `docs/harness.md` and the reviewer's instructions.
+- **R1-2** — A test-helper change that does not change what a test expects (e.g. how it finds the End button) is not an expectation change; the definition in `docs/harness.md` says so.
+- **R1-3** — VoiceOver reads the summary duration in spoken units in EN, PL and UK (e.g. "1 hour, 24 minutes, 10 seconds").
+- **R1-4, R1-5, R1-6** — The summary chips never get wider than the screen; the Controls size constants are named; the #20 R1-3 entry notes that #21 R1-3 supersedes it.

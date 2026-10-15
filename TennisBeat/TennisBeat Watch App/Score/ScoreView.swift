@@ -2,15 +2,19 @@ import SwiftUI
 import TennisCore
 
 /// Watch 3 — Score: the header (Undo, elapsed time, status), the VoiceOver summary and two
-/// equal tap zones, Opponent on top (Story 2, FR-005..FR-009, FR-026).
+/// equal tap zones, Opponent on top (Story 2, FR-005..FR-009, FR-026). In Always On it is
+/// Watch 5: dimmed, minutes only, no Undo, and the zones take no taps (Story 6, FR-021).
 struct ScoreView: View {
   @Environment(MatchSession.self) private var session
   @Environment(\.locale) private var locale
+  @Environment(\.isLuminanceReduced) private var isLuminanceReduced
   private let exposeValues = LaunchOptions.current.exposeValues
 
   var body: some View {
     if let match = session.match, let clock = session.clock {
-      let model = ScoreScreenModel(state: match.state, isPaused: session.isPaused, locale: locale)
+      let model = ScoreScreenModel(
+        state: match.state, isPaused: session.isPaused, locale: locale,
+        acceptsPoints: session.acceptsPoints, isDimmed: isLuminanceReduced)
       VStack(spacing: 4) {
         header(model, clock: clock)
         ForEach(model.zones, id: \.player) { zone in
@@ -21,11 +25,14 @@ struct ScoreView: View {
             // the zone sentence. UI tests see the values only with -uiTestExposeValues
             // (research R7). `.accessibilityElement(children: .ignore)` on the button keeps
             // the inner elements on watchOS, so the content is hidden instead.
-            PlayerZoneView(zone: zone, exposeValues: exposeValues)
+            PlayerZoneView(zone: zone, isDimmed: isLuminanceReduced, exposeValues: exposeValues)
               .accessibilityHidden(!exposeValues)
           }
           .buttonStyle(.plain)
-          .disabled(!session.acceptsPoints)
+          // Always On: a lowered wrist must not score, by touch or by a VoiceOver activation
+          // (Story 6 s3, #24 R1-4).
+          .disabled(!model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))
+          .allowsHitTesting(model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))
           // Q4: the zones dim while paused; "Paused" in the status line says why.
           .opacity(session.isPaused ? 0.5 : 1)
           .modifier(ExposeChildren(isOn: exposeValues))
@@ -39,27 +46,17 @@ struct ScoreView: View {
       .ignoresSafeArea(edges: .top)
       // Q9: the score screen stops at the largest standard size.
       .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+      // No animations in Always On (Story 6 s2).
+      .transaction { if isLuminanceReduced { $0.animation = nil } }
     }
   }
 
   private func header(_ model: ScoreScreenModel, clock: MatchClock) -> some View {
     HStack(alignment: .top, spacing: 8) {
-      Button(action: session.undo) {
-        Image(systemName: "arrow.uturn.backward")
-          .font(.watchTitle)
-          .foregroundStyle(Color.watchTextPrimary)
-          .frame(width: 44, height: 44)
-          .background(Color.watchSurfaceRaised, in: .circle)
-          .contentShape(.circle)
-      }
-      .buttonStyle(.plain)
-      .disabled(!session.canUndo)
-      .opacity(session.canUndo ? 1 : 0.4)
-      .accessibilityLabel(Text("score.undo"))
-      .accessibilityIdentifier("undo")
+      if model.showsUndo { undoButton }
 
       VStack(alignment: .leading, spacing: 0) {
-        ElapsedTimeView(clock: clock)
+        ElapsedTimeView(clock: clock, isDimmed: isLuminanceReduced)
           .accessibilitySortPriority(2)
         // The status line; VoiceOver reads it inside the summary instead (Story 7 s2).
         Text(model.statusText)
@@ -83,6 +80,22 @@ struct ScoreView: View {
       .accessibilityElement(children: .contain)
     }
   }
+
+  private var undoButton: some View {
+    Button(action: session.undo) {
+      Image(systemName: "arrow.uturn.backward")
+        .font(.watchTitle)
+        .foregroundStyle(Color.watchTextPrimary)
+        .frame(width: 44, height: 44)
+        .background(Color.watchSurfaceRaised, in: .circle)
+        .contentShape(.circle)
+    }
+    .buttonStyle(.plain)
+    .disabled(!session.canUndo)
+    .opacity(session.canUndo ? 1 : 0.4)
+    .accessibilityLabel(Text("score.undo"))
+    .accessibilityIdentifier("undo")
+  }
 }
 
 /// `-uiTestExposeValues`: the zone becomes a container, so UI tests can read its values.
@@ -102,4 +115,11 @@ private struct ExposeChildren: ViewModifier {
   let session = MatchSession.preview
   session.start(firstServer: .me)
   return ScoreView().environment(session)
+}
+
+#Preview("Always On") {
+  let session = MatchSession.preview
+  session.start(firstServer: .me)
+  session.addPoint(for: .me)
+  return ScoreView().environment(session).environment(\.isLuminanceReduced, true)
 }
