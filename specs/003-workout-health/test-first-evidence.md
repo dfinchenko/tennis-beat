@@ -1,0 +1,37 @@
+# Test-first evidence: 003-workout-health
+
+For each added test, a run against the code before the implementation it checks, or, for a test of existing behaviour, against a recorded mutation (rule: `docs/harness.md` § Test-first evidence). One section per PR, newest last. The reviewer checks each entry against the diff. Simulator: Apple Watch SE 3 (40 mm), watchOS 27.0.
+
+## PR 1 `feat/003-onboarding` (Health onboarding)
+
+The tests were committed first, in **`fa6bd25`** (T003, T004, T008, T011–T015), before any onboarding code.
+
+**Run 1, unit tests at `fa6bd25`:** the test target doesn't compile. `LaunchOptionsHealthTests.swift`, `FakeWorkoutServiceTests.swift`, `HealthOnboardingTests.swift`: cannot find `FakeHealthMode`, `FakeWorkoutService`, `HealthOnboarding`, `WorkoutStatistics` in scope; no members `healthMode`, `heartRate`, `workoutStats`, `saveFails` on `LaunchOptions`. Every test in these three files is covered by this run.
+
+**Run 2, unit tests at `65273b6`** (the Swift code, before the strings and the Info.plist texts): 167 passed, 2 failed:
+- `StringCatalogTests` "FR-002 onboarding strings equal the copy table in EN, PL and UK": `health.onboarding.notNow is missing` (and the other five keys);
+- `InfoPlistTextTests` "FR-004 both catalogs have the new read text in EN, PL and UK", for both catalogs (`TennisBeat/InfoPlist.xcstrings`, `TennisBeat Watch App/InfoPlist.xcstrings`): the old read text.
+
+`InfoPlistTextTests` "FR-004 the EN read text names heart rate and active energy" passed in this run: it checks the copy-table constant in the test itself, and its positive control (the spec 002 text fails the same check) is part of the test.
+
+**Run 3, UI tests against the app code of `fa6bd25`** with the final UI test files of `6fee9dc` (`git worktree add --detach <dir> fa6bd25`, `git checkout 6fee9dc -- "TennisBeat/TennisBeat Watch AppUITests"`; the three new unit test files were deleted in that throwaway tree only, because they don't compile there, see run 1, and the scheme builds the unit target too):
+- failed: `HealthOnboardingUITests` `testUS1s1s2OnboardingBeforeNewMatchWithItsTexts`, `testUS1s3ContinueOpensNewMatch`, `testUS1s4NotNowOpensNewMatchAndTheOnboardingReturnsNextLaunch`, `testUS1s6AfterNotNowAMatchStartsAsInSpec002` ("health.onboarding.title was not ready within 20.0 s"), and `AccessibilityAuditUITests` `testUS6s1s2AuditHealthOnboarding` (no `health.onboarding.continue`);
+- passed: `testUS1s5NoOnboardingOnceTheSheetWasAnswered`, which checks that the onboarding is absent; see run 4.
+
+**Run 4, a recorded mutation of the final code** (`6fee9dc`; never committed): the onboarding shows whatever HealthKit answers.
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Health/HealthOnboarding.swift
++++ b/TennisBeat/TennisBeat Watch App/Health/HealthOnboarding.swift
+   var needsOnboarding: Bool {
+-    isReady && requestStatus == .shouldRequest && !skippedThisLaunch
++    isReady && !skippedThisLaunch
+   }
+```
+
+- failed: `HealthOnboardingUITests` `testUS1s5NoOnboardingOnceTheSheetWasAnswered`; `HealthOnboardingTests` "US1 s5 once the sheet was answered the onboarding never shows" (both `denied` and `granted`), "US1 s5 an unknown status (a HealthKit error) never shows the onboarding", "US1 s3 Continue asks once, then New match", "US1 s1, s6 nothing shows while the status is read; a late answer is ignored";
+- passed (they expect the onboarding, which the mutation keeps): "US1 s1 the sheet was never answered", "US1 s1 an answer within 1 s", "US1 s4 Not now".
+
+**The 002 UI tests (SC-005):** with the helper's `-uiTestHealth denied` default (T008), the full UI suite on the code before the UI-test wait fix ran 71 tests: 60 passed, 6 skipped (the opt-in screenshot tests), and 5 failed, all of them new onboarding tests (below). Every spec 002 UI test passed.
+
+**One test-harness problem, fixed before review (not an expectation change):** the onboarding UI tests first waited for Continue to be hittable at launch. On the 40 mm watch Continue starts below the fold, so they timed out even with the onboarding on screen. They now wait for the title, and the `tap` helper scrolls to the buttons as before. With that change all six pass on `6fee9dc`.
