@@ -13,7 +13,7 @@ Additions to the [002 UI contract](../../002-watch-match/contracts/ui-contract.m
 | Summary | `summary.heartRate`, `summary.energy` | The rows, each one VoiceOver element of at least 44 pt (as `summary.duration`); absent when hidden (Story 4 s2, s3) |
 | New match | `health.saveFailed`, `health.saveFailed.ok` | The one-time notice and its OK (FR-015). The alert button is found by its label if watchOS drops the identifier, as for `confirm.end` |
 
-`summary.undo` is absent while the workout is saving and once it is saved (Story 2 s7); after a failed timeout save it is shown again (R3-2).
+`summary.undo` is absent while the workout is saving and once it is saved (Story 2 s7; the plan's reading of FR-007, data-model § WorkoutState); after a failed timeout save it is shown again (R3-2).
 
 ## 2. Launch arguments (UI tests only, `#if DEBUG`)
 

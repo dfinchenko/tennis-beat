@@ -16,12 +16,12 @@ What `MatchSession` and the onboarding need from HealthKit (research R1, R2, R8)
 | `start(at: Date)` | Starts a tennis workout, no location type (Q1), collection from `at` |
 | `pause()` / `resume()` | Session pause and resume (no date: HealthKit stamps the events; the fake records `now()` from the shared clock at each call) |
 | `statistics() -> WorkoutStatistics` | Snapshot of the builder's statistics now (R7) |
-| `save(endingAt: Date) async throws -> SavedWorkout` | Ends the session, ends collection at the date, finishes the workout; returns its `uuid` and statistics (`SavedWorkout`). Spec 003 drops the UUID after Done; spec 004 stores it with the match (spec Key Entities) |
+| `save(endingAt: Date) async throws -> SavedWorkout` | Ends the session, ends collection at the date or at the builder's last event date if later (R2, #28 R5-2), finishes the workout; returns its `uuid` and statistics (`SavedWorkout`). Spec 003 drops the UUID after Done; spec 004 stores it with the match (spec Key Entities) |
 | `discard()` | Ends the session and discards the builder (FR-008) |
 | `recoverAndSave() async` | FR-009a: recovers a running session after a relaunch and saves it at now (R10) |
 | `onEvent: (WorkoutEvent) -> Void` | Set by the session |
 
-`WorkoutEvent`: `.heartRate(HeartRateReading)`, `.failed` (didn't start), `.endedUnexpectedly`.
+`WorkoutEvent`: `.heartRate(HeartRateReading)`, `.failed` (didn't start), `.endedUnexpectedly`. Each event carries the token of the workout it belongs to; `start(at:)` returns the new workout's token (research R11).
 
 Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService` (tests and DEBUG launch arguments, [contract](contracts/ui-contract.md) §2). The fake records calls with their dates, can be set to fail any step, and emits scripted readings.
 
@@ -33,7 +33,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `running` | Workout running, match in play | yes | — | — |
 | `paused` | Match paused | yes ("--") | — | — |
 | `summary(openedAt: Date)` | Summary shown; session paused; the end date fixed (R2) | — | yes | yes |
-| `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007) |
+| `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007): hidden from the start of the save, so a tap can't resume a session that is ending; it returns only if a timeout save fails (R3-2). This is the plan's reading of FR-007's "after that save succeeds" (#28 R5-5) |
 | `discarded` | 0-point End (FR-008) | — | — | — |
 | `failed` | Didn't start, ended unexpectedly (FR-010), or the timeout save failed | none | none: Duration only, also after a failed timeout save (Story 4 s3, R3-2) | yes (research R3, R3-2) |
 
@@ -55,7 +55,9 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `.failed` or `.endedUnexpectedly` | `running`, `paused`, `summary` | `failed` | none (the service has already dropped the builder) |
 | `.heartRate(r)` | `running`, `paused` | same | `latestHeartRate = r` |
 | `.heartRate(r)` | `summary`, `saving` | same | ignored: the header isn't shown and the summary uses the snapshot |
+| any event | `saving` | same | ignored, including the `.ended` caused by the save's own `end()`; a failure comes only from `save` throwing (#28 R5-4) |
 | any event | `none`, `saved`, `discarded`, `failed` | same | ignored (R11) |
+| any event with another workout's token | any | same | dropped (R11, #28 R5-3) |
 
 Invariants (tested, SC-002):
 - at most one `save` per match (FR-009);

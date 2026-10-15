@@ -5,7 +5,7 @@
 ## Prerequisites
 
 - As for 002 ([quickstart](../002-watch-match/quickstart.md)): Xcode 26 or newer, the watchOS 26 runtime, the 40 mm watch simulator.
-- `swift test --package-path Packages/TennisCore` passes, and `git diff main -- Packages/TennisCore` is empty (FR-018).
+- `swift test --package-path Packages/TennisCore` passes, and `git diff origin/main -- Packages/TennisCore` is empty (FR-018).
 - For the device checks: a real Apple Watch paired with an iPhone, Health and Fitness on the iPhone.
 
 ## 1. Unit tests (fake workout service)
