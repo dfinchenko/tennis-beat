@@ -35,6 +35,18 @@ final class HealthOnboardingUITests: XCTestCase {
     }
   }
 
+  /// Denys's design condition on #29 (comment 6203433908): at the default text size on the
+  /// 40 mm watch, Continue is visible without scrolling, in every language.
+  @MainActor
+  func testDesignContinueVisibleWithoutScrollingAtDefaultSize() {
+    for language in ["en", "pl", "uk"] {
+      let app = launchOnboarding(language)
+      XCTAssertTrue(
+        app.isOnScreen("health.onboarding.continue"), "Continue off screen in \(language)")
+      app.terminate()
+    }
+  }
+
   @MainActor
   func testUS1s3ContinueOpensNewMatch() {
     let app = launchOnboarding()
