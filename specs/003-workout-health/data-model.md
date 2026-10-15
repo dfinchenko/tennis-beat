@@ -33,7 +33,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `running` | Workout running, match in play | yes | — | — |
 | `paused` | Match paused | yes ("--") | — | — |
 | `summary(openedAt: Date)` | Summary shown; session paused; the end date fixed (R2) | — | yes | yes |
-| `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007): hidden from the start of the save, so a tap can't resume a session that is ending; it returns only if a timeout save fails (R3-2). This is the plan's reading of FR-007's "after that save succeeds" (#28 R5-5) |
+| `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007): hidden from the start of the save, so a tap can't resume a session that is ending; it returns only if a timeout save fails (R3-2). Confirmed by [Denys, #28 R6-3](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) |
 | `discarded` | 0-point End (FR-008) | — | — | — |
 | `failed` | Didn't start, ended unexpectedly (FR-010), or the timeout save failed | none | none: Duration only, also after a failed timeout save (Story 4 s3, R3-2) | yes (research R3, R3-2) |
 
