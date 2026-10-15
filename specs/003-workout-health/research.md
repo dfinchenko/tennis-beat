@@ -46,7 +46,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
 - **Read access**: HealthKit doesn't tell apps whether read access was given. With workouts allowed and heart rate denied, the workout runs and simply gets no readings (Story 5 s2): the header shows "--" and the summary hides the row. Nothing in the app branches on read access.
 - **Start failure**: `startActivity` and `beginCollection` report errors asynchronously (for example another app's workout, spec Edge cases). The service reports `failed`, and the session moves to `WorkoutState.failed` (FR-010, Story 2 s9). The match was already running and is never blocked.
 - **Workout ended unexpectedly** (Story 2 s10): the `HKWorkoutSessionDelegate` reports `didFailWithError`, or a move to `.ended` the app didn't ask for. The service discards the builder and reports `endedUnexpectedly`. The session moves to `WorkoutState.failed`: the heart-rate row disappears, nothing is saved for this match.
-- **Summary Undo without a workout** (#27 R3-2, open for Denys): `failed` counts as "without a workout", so a match whose workout failed keeps Undo on the summary as in spec 002 FR-020. This is the plan's reading of FR-007. Denys may add "or the workout ended (Story 2 s10)" to the spec at the next edit.
+- **Summary Undo without a workout** (#27 R3-2, decided by Denys, spec Review 3 and plan decisions): `failed` counts as "without a workout", so a match whose workout failed to start, ended unexpectedly, or failed to save keeps Undo on the summary as in spec 002 FR-020 (FR-007).
 
 ## R4. The 10-minute summary timeout (FR-007, Story 2 s7)
 
@@ -57,8 +57,8 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
 
 ## R5. Saving and the failure notice (FR-009, FR-015, Story 4 s7)
 
-- **Decision**: `save(endingAt:)` is `async throws`. The session moves to `WorkoutState.saved` when the save starts, so a second Done can't save twice. If `finishWorkout` throws, the session sets an in-memory flag `pendingSaveFailureNotice`. The next time New match shows after Done, the setup flow presents a one-time alert "Workout not saved to Health" with OK, then clears the flag (R1-6). Done never waits for the save: the route changes at once (FR-010).
-- **The flag is not stored**: it's not health data, but a relaunch drops it; the notice is a convenience, not a record. A save that fails during the 10-minute timeout sets the same flag, shown after Done (Story 4 s7).
+- **Decision**: `save(endingAt:)` is `async throws`. The session moves to `WorkoutState.saving` when the save starts and to `saved` when it succeeds, so a second Done can't save twice. If `finishWorkout` throws, the session sets an in-memory flag `pendingSaveFailureNotice`. The next time New match shows after Done, the setup flow presents a one-time alert "Workout not saved to Health" with OK, then clears the flag (R1-6). Done never waits for the save: the route changes at once (FR-010).
+- **The flag is not stored**: it's not health data, but a relaunch drops it; the notice is a convenience, not a record. A save that fails during the 10-minute timeout sets the same flag, shown after Done (Story 4 s7). It also moves the session to `WorkoutState.failed`, so the summary shows Undo again; Undo then resumes the match with no workout (R3-2).
 - **Exactly one save**: the fake counts `save` calls. SC-002 checks one save per final match with points and none otherwise, across Undo from the summary, the timeout, and a second Done tap.
 
 ## R6. Heart rate in the header (FR-012, Story 3)
@@ -88,7 +88,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
   - **Not now**: an in-memory flag for the current launch, so the onboarding returns on the next launch (Q4, Story 1 s4).
   - **Continue**: `requestAuthorization(toShare:read:)`. Whatever the answer, or an error, New match opens next (Story 1 s3).
   - **Order**: the root view shows the onboarding before `.setup` while `needsHealthOnboarding` is true. Scoring and the remembered format are untouched (Story 1 s6).
-- **Device check**: whether the live data source saves heart-rate and energy samples with share permission for the workout type only (spec check 4). Apple's sample does exactly this, so no change is expected. If Health shows the workout without its heart-rate graph or energy, adding share permission for those two types changes FR-003 and FR-004, so it goes to Denys as a spec change.
+- **Device check**: whether the live data source saves heart-rate and energy samples with share permission for the workout type only (spec check 4). Apple's sample does exactly this, so no change is expected. If Health shows the workout without its heart-rate graph or energy, a spec change to FR-003/FR-004 is opened for Denys instead of a workaround (spec Review 3 and plan decisions).
 - **Alternatives rejected**:
   - A `UserDefaults` flag "onboarding seen": it can disagree with the system (reinstall, reset in Settings), and FR-001 ties the onboarding to the sheet, not to the screen.
   - Requesting at the first Start: the request would interrupt the match start, and App Review 2.5.1 asks for the purpose to be explained first.

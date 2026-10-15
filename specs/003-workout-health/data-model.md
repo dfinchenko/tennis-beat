@@ -33,9 +33,9 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `running` | Workout running, match in play | yes | — | — |
 | `paused` | Match paused | yes ("--") | — | — |
 | `summary(openedAt: Date)` | Summary shown; session paused; the end date fixed (R2) | — | yes | yes |
-| `saving` / `saved` | Save started (Done or timeout) / finished | — | yes | **no** (FR-007) |
+| `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007) |
 | `discarded` | 0-point End (FR-008) | — | — | — |
-| `failed` | Didn't start, or ended unexpectedly (FR-010) | none | none | yes (research R3, #27 R3-2) |
+| `failed` | Didn't start, ended unexpectedly (FR-010), or the timeout save failed | none | none (a failed timeout save keeps the snapshot rows) | yes (research R3, R3-2) |
 
 ### Transitions
 
@@ -46,8 +46,9 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `pause()` / `resume()` | `running` / `paused` | `paused` / `running` | `pause()` / `resume()` |
 | Summary opens (won, or End with a point) | `running`, `paused` | `summary(openedAt: clock.stoppedAt)` | `pause()` if running; `statistics()` → snapshot; start the 10-minute task (R4) |
 | `undo()` from the summary | `summary` | `running` | `resume()`; cancel the task; drop the snapshot |
+| `undo()` from the summary | `failed` | `failed` (the match continues with no workout) | none; drop the snapshot |
 | `done()` | `summary` | `saving` → `saved`, route → `.setup` at once | `save(endingAt: openedAt)`; failure → `pendingSaveFailureNotice` (R5) |
-| 10-minute task fires | `summary` | `saving` → `saved` (route stays `.summary`) | `save(endingAt: openedAt)`; snapshot ← the saved workout's statistics (R7); failure → notice flag |
+| 10-minute task fires | `summary` | `saving` → `saved` (route stays `.summary`); on failure `saving` → `failed` | `save(endingAt: openedAt)`; snapshot ← the saved workout's statistics (R7); failure → notice flag, Undo shown again (R3-2) |
 | `done()` | `saving`, `saved` | — (route → `.setup`) | none (no second save) |
 | `endEarly()` with 0 points | `running`, `paused` | `discarded` → (`none` for the next match) | `discard()` |
 | `.failed` or `.endedUnexpectedly` | `running`, `paused`, `summary` | `failed` | none (the service has already dropped the builder) |
@@ -72,7 +73,7 @@ Invariants (tested, SC-002):
 | `sleep` | `@Sendable (Duration) async throws -> Void` | Injected; drives the 10-minute timeout (R4) |
 
 Changed derived value:
-- `canUndo` on the summary is false when `workoutState` is `saving` or `saved` (FR-007).
+- `canUndo` on the summary is false when `workoutState` is `saving` or `saved` (FR-007); a failed save (`failed`) brings it back (R3-2).
 
 ## HeartRateReading (value)
 

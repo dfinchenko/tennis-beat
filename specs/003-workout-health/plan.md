@@ -2,7 +2,7 @@
 
 **Branch**: `feat/003-plan` | **Date**: 2026-10-15 | **Spec**: [spec.md](spec.md)
 
-**Input**: Feature specification from `specs/003-workout-health/spec.md` (Status: Approved, 2026-10-15, Denys; review 2 decisions R2-1 and R2-3, approved on #27, applied in this branch)
+**Input**: Feature specification from `specs/003-workout-health/spec.md` (Status: Approved, 2026-10-15, Denys; his review 2 decisions R2-1 and R2-3 from #27 and his plan-review decisions applied in this branch)
 
 ## Summary
 
@@ -67,7 +67,7 @@ No new dependency.
 
 | Principle | Status | Evidence |
 | --- | --- | --- |
-| I. Spec before code | PASS | `spec.md` is `Status: Approved (2026-10-15, Denys)`. The only spec edits in this branch are R2-1 and R2-3, worded as Denys approved them on #27 and recorded under **Review 2 decisions**. #27 R3-2 is left to Denys (research R3 gives the plan's reading, no acceptance criterion changed). The proposed PR order differs from the spec's Delivery assumption; it is a proposal for Denys (§ Delivery). The artifact gate runs after `/speckit-tasks`. |
+| I. Spec before code | PASS | `spec.md` is `Status: Approved (2026-10-15, Denys)`. The spec edits in this branch are Denys's decisions only: R2-1 and R2-3 from #27 (**Review 2 decisions**), and R3-2, the PR order and the permission rule from his plan review (**Review 3 and plan decisions**). Denys re-approves the spec in this PR's approval commit. The artifact gate runs after `/speckit-tasks`. |
 | II. Tennis rules | PASS (N/A) | No scoring rule is touched; the engine is unchanged (FR-011, FR-018). Tests that replay matches keep their 002 ITF citations. |
 | III. Test first | PASS | Each PR starts with failing unit tests against the fake service, then UI tests, then code, with `test-first-evidence.md` rows. Boundary tests: Undo from the summary resumes the workout and keeps one save (Story 4 s5); the 10-minute timeout; pause during a tie-break also pauses the workout (spec Edge cases); the 30-second staleness boundary. Crash recovery of the match stays in spec 004; FR-009a's workout recovery is unit-tested (R10). |
 | IV. Evidence bound to a commit | PASS | `Reviewed-SHA` on every PR; `watch-tests` CI runs the unit and UI tests. |
@@ -165,14 +165,14 @@ Each PR has its own worktree and branch off `main` after the previous one is mer
 | 3 | `feat/003-heart-rate` | Readings, `HeartRateDisplay`, the header row, `watch-3-score.md` | US3; FR-012; US6 for the header | 3, 9 (header), 11 |
 | 4 | `feat/003-summary` | `WorkoutStatistics`, `SummaryHealthRows`, the rows, the save-failure notice, `HealthStorageTests`, `watch-6-summary.md`, the final SC-006 audit | US4 s1–s3, s6–s8; FR-013..FR-017; SC-006, SC-007 | 5, 9 (summary) |
 
-**Proposed order change (for Denys)**: the spec's Delivery assumption lists the lifecycle first and the onboarding second. This plan swaps them. Without the onboarding, PR 1 couldn't be tested on the watch: nothing would ask for permission, so no workout would start. A temporary permission request at Start would be throwaway code with its own UI. With the onboarding first, every PR leaves `main` working and device-testable, and PR 2 starts real workouts at once. If Denys prefers the spec's order, PR 1 and PR 2 swap with no other change, and PR 1's device checks wait for PR 2.
+**Order** (decided by Denys, 2026-10-15, spec Assumptions): the onboarding comes first. Without it nothing would ask for permission, so a lifecycle PR couldn't be tested on the watch. With the onboarding first, every PR leaves `main` working and device-testable, and PR 2 starts real workouts at once.
 
 Why the rest of the order: PR 2 is the main reason for the feature (the app stays on screen) and holds every save rule. PR 3 and PR 4 are display layers on PR 2's state. US6 is not a separate PR: each PR meets it for its own screens.
 
 ## Dependencies and open inputs
 
-- **#27 R3-2 (Denys)**: a match whose workout failed keeps Undo on the summary (research R3). Denys may add this to the spec at the next edit; the plan already builds it.
-- **Share permission for heart rate and energy (device check 4)**: the plan follows Apple's pattern (share the workout type only, research R8). If the device shows a workout without its heart-rate graph or energy, FR-003 and FR-004 need a spec change from Denys.
+- **R3-2 (decided)**: a match whose workout failed to start, ended unexpectedly or failed to save keeps Undo on the summary (research R3, R5).
+- **Share permission for heart rate and energy (device check 4, decided)**: the plan follows Apple's pattern (share the workout type only, research R8). If the device shows a workout without its heart-rate graph or energy, a spec change to FR-003/FR-004 is opened, not a workaround.
 - **Summary vs Health values (device check 5)**: research R7 explains a possible fraction-of-a-beat difference from late samples, and its fix, which needs no spec change.
 - **Copy**: the PL rows and the draft rows go in as drafts; the Polish native review (#22) doesn't block the PRs. The UK strings use the catalog's typographic apostrophe («Здоров’я», R9).
 - **Watch onboarding design**: PR 1 adds the screen to `docs/design/screens/` for Denys's approval (R14).

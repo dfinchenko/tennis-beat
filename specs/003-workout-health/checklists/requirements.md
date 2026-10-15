@@ -35,4 +35,4 @@
 - "Implementation details": the spec names the Health app, Info.plist texts and String Catalog because they are product and App Review requirements in this project (constitution IX, X), not technology choices. The workout is described by behaviour; no HealthKit API is named.
 - Every requirement that depended on Q1–Q6 is now stated with the decided behaviour.
 - Review 1 (#26): Denys decided R1-1..R1-6 on 2026-10-15; they are applied in the spec (Review 1 decisions) and in #27.
-- Review 2 (#27): Denys approved R2-1 and R2-3 on 2026-10-15; they are applied in the plan branch (spec, Review 2 decisions). #27 R3-1 is R2-1; R3-2 is open for Denys (the plan's reading is in research R3); R3-3 is this note.
+- Review 2 (#27): Denys approved R2-1 and R2-3 on 2026-10-15; they are applied in the plan branch (spec, Review 2 decisions). #27 R3-1 is R2-1; R3-2 was decided by Denys in the plan review (spec, Review 3 and plan decisions); R3-3 is this note.
