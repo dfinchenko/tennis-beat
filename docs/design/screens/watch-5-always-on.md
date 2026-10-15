@@ -7,11 +7,12 @@
 
 ## Layout
 The same structure as **Watch 3 — Score**, dimmed for Always On:
-- The header shows minutes only, "42 хв" (Watch/Title, `watch/text-secondary`). There are no seconds, no Undo button and no heart rate.
-- The zone fills and score colours are darker, lower-opacity versions of `brand/opponent` and `brand/ball`. Sets and games are in grey.
+- The header shows minutes only, "42 хв" (Watch/Title, `watch/text-tertiary` #8E8E93). There are no seconds, no Undo button and no heart rate.
+- The zone fills and score colours are darker, lower-opacity versions of `brand/opponent` and `brand/ball`. The current games are in the dimmed player colour, as the points are; the completed sets are in grey (`watch/text-secondary`).
 - No server glyph is shown.
 
-- **Changed by spec 002 (Q8, R1-9):** the court-side pill and the status line are hidden too, not only the server glyph. Sets and games are both grey (`watch/text-secondary`), as Story 6 s1 says; the PNG shows the games in the dimmed player colour.
+- **Changed by spec 002 (Q8, R1-9):** the court-side pill and the status line are hidden too, not only the server glyph.
+- **Colours (Denys, #24 decisions, 2026-10-15):** the games follow the PNG (dimmed player colour) and the header is `watch/text-tertiary`, as the PNG samples; an earlier build had grey games and a `text-secondary` header.
 - **Colours as built:** the dimmed player colours are `brand/opponent` and `brand/ball` at 60 % opacity (#416D99, #86992F on black, as sampled from the PNG), and the zone fills the same colours at 10 % (#0A1119, #161908).
 
 ## Texts (UK)
