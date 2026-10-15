@@ -41,7 +41,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 1. **Start**: create a worktree `.worktrees/003-<slug>` on branch `feat/003-<slug>` from the latest `origin/main`, with `.specify/feature.json` → `specs/003-workout-health`. Run `scripts/gates/check-artifacts.sh specs/003-workout-health` and STOP if it fails.
 2. **Tests**: write the phase's tests, commit them, run them, see them fail, and record it in `test-first-evidence.md`.
-3. **Code**: implement until they pass. Run the full watch unit and UI suites and the engine tests. `git diff origin/main -- Packages/TennisCore` must be empty.
+3. **Code**: implement until they pass. Run the full watch unit and UI suites and the engine tests. `git diff origin/main -- Packages/TennisCore` must be empty (FR-018; the reviewer checks it too), and the diff adds no network, analytics or sync code.
 4. **Build and run**: build both schemes (`TennisBeat`, `TennisBeat Watch App`). Run the PR's flow on the 40 mm simulator in EN, PL and UK at the largest standard text size and at an accessibility size, with the `-uiTestHealth` modes of [quickstart](quickstart.md) §3. Attach the screenshots to the PR.
 5. **Gates**: `scripts/gates/check-project-format.sh` and `scripts/gates/check-infoplist-strings.sh`.
 6. **Metrics**: append the metrics row for the previous merged PR to `docs/harness.md`.
@@ -94,7 +94,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "US1 s3": `continue()` calls `requestAuthorization()` once, then `needsOnboarding` false;
   - "US1 s4": `notNow()` → false, no request; a new `HealthOnboarding` (next launch) with the same `.shouldRequest` → true again;
   - "US1 s5": `.unnecessary` → false; `.unknown` → false;
-  - "US1 s6": `requestStatus == nil` (still reading) → false, so New match isn't blocked.
+  - "US1 s1, s6": while the status is being read, the root shows nothing; `.shouldRequest` within 1 s → onboarding, never New match first; no answer after 1 s (`ManualSleep` released) → New match, and a late `.shouldRequest` is ignored for this launch.
 - [ ] T012 [P] [US1] `UnitTests/StringCatalogTests.swift`: keep the 002 tests and add `"FR-002 onboarding strings"` checking the keys `health.onboarding.title`, `.line.1`, `.line.2`, `.line.3`, `.continue`, `.notNow` exist in EN, PL and UK and the EN values equal the copy table.
 - [ ] T013 [P] [US1] `UnitTests/InfoPlistTextTests.swift`: `"FR-004"` both `InfoPlist.xcstrings` catalogs have the new `NSHealthShareUsageDescription` EN, PL and UK values of the copy table (UK with «Здоров’я», research R9), and the EN read text mentions heart rate and active energy. Positive control: the old text fails it.
 - [ ] T014 [P] [US1] `UITests/HealthOnboardingUITests.swift`:
@@ -110,7 +110,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T016 [US1] Add the onboarding strings to `App/Localizable.xcstrings` from the copy table: EN source, PL draft, UK (line 2 approved R1-4, line 3 second sentence R1-5), using «Здоров’я» with the typographic apostrophe (research R9, R13). No string addresses the player as «ти» / «ви».
 - [ ] T017 [US1] Create `App/Health/HealthOnboarding.swift` (`@Observable`, main actor): `requestStatus`, `skippedThisLaunch` (not stored, Q4), `needsOnboarding`, `continue()`, `notNow()`; reads the status once at launch.
 - [ ] T018 [US1] Create `App/Onboarding/HealthOnboardingView.swift` (research R14): a `ScrollView` with the title (Watch/Headline), three lines (Watch/Body, `watch/text-secondary`), Continue (primary capsule, `brand/ball`) and Not now (secondary capsule, `watch/surface-raised`), identifiers of contract §1. No Dynamic Type cap.
-- [ ] T019 [US1] `App/RootView.swift`: present `HealthOnboardingView` as a full-screen cover over the setup flow while `needsOnboarding` (data-model § HealthOnboarding, Launch). Both buttons dismiss it to New match.
+- [ ] T019 [US1] `App/RootView.swift`: wait for the status read up to 1 s (data-model § HealthOnboarding, Launch), then show `HealthOnboardingView` while `needsOnboarding`, otherwise the setup flow. Both buttons lead to New match.
 - [ ] T020 [US1] FR-004 texts, **catalogs first**: update `NSHealthShareUsageDescription` in `App/InfoPlist.xcstrings` and `TennisBeat/TennisBeat/InfoPlist.xcstrings` (EN, PL, UK from the copy table), then `INFOPLIST_KEY_NSHealthShareUsageDescription` in all four app build configurations in `TennisBeat/TennisBeat.xcodeproj/project.pbxproj` to the exact EN value (R1-3). Run `scripts/gates/check-infoplist-strings.sh` and `check-project-format.sh`.
 - [ ] T021 [US1] Add `docs/design/screens/watch-0-health-onboarding.md` with the 40 mm EN screenshot and the layout of T018, and a row for it in `docs/design/screens/README.md` (research R14). **Owner: Denys** approves the design in the PR review.
 - [ ] T022 [US1] PR checklist steps 2–8 for PR 1. Device check for Denys: **2** (the sheet after Continue; Not now returns next launch; never again after an answer).
@@ -130,7 +130,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T023 PR checklist step 1 for PR 2: worktree `.worktrees/003-workout`, branch `feat/003-workout`.
 - [ ] T024 [P] [US2] `UnitTests/WorkoutLifecycleTests.swift` (data-model § WorkoutState transitions, contract §4):
   - "US2 s1": `granted` → `start(at: clock.startedAt)` once at `start(firstServer:)`, also after the coin toss; the fake's configuration is tennis with no location type (Q1); `formatChoice` has no new field;
-  - "US2 s3", "FR-006": pause → `pause()`, resume → `resume()`; after a scripted 30-minute match with three pauses the fake's active time equals `clock.elapsed` within 1 s;
+  - "US2 s3", "FR-006": pause → `pause()`, resume → `resume()`; the fake records `now()` from the shared `FakeClock` at each call; after a scripted 30-minute match with three pauses, the recorded pause/resume times equal the clock's excluded intervals, and the active time computed from them equals `clock.elapsed` within 1 s. Positive control: a session that skips one `resume()` call fails it;
   - "US2 s4": the winning point and a confirmed End with a point → `pause()` and `workoutState == .summary(openedAt: clock.stoppedAt)`; the start of the 10-minute task (`ManualSleep.waiting == 1`);
   - "US2 s5": Undo from the summary → `resume()`, `.running`, the task cancelled;
   - "US2 s8", "FR-008": End with 0 points, and End after undoing every point → `discard()`, never `save`;
@@ -140,6 +140,8 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "Edge: pause during a tie-break": the workout pauses and resumes; tie-break state, server and side unchanged (`// ITF: TB-01`);
   - "Edge: early end long after the last point": End 20 min after the last point, unpaused → `openedAt` is the End time, not the point's.
 - [ ] T025 [P] [US2] `UnitTests/WorkoutSaveTests.swift`:
+  - "SC-002 scripted matrix": a table of scripted matches (start, pause, resume, summary Undo, timeout, early end with and without points, won) checks the expected call list after every step and exactly one `save` per final match with points, none otherwise;
+  - "SC-003": for a won match and an early end, `save(endingAt:)` gets `clock.stoppedAt`, so `endingAt − startedAt − paused` equals the summary's Duration within 1 s;
   - "US2 s6", "US4 s4": Done → `save(endingAt: openedAt)` once; route `.setup` at once, before the save returns (FR-010);
   - "US2 s7": the task fires after 10 minutes → `save` once, `.saved`, `canUndo == false`, Done → `.setup` with no second save; positive control: at 9:59 nothing is saved;
   - "US2 s7, R3-2": the timeout save fails → `.failed`, `canUndo == true`, Undo returns to the match with no further workout call; Done after it → `pendingSaveFailureNotice`;
@@ -151,6 +153,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T026 [P] [US5] `UnitTests/WorkoutPermissionTests.swift`:
   - "US5 s1": `denied` → `.none`, no service call, summary Undo as in 002;
   - "US5 s2": `granted` with no readings → the workout runs and is saved;
+  - US5 s3 has no test: it describes system behaviour (the watch face may return without a workout), and nothing in the app claims otherwise;
   - "US5 s4": permission changed between matches → the next `start` follows it; a running match keeps its state (the fake's `canStartWorkout` flipped mid-match changes nothing).
 - [ ] T027 [P] [US2] `UnitTests/WorkoutRecoveryTests.swift` ("FR-009a"): `WorkoutRecovery.recover()` calls `recoverAndSave()` once, leaves the session route `.setup` with no match; a failing recovery is ignored.
 
@@ -165,7 +168,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T034 [US2] Spec 002 notes (R1-2): add "changed by spec 003" to FR-020 in `specs/002-watch-match/spec.md` and to the Undo bullet in `docs/design/screens/watch-6-summary.md`: Undo is gone once a workout is saved (10-minute timeout); a failed save brings it back (R3-2).
 - [ ] T035 [US2] PR checklist steps 2–8 for PR 2. Device checks for Denys: **1, 4, 6, 7, 8, 10, 12, 13, 14, 15** (4 decides the permission rule: missing heart-rate or energy data in the saved workout → open a spec change for FR-003/FR-004, no workaround).
 
-**Checkpoint**: PR 2 merged; the app stays on screen for a whole match on a real watch, and each match with points leaves one tennis workout in Health.
+**Checkpoint**: PR 2 merged; the app stays on screen for a whole match on a real watch, and each match with points leaves one tennis workout in Health. Until PR 4, a failed save sets `pendingSaveFailureNotice` but nothing shows it yet (T055).
 
 ---
 
@@ -184,10 +187,12 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "US3 s4": `.none` and `.failed` → `.hidden`;
   - "US3 s5": Always On → `.hidden`;
   - "US3 s6": VoiceOver "Heart rate, 142 beats per minute", "Heart rate unavailable", in EN, PL and UK, with PL and UK plural forms for 1, 2, 5 and 22 (positive control: PL differs from EN);
-  - "Edge: heart rate above 199": `.value(205)` text is "205".
+  - "Edge: heart rate above 199": `.value(205)` text is "205";
+  - "US3 s2": `animation` is `nil` for every display (a new reading is shown without animation).
 - [ ] T038 [P] [US3] `UnitTests/WorkoutLifecycleTests.swift` additions: `.heartRate` events update `latestHeartRate` only while `running`/`paused`; ignored after `.saved`, `.discarded`, `.failed`; `latestHeartRate` is `nil` after Done (FR-014).
 - [ ] T039 [P] [US3] `UITests/HeartRateUITests.swift`:
   - "US3 s1": `granted -uiTestHeartRate 142 -uiTestExposeValues` → `heartRate.value` is "142", and `heartRate`'s label is the VoiceOver text;
+  - "US3 s2" is checked in T043's unit test, not here (UI tests can't see animations);
   - "US3 s4": `denied` → no `heartRate` element;
   - "US3 s5": `-uiTestAlwaysOn` → no `heartRate` element;
   - "US3 s3": `granted` without readings → "--".
@@ -197,7 +202,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 - [ ] T041 [US3] Add `score.heartRate.accessibility %lld` (plural) and `score.heartRate.unavailable` to `App/Localizable.xcstrings` (copy table, research R13).
 - [ ] T042 [US3] Create `App/Health/HeartRateDisplay.swift` (`nonisolated`, pure); add `latestHeartRate` to `MatchSession` and handle `.heartRate` events; `HealthKitWorkoutService` emits readings from `workoutBuilder(_:didCollectDataOf:)` (research R6).
-- [ ] T043 [US3] `App/Score/ScoreView.swift` / `App/Score/ElapsedTimeView.swift`: the heart-rate row on the elapsed-time line after the time (`ViewThatFits`, research R6), `status/heart` icon, Watch/Footnote, monospaced digits, no animation; part of the elapsed-time element's VoiceOver value; identifiers `heartRate`, `heartRate.value` (contract §1). The status line keeps its place.
+- [ ] T043 [US3] `App/Score/ScoreView.swift` / `App/Score/ElapsedTimeView.swift`: the heart-rate row (with a unit test in `UnitTests/HeartRateDisplayTests.swift`, written first in T037: "US3 s2" `HeartRateDisplay.animation` is `nil` for a reading change, and the view applies it with `.transaction { $0.animation = display.animation }`) on the elapsed-time line after the time (`ViewThatFits`, research R6), `status/heart` icon, Watch/Footnote, monospaced digits, no animation; part of the elapsed-time element's VoiceOver value; identifiers `heartRate`, `heartRate.value` (contract §1). The status line keeps its place.
 - [ ] T044 [US3] `docs/design/screens/watch-3-score.md`: replace "Heart-rate row is hidden in spec 002" with the Q3 layout and the XXXL 40 mm result (US3 s1).
 - [ ] T045 [US3] PR checklist steps 2–8 for PR 3. Device checks for Denys: **3, 9** (header part), **11**.
 
@@ -218,7 +223,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "US4 s3": `nil` statistics → no rows;
   - "US4 s8": VoiceOver "Heart rate: average 138, maximum 171 beats per minute", "Active energy: 612 kilocalories", plural on the maximum in PL and UK (positive control: PL differs from EN);
   - "Edge: rounding": 137.6 → 138; 611.5 kcal → whole kilocalories as the formatter rounds.
-- [ ] T048 [P] [US4] `UnitTests/WorkoutSaveTests.swift` additions: "FR-013" the summary snapshot is `statistics()` at the summary opening; after the timeout save it becomes the `SavedWorkout.statistics`; Undo drops it; a failed timeout save keeps the snapshot (data-model § WorkoutState).
+- [ ] T048 [P] [US4] `UnitTests/WorkoutSaveTests.swift` additions: "FR-013" the summary snapshot is `statistics()` at the summary opening; after the timeout save it becomes the `SavedWorkout.statistics`; Undo drops it; a failed timeout save drops it, so the summary shows Duration only (Story 4 s3, R3-2, data-model § WorkoutState).
 - [ ] T049 [P] [US4] `UnitTests/HealthStorageTests.swift` ("SC-007", "FR-014"): run a scripted match with a fake reading of 187 bpm and statistics 181/197/733, Done; then search `UserDefaults.standard.dictionaryRepresentation()` and every file under the app container's `Library` and `Documents` for "187", "197" and "733". Positive control: a value written on purpose to a test suite is found by the same search.
 - [ ] T050 [P] [US4] `UITests/SummaryHealthUITests.swift`:
   - "US4 s1": `granted -uiTestWorkoutStats 138,171,612` → `summary.heartRate`, `summary.energy` with their labels;

@@ -32,7 +32,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
 | `endEarly()` with 0 points | `session.end()`, `builder.discardWorkout()` | Nothing saved (FR-008) |
 | Workout failed to start, or ended by the system | none | `WorkoutState.failed`: no heart-rate row, no save, match unchanged (FR-010) |
 
-- **Paused intervals**: the clock and the workout get the same timestamps, from the session's injected `now`. `session.pause()` and `resume()` take no date, so the builder stamps its events a few milliseconds after the clock. The difference is far below the 1-second limit of FR-006 and SC-003, and the device check (spec check 5) confirms it. The unit tests check the dates passed to the fake.
+- **Paused intervals**: the clock and the workout get the same timestamps, from the session's injected `now`. `session.pause()` and `resume()` take no date, so the builder stamps its events a few milliseconds after the clock. The difference is far below the 1-second limit of FR-006 and SC-003, and the device check (spec check 5) confirms it. The fake records `now()` from the session's clock at each call, and the unit tests compare those recorded times with the clock's intervals; `start(at:)` and `save(endingAt:)` take explicit dates, which the tests check exactly.
 - **The end date in the past**: `endCollection(withEnd:)` with `summaryOpenedAt` cuts the summary time off the saved workout. The workout's `duration` in Health then equals `clock.elapsed(at: stoppedAt)`, the summary's Duration (SC-003).
 - **Rationale**: one live session from start to save keeps the app frontmost for the whole match, the pauses and the summary (Story 2 s2, device check 1). It also gives exactly one workout per match whatever the number of Undos (FR-009, Story 4 s5).
 - **Alternatives rejected**:
@@ -50,7 +50,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
 
 ## R4. The 10-minute summary timeout (FR-007, Story 2 s7)
 
-- **Decision**: When the summary opens with a running workout, the session starts a task that sleeps 10 minutes through an injected `sleep: @Sendable (Duration) async throws -> Void`, the same seam as 002's `WatchHaptics` (`ManualSleep` in tests). When it fires and the route is still `.summary`, the session saves the workout as on Done and sets `WorkoutState.saved`. `canUndo` is then false on the summary. Undo, Done and End cancel the task.
+- **Decision**: When the summary opens with a running workout, the session starts a task that sleeps 10 minutes through an injected `sleep: @Sendable (Duration) async throws -> Void`, the same seam as 002's `WatchHaptics` (`ManualSleep` in tests). When it fires and the route is still `.summary`, the session saves the workout as on Done and sets `WorkoutState.saved`. `canUndo` is then false on the summary. Undo and Done cancel the task (End isn't available on the summary).
 - **Wake-ups**: the session keeps running while paused, so the app keeps running in the background, and the task fires on time even with the wrist down (device check 15). As a safety net, a scene-phase change to `.active` checks `now() − summaryOpenedAt ≥ 10 min` and saves at once if the timer missed.
 - **Rationale**: tests drive the timeout by hand, as the haptics delay in 002 R3. The safety net covers a timer that is late after the app was suspended.
 - **Alternative rejected**: `Timer.scheduledTimer`: not testable without waiting, and it's tied to the run loop.
@@ -58,7 +58,7 @@ The Technical Context had no open `NEEDS CLARIFICATION` items. The platform, lan
 ## R5. Saving and the failure notice (FR-009, FR-015, Story 4 s7)
 
 - **Decision**: `save(endingAt:)` is `async throws`. The session moves to `WorkoutState.saving` when the save starts and to `saved` when it succeeds, so a second Done can't save twice. If `finishWorkout` throws, the session sets an in-memory flag `pendingSaveFailureNotice`. The next time New match shows after Done, the setup flow presents a one-time alert "Workout not saved to Health" with OK, then clears the flag (R1-6). Done never waits for the save: the route changes at once (FR-010).
-- **The flag is not stored**: it's not health data, but a relaunch drops it; the notice is a convenience, not a record. A save that fails during the 10-minute timeout sets the same flag, shown after Done (Story 4 s7). It also moves the session to `WorkoutState.failed`, so the summary shows Undo again; Undo then resumes the match with no workout (R3-2).
+- **The flag is not stored**: it's not health data, but a relaunch drops it; the notice is a convenience, not a record. A save that fails during the 10-minute timeout sets the same flag, shown after Done (Story 4 s7). It also moves the session to `WorkoutState.failed`, so the summary shows Undo again and drops the heart-rate and energy rows (Duration only, Story 4 s3); Undo then resumes the match with no workout (R3-2).
 - **Exactly one save**: the fake counts `save` calls. SC-002 checks one save per final match with points and none otherwise, across Undo from the summary, the timeout, and a second Done tap.
 
 ## R6. Heart rate in the header (FR-012, Story 3)
