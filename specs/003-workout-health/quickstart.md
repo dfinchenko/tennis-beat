@@ -23,7 +23,7 @@ Run `TennisBeat Watch AppUITests`. Expected: every 002 UI test passes with `-uiT
 
 ## 3. Manual flow in the simulator (screenshots for each PR)
 
-1. Launch with `-uiTestHealth shouldRequest`. The onboarding shows before New match. Not now → New match. Relaunch → the onboarding again. Continue → New match; relaunch → no onboarding.
+1. Launch with `-uiTestHealth shouldRequest`. The onboarding shows before New match. Not now → New match. Relaunch → the onboarding again. Continue → New match; relaunch with `-uiTestHealth granted` (the fake keeps no state between launches) → no onboarding.
 2. Launch with `-uiTestHealth granted -uiTestHeartRate 142`. Start a match: the header shows the time and `♥ 142`. Wait 30 s: `♥ --`. Pause: `♥ --`.
 3. Launch with `-uiTestHealth granted -uiTestWorkoutStats 138,171,612`. Win a set or End after a point: the summary shows Duration, `♥ 138 / 171` and `612 kcal`.
 4. `-uiTestWorkoutStats 138,171,` → no energy row; `,,612` → no heart-rate row.

@@ -49,10 +49,12 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `undo()` from the summary | `failed` | `failed` (the match continues with no workout) | none; drop the snapshot |
 | `done()` | `summary` | `saving` → `saved`, route → `.setup` at once | `save(endingAt: openedAt)`; failure → `pendingSaveFailureNotice` (R5) |
 | 10-minute task fires | `summary` | `saving` → `saved` (route stays `.summary`); on failure `saving` → `failed` | `save(endingAt: openedAt)`; snapshot ← the saved workout's statistics (R7); failure → notice flag, snapshot dropped (rows hidden), Undo shown again (R3-2) |
-| `done()` | `saving`, `saved` | — (route → `.setup`) | none (no second save) |
+| `done()` | `saving`, `saved` | — (route → `.setup`) | none (no second save); a running save still sets the notice flag if it fails |
+| `done()` | `none`, `failed` | — (route → `.setup`; `none` for the next match) | none |
 | `endEarly()` with 0 points | `running`, `paused` | `discarded` → (`none` for the next match) | `discard()` |
 | `.failed` or `.endedUnexpectedly` | `running`, `paused`, `summary` | `failed` | none (the service has already dropped the builder) |
 | `.heartRate(r)` | `running`, `paused` | same | `latestHeartRate = r` |
+| `.heartRate(r)` | `summary`, `saving` | same | ignored: the header isn't shown and the summary uses the snapshot |
 | any event | `none`, `saved`, `discarded`, `failed` | same | ignored (R11) |
 
 Invariants (tested, SC-002):
@@ -69,7 +71,7 @@ Invariants (tested, SC-002):
 | `workoutState` | `WorkoutState` | As above |
 | `latestHeartRate` | `HeartRateReading?` | Latest reading; cleared with the match (FR-014) |
 | `summaryStatistics` | `WorkoutStatistics?` | The summary snapshot (R7); cleared on Undo and Done |
-| `pendingSaveFailureNotice` | `Bool` | Shown once on New match after Done (FR-015) |
+| `pendingSaveFailureNotice` | `Bool` | Shown once on New match after Done, including when it turns true while New match is already showing (FR-015, R5) |
 | `sleep` | `@Sendable (Duration) async throws -> Void` | Injected; drives the 10-minute timeout (R4) |
 
 Changed derived value:

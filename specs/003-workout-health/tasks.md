@@ -74,7 +74,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T006 Create `App/Health/FakeWorkoutService.swift`: in-memory, records calls (`calls: [Call]` with dates), configurable per step to fail, emits scripted readings and statistics; built from `LaunchOptions` in DEBUG (contract §2) and used directly by unit tests. Compiled in all configurations so unit tests can use it, but only `#if DEBUG` code creates it from launch arguments.
 - [ ] T007 Extend `App/Match/LaunchOptions.swift` with `healthMode`, `heartRate`, `workoutStats` and `saveFails` (contract §2), parsed only `#if DEBUG`.
 - [ ] T008 Change `UITests/Support/XCUIApplication+Helpers.swift`: `launched(_:)` appends `-uiTestHealth denied` unless the arguments already contain `-uiTestHealth`, so every 002 UI test runs against "not authorized" without an expectation change (SC-005, research R12).
-- [ ] T009 Create `App/Health/HealthKitWorkoutService.swift` with the authorization members only (research R8): `typesToShare = [HKObjectType.workoutType()]`, `typesToRead = [HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned)]` and nothing else (FR-003); `authorizationRequestStatus()` from `HKHealthStore.statusForAuthorizationRequest(toShare:read:)` (an error → `.unknown`); `requestAuthorization()` swallows errors; `canStartWorkout` is `authorizationStatus(for: .workoutType()) == .sharingAuthorized`. The workout members are stubs that do nothing until PR 2 (T028); `canStartWorkout` is false in PR 1, so no stub is reached.
+- [ ] T009 Create `App/Health/HealthKitWorkoutService.swift` with the authorization members only (research R8): `typesToShare = [HKObjectType.workoutType()]`, `typesToRead = [HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned)]` and nothing else (FR-003); `authorizationRequestStatus()` from `HKHealthStore.statusForAuthorizationRequest(toShare:read:)` (an error → `.unknown`); `requestAuthorization()` swallows errors; `canStartWorkout` is `authorizationStatus(for: .workoutType()) == .sharingAuthorized`. The workout members are stubs that do nothing until PR 2 (T028); no stub is reached because the PR 1 session never calls the service (T010), whatever `canStartWorkout` returns.
 - [ ] T010 Inject the service: `MatchSession.init` takes `workout: WorkoutService` (PR 1 stores it and doesn't call it yet). `App/TennisBeatApp.swift` builds `FakeWorkoutService` when `LaunchOptions.current.healthMode` is set, `HealthKitWorkoutService` otherwise. Update `MatchSession.preview` and every unit test that builds a session (pass a `denied` fake).
 
 **Checkpoint**: all 002 unit and UI tests pass unchanged (SC-005 holds from here on).
@@ -141,14 +141,14 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "Edge: early end long after the last point": End 20 min after the last point, unpaused → `openedAt` is the End time, not the point's.
 - [ ] T025 [P] [US2] `UnitTests/WorkoutSaveTests.swift`:
   - "SC-002 scripted matrix": a table of scripted matches (start, pause, resume, summary Undo, timeout, early end with and without points, won) checks the expected call list after every step and exactly one `save` per final match with points, none otherwise;
-  - "SC-003": for a won match and an early end, `save(endingAt:)` gets `clock.stoppedAt`, so `endingAt − startedAt − paused` equals the summary's Duration within 1 s;
+  - "US4 s6, SC-003": for a won match and an early end, `save(endingAt:)` gets `clock.stoppedAt`, so `endingAt − startedAt − paused` equals the summary's Duration within 1 s;
   - "US2 s6", "US4 s4": Done → `save(endingAt: openedAt)` once; route `.setup` at once, before the save returns (FR-010);
   - "US2 s7": the task fires after 10 minutes → `save` once, `.saved`, `canUndo == false`, Done → `.setup` with no second save; positive control: at 9:59 nothing is saved;
   - "US2 s7, R3-2": the timeout save fails → `.failed`, `canUndo == true`, Undo returns to the match with no further workout call; Done after it → `pendingSaveFailureNotice`;
   - "US2 s7, R1-2": `denied` → the summary keeps Undo after 10 minutes (no task started);
   - "US4 s5", "FR-009": win → Undo → win again → Done: one `save`, ending at the **second** summary opening (R2-3); the first summary's time appears as a paused interval in the fake;
   - "FR-009": a double Done and Done after the timeout save never save twice;
-  - "US4 s7", "FR-015": Done with `-uiTestSaveFails`-style failure → `pendingSaveFailureNotice == true` after the save returns;
+  - "US4 s7", "FR-015": Done with a failing save → `pendingSaveFailureNotice == true` after the save returns, while the route is already `.setup`; the same for a timeout save still running when Done is tapped that fails afterwards;
   - "Edge: summary left open, then Undo after the 10-minute save": Undo is a no-op once `.saved`.
 - [ ] T026 [P] [US5] `UnitTests/WorkoutPermissionTests.swift`:
   - "US5 s1": `denied` → `.none`, no service call, summary Undo as in 002;
@@ -164,7 +164,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T030 [US2] `App/Summary/SummaryView.swift`: hide `summary.undo` when `canUndo` is false on the summary (contract §1).
 - [ ] T031 [US2] Create `App/Health/WorkoutRecovery.swift` and `App/AppDelegate.swift` (`WKApplicationDelegate`, `handleActiveWorkoutRecovery()` → `WorkoutRecovery`); add `@WKApplicationDelegateAdaptor` in `App/TennisBeatApp.swift` (research R10).
 - [ ] T032 [US2] Add `WKBackgroundModes = [workout-processing]` to the watch app's Info.plist with the Xcode MCP tools (research R9). Run `scripts/gates/check-project-format.sh` (no `validationLevel`, `objectVersion = 100`) and `check-infoplist-strings.sh`.
-- [ ] T033 [US2] `UITests/WorkoutUITests.swift`: with `-uiTestHealth granted`, a won match shows Undo, and with `failing` the match scores and the summary shows Duration only (US2 s9). The 10-minute path is unit-tested only (T025).
+- [ ] T033 [US2] `UITests/WorkoutUITests.swift`: with `-uiTestHealth granted`, a won match shows Undo, and with `failing` the match scores to the summary (US2 s9). This is a smoke test: the summary has no Health rows before PR 4, so the Duration-only check is in T050. The 10-minute path is unit-tested only (T025).
 - [ ] T034 [US2] Spec 002 notes (R1-2): add "changed by spec 003" to FR-020 in `specs/002-watch-match/spec.md` and to the Undo bullet in `docs/design/screens/watch-6-summary.md`: Undo is gone once a workout is saved (10-minute timeout); a failed save brings it back (R3-2).
 - [ ] T035 [US2] PR checklist steps 2–8 for PR 2. Device checks for Denys: **1, 4, 6, 7, 8, 10, 12, 13, 14, 15** (4 decides the permission rule: missing heart-rate or energy data in the saved workout → open a spec change for FR-003/FR-004, no workaround).
 
@@ -228,8 +228,8 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T050 [P] [US4] `UITests/SummaryHealthUITests.swift`:
   - "US4 s1": `granted -uiTestWorkoutStats 138,171,612` → `summary.heartRate`, `summary.energy` with their labels;
   - "US4 s2": `138,171,` → no `summary.energy`; `,,612` → no `summary.heartRate`;
-  - "US4 s3": `denied` → neither;
-  - "US4 s7": `granted -uiTestSaveFails` → Done → `health.saveFailed` on New match; OK → gone; a second Done of a new match without failure → no notice.
+  - "US4 s3": `denied` → neither; "US2 s9": `failing` → neither, Duration only;
+  - "US4 s7": `granted -uiTestSaveFails` → Done → `health.saveFailed` on New match; OK → gone; a second Done of a new match without failure → no notice; with a fake save that fails 1 s after Done, the notice appears on the already-showing New match.
 - [ ] T051 [P] [US6] Final audit (SC-006): the summary with both rows, the onboarding and the score header in the accessibility audits and screenshots in EN, PL and UK at XXXL and an accessibility size on 40 mm; rows ≥ 44 pt; no truncation; the heart icon always with text (US6 s1–s4).
 
 ### Code
@@ -237,7 +237,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [ ] T052 [US4] Add `summary.heartRate.*`, `summary.energy.*` and `health.saveFailed.*` to `App/Localizable.xcstrings` (copy table; plural on `%2$lld`; research R13).
 - [ ] T053 [US4] Create `App/Health/SummaryHealthRows.swift` (`nonisolated`, pure, research R7, R13: `Measurement<UnitEnergy>` in kilocalories, `.abbreviated` shown, `.wide` spoken, `usage: .asProvided`); `HealthKitWorkoutService.statistics()` and the saved workout's statistics (`averageQuantity`, `maximumQuantity`, `sumQuantity`); `summaryStatistics` in `MatchSession`; rows in `SummaryModel` after Duration.
 - [ ] T054 [US4] `App/Summary/SummaryView.swift`: the two rows like the Duration row (one VoiceOver element ≥ 44 pt each, `ViewThatFits`), `status/heart` icon, identifiers `summary.heartRate`, `summary.energy`.
-- [ ] T055 [US4] `App/RootView.swift` / setup flow: the one-time alert "Workout not saved to Health" · OK on New match after Done when `pendingSaveFailureNotice`, cleared on OK (research R5, contract §1).
+- [ ] T055 [US4] `App/RootView.swift` / setup flow: the one-time alert "Workout not saved to Health" · OK on New match after Done when `pendingSaveFailureNotice` is true, observed, so it also appears when the flag turns true while New match is showing; cleared on OK (research R5, contract §1).
 - [ ] T056 [US4] `docs/design/screens/watch-6-summary.md`: record the two rows, "Active energy" replacing «Активні ккал» (Q5), and remove "Heart-rate and kcal rows are hidden".
 - [ ] T057 [US4] PR checklist steps 2–8 for PR 4. Device checks for Denys: **5, 9** (summary part).
 
