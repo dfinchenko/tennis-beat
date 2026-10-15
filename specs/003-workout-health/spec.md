@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Draft
+**Status**: Approved (2026-10-15, Denys)
 
 **Input**: User description: "Spec 003: Workout and Health on the watch, not the iPhone side (iPhone comes after persistence and sync in 004). Every match runs a workout session (activity type tennis) that keeps the app frontmost on the wrist for the whole match; it pauses with the match. Live heart rate in the score-screen header; average/max heart rate and active energy on the summary when available. The workout is saved to Health when the match ends (won or ended early). A match ended with 0 points saves no workout. Health permission onboarding on the watch before the first match; everything works without permission (no heart rate, no workout saved). Health integration is named in the UI and strings (App Review 2.5.1). Out of scope: iPhone, sync, crash recovery (spec 004). Open questions: indoor vs outdoor court; when exactly the workout ends, given that undo works after the match has ended (at the winning point or on Done); what the header shows when heart rate is unavailable. List the device-only checks."
 
@@ -56,10 +56,10 @@ When a match starts, a tennis workout starts with it. The app stays on screen wh
 1. **Given** workout permission is granted, **When** the match starts (first server chosen, or the coin-toss result confirmed), **Then** a workout with activity type tennis starts. No court type (indoor or outdoor) is set, and New match gets no extra row (Q1).
 2. **Given** a workout is running, **When** the player lowers and raises the wrist at any time during the match, paused or not, **Then** the score screen (or Controls) is shown, not the watch face (device check).
 3. **Given** a workout is running, **When** the player taps Pause, **Then** the workout pauses; **When** they tap Resume, **Then** it resumes. The workout's active time equals the match's elapsed time (spec 002, FR-022) to within 1 second.
-4. **Given** the match is won, or ended early with at least one point played, **When** the summary opens, **Then** the workout pauses (Q2).
+4. **Given** the match is won, or ended early with at least one point played, **When** the summary opens, **Then** the workout stops at that moment: the winning point for a won match, the confirmed End for an early end (Q2, R1-1).
 5. **Given** the summary, **When** the player taps Undo, **Then** the match returns and the workout resumes.
-6. **Given** the summary, **When** the player taps Done, **Then** the workout is finished and saved to Health, ending at the time of the match's last point (Q2).
-7. **Given** the summary stays open for 10 minutes without Done or Undo, **Then** the workout is finished and saved as on Done, and the summary no longer offers Undo; Done still returns to New match (Q2).
+6. **Given** the summary, **When** the player taps Done, **Then** the workout is saved to Health, ending at the moment the summary opened (Q2, R1-1).
+7. **Given** the summary stays open for 10 minutes without Done or Undo, **Then** the workout is finished and saved as on Done, and the summary no longer offers Undo; Done still returns to New match (Q2). Without a workout (Story 5), the summary keeps Undo as in spec 002 FR-020, however long it is open (R1-2).
 8. **Given** End is confirmed with no point in the event list (no point played, or every point undone), **Then** the match is discarded as in spec 002, and the workout is discarded: nothing is saved to Health.
 9. **Given** the workout could not start (permission missing, another app's workout running, or a system error), **Then** the match starts and runs exactly as in spec 002, with no heart rate and no workout saved, and no error blocks the player (Story 5).
 10. **Given** the workout ends unexpectedly during a match (a system error), **Then** the match continues unchanged, the heart-rate row disappears, and no workout is saved for that match.
@@ -98,10 +98,10 @@ The summary shows average and maximum heart rate and active energy, and the matc
 1. **Given** the summary of a match with a workout, **Then** under Duration it shows "Heart rate avg / max" (e.g. "138 / 171", with the heart icon) and "Active energy" (e.g. "612 kcal", system formatting) (Q5), from the workout's own statistics over the same time span as the workout that is saved (Story 2 s6).
 2. **Given** the workout has no heart-rate reading, **Then** the heart-rate row is hidden; **given** it has no active-energy value, **Then** the energy row is hidden. Duration is always shown.
 3. **Given** a match without a workout (Story 5), **Then** the summary is the spec 002 summary: Duration only.
-4. **Given** a won match or an early end with at least one point, **When** the workout is saved (Done, or the 10-minute timeout), **Then** exactly one tennis workout is saved to Health with: start time = match start, end time = the time of the match's last point, the match's pauses before that point recorded as paused intervals, no court type, and the heart rate and active energy the session measured up to that point (Q1, Q2).
-5. **Given** Undo on the summary returns to the match and the match is later won or ended again, **Then** still only one workout is saved for that match, covering the whole match.
-6. **Given** a won match, **Then** the saved workout's duration in Health equals the summary's Duration to within 1 second. **Given** a match ended early, **Then** the workout's duration is the summary's Duration minus the active (unpaused) time between the last point and the confirmed End, to within 1 second (Q2). In both cases the average and maximum heart rate and active energy in Health equal the summary's values (device check).
-7. **Given** saving to Health fails, **Then** New match shows a one-time notice "Workout not saved to Health", dismissable with OK; the match flow is not blocked.
+4. **Given** a won match or an early end with at least one point, **When** the workout is saved (Done, or the 10-minute timeout), **Then** exactly one tennis workout is saved to Health with: start time = match start, end time = the moment the summary opened (the winning point, or the confirmed End), the match's pauses recorded as paused intervals, no court type, and the heart rate and active energy the session measured (Q1, Q2, R1-1).
+5. **Given** Undo on the summary returns to the match and the match is later won or ended again, **Then** still only one workout is saved for that match, covering the whole match; the time spent on the summary before Undo is a paused interval, and the workout ends when the summary opens for the last time.
+6. **Given** a won match or an early end, **Then** the saved workout's duration in Health equals the summary's Duration to within 1 second, and its average and maximum heart rate and active energy equal the summary's values (R1-1; device check).
+7. **Given** saving to Health fails (on Done, or at the 10-minute save while the summary is still open), **Then** the next New match after Done shows a one-time notice "Workout not saved to Health", dismissable with OK; the match flow is not blocked (R1-6).
 8. **Given** VoiceOver on the summary, **Then** the rows read "Heart rate: average 138, maximum 171 beats per minute" and "Active energy: 612 kilocalories" (plural forms, system unit formatting).
 
 ---
@@ -143,8 +143,8 @@ The onboarding, the heart-rate row and the summary rows work with VoiceOver, lar
 ### Edge Cases
 
 - **Another app's workout is running** when a match starts: the match starts anyway; whether the other workout ends or ours fails to start is the system's decision. If ours doesn't start, Story 2 s9 applies (device check).
-- **Undo from the summary after the match is won:** the match is back at match point and the workout resumes; the time on the summary is a paused interval of the workout, and the saved workout still ends at the last point (Q2).
-- **Early end long after the last point** (e.g. rain, then End): the saved workout ends at the last point; the summary's Duration also counts the unpaused time until End (spec 002), so the two differ by that time (Q2).
+- **Undo from the summary after the match is won:** the match is back at match point and the workout resumes; the time on the summary is a paused interval of the workout, and the saved workout ends when the summary opens again (Q2, R1-1).
+- **Early end long after the last point** (e.g. rain, then End): the time until End counts as activity unless the match was paused; the saved workout and the summary's Duration both end at the confirmed End (R1-1).
 - **Summary left open, then Undo after the 10-minute save:** not possible; Undo is no longer offered once the workout is saved (Q2).
 - **Undo of every point, then End:** 0 points in the event list, so the match and the workout are discarded (Story 2 s8).
 - **Pause during a tie-break:** the workout pauses; the score is unaffected (spec 002).
@@ -163,23 +163,23 @@ The onboarding, the heart-rate row and the summary rows work with VoiceOver, lar
 - **FR-001**: Before New match, the app MUST show the Health onboarding once per app launch while the system Health permission sheet has never been answered for this app; after it has been answered, never again (Q4).
 - **FR-002**: The onboarding MUST name the Health app, state that each match is saved as a tennis workout, state that heart rate and active energy are read to show them during and after the match, and state that the data stays in Health and nothing is sent anywhere. It MUST offer Continue (shows the system permission sheet) and Not now (no sheet).
 - **FR-003**: The app MUST request permission to save workouts and to read heart rate and active energy, and nothing else.
-- **FR-004**: The Info.plist permission texts MUST name the Health app and match what the app reads and saves: the read text MUST mention heart rate and active energy (it mentions only heart rate today). Each text changes in `InfoPlist.xcstrings` first (EN, PL, UK), then the build settings (CI gate).
+- **FR-004**: The Info.plist permission texts MUST name the Health app and match what the app reads and saves: the read text MUST mention heart rate and active energy (it mentions only heart rate today). The iOS and watch apps share these texts, so both apps' `InfoPlist.xcstrings` and all their build configurations get the same text (R1-3). Each text changes in the catalogs first (EN, PL, UK), then the build settings (CI gate).
 
 *Workout lifecycle*
 - **FR-005**: When a match starts and workout saving is allowed, a workout with activity type tennis MUST start, with no court type set (Q1).
 - **FR-006**: The workout MUST pause when the match pauses and resume when it resumes, so its active time equals the match's elapsed time to within 1 second.
-- **FR-007**: The workout MUST pause when the summary opens and resume when Undo on the summary returns to the match. It MUST be finished and saved on Done, or 10 minutes after the summary opened without Done or Undo; after that save the summary MUST NOT offer Undo. The saved workout MUST end at the time recorded on the match's last point event (Q2).
+- **FR-007**: The workout MUST stop when the summary opens (the winning point, or the confirmed End) and resume when Undo on the summary returns to the match. It MUST be saved on Done, or 10 minutes after the summary opened without Done or Undo, and the saved workout MUST end at the moment the summary opened. After that save the summary MUST NOT offer Undo; without a workout, the summary's Undo stays as in spec 002 FR-020 (Q2, R1-1, R1-2).
 - **FR-008**: A match discarded with 0 points in its event list MUST NOT save a workout; its workout MUST be discarded.
-- **FR-009**: A match MUST save at most one workout, from the match start to its last point, with its paused intervals.
+- **FR-009**: A match MUST save at most one workout, from the match start to the moment the summary opened, with its paused intervals.
 - **FR-009a**: When watchOS hands the app a running workout after the app was ended mid-match, the app MUST finish it at that moment and save it to Health as it is (Q6), then open New match.
 - **FR-010**: If the workout can't start or ends unexpectedly, the match MUST continue as in spec 002, with no heart-rate row from then on and no workout saved for it. No error may block scoring.
 - **FR-011**: The workout's state MUST follow the match's state only. The scoring engine MUST NOT know about the workout, and no workout event may change the score, the elapsed time or the summary's Duration.
 
 *Heart rate and energy*
 - **FR-012**: While a workout runs and a reading is available, the score header MUST show the latest heart rate (heart icon, beats per minute, monospaced digits) next to the elapsed time, and the heart icon with "--" when no reading is available: before the first one, after 30 seconds without a new one, and while paused (Q3). Without a running workout there MUST be no heart-rate row. Always On MUST NOT show heart rate.
-- **FR-013**: The summary MUST show "Heart rate avg / max" and "Active energy" (kcal, system formatting) from the workout's statistics up to the match's last point, each only when it has a value, after Duration (Q5).
+- **FR-013**: The summary MUST show "Heart rate avg / max" and "Active energy" (kcal, system formatting) from the same statistics as the saved workout, so the summary and Health show equal values, each only when it has a value, after Duration (Q5).
 - **FR-014**: Heart rate and energy values MUST be read live from the workout session and MUST NOT be written to any app storage, file or preference (constitution IX). After the match they exist only in Health.
-- **FR-015**: If saving the workout fails, New match MUST show a one-time notice that the workout was not saved to Health.
+- **FR-015**: If saving the workout fails, the next New match after Done MUST show a one-time notice that the workout was not saved to Health (R1-6).
 
 *Accessibility and localization*
 - **FR-016**: Every new string MUST come from the String Catalog in EN, PL and UK, follow the copy table, and use plural forms for beats per minute and kilocalories; numbers with units MUST use system formatting.
@@ -196,8 +196,8 @@ All rows are drafts. PL drafts go to the Polish native review ([#22](https://git
 | --- | --- | --- | --- | --- |
 | Onboarding title | Matches as workouts in Health | Mecze jako treningi w Zdrowiu | Матчі як тренування в «Здоров'ї» | draft |
 | Onboarding line 1 | Each match is saved as a tennis workout in the Health app. | Każdy mecz zapisuje się w aplikacji Zdrowie jako trening tenisowy. | Кожен матч зберігається в програмі «Здоров'я» як тренування з тенісу. | draft |
-| Onboarding line 2 | Heart rate and active energy are shown during and after the match. | Tętno i aktywna energia są widoczne w trakcie meczu i po nim. | Пульс і активна енергія видно під час матчу й після нього. | draft |
-| Onboarding line 3 | Data stays in Health. Nothing is sent anywhere. | Dane zostają w Zdrowiu. Nic nie jest nigdzie wysyłane. | Дані лишаються в «Здоров'ї». Нічого нікуди не надсилається. | draft (from iPhone 1 row 3) |
+| Onboarding line 2 | Heart rate and active energy are shown during and after the match. | Tętno i aktywna energia są widoczne w trakcie meczu i po nim. | Пульс і активну енергію видно під час матчу й після нього. | UK approved by Denys 2026-10-15 (R1-4); rest draft |
+| Onboarding line 3 | Data stays in Health. Tennis Beat sends nothing anywhere. | Dane zostają w Zdrowiu. Tennis Beat niczego nigdzie nie wysyła. | Дані лишаються в «Здоров'ї». Tennis Beat нікуди нічого не надсилає. | second sentence: EN and UK decided by Denys 2026-10-15 (R1-5), PL draft (#22); first sentence draft |
 | Onboarding buttons | Continue · Not now | Dalej · Nie teraz | Продовжити · Не зараз | draft |
 | Header heart rate | %d (with heart icon) | %d | %d | number only, as Watch 3 |
 | Header, no reading | -- (with heart icon) | -- | -- | Q3 |
@@ -213,7 +213,7 @@ All rows are drafts. PL drafts go to the Polish native review ([#22](https://git
 
 ### Key Entities
 
-- **Workout**: the session the app runs during a match: activity type tennis, start, pauses, end (the last point's time). Its heart rate and energy live in Health. In this feature the app holds only its state in memory, and its identifier until the match is final; spec 004 links a saved match to it by that identifier.
+- **Workout**: the session the app runs during a match: activity type tennis, start, pauses, end (the moment the summary opened). Its heart rate and energy live in Health. In this feature the app holds only its state in memory, and its identifier until the match is final; spec 004 links a saved match to it by that identifier.
 - **Health onboarding state**: whether the system sheet has been answered (Q4). No health data.
 
 ## Success Criteria *(mandatory)*
@@ -222,7 +222,7 @@ All rows are drafts. PL drafts go to the Polish native review ([#22](https://git
 
 - **SC-001**: With permission granted, the app stays on screen at every wrist raise for a full 90-minute match including a 10-minute pause (device check).
 - **SC-002**: For scripted matches covering start, pause, resume, summary Undo, the 10-minute summary timeout, early end with and without points, and a won match, the workout state after every step matches Story 2 in 100% of cases, and exactly one workout is saved per final match with points and none otherwise (automated, with a fake workout service).
-- **SC-003**: The saved workout ends at the last point's recorded time, and its duration differs from the expected value of Story 4 s6 (won or ended early) by no more than 1 second (automated with a controllable clock; confirmed in Health on a device).
+- **SC-003**: The saved workout ends at the moment the summary opened, and its duration differs from the summary's Duration by no more than 1 second, for won matches and early ends (automated with a controllable clock; confirmed in Health on a device).
 - **SC-004**: The first heart-rate reading appears in the header within 30 seconds of the match start with the watch worn normally (device check).
 - **SC-005**: Every spec 002 UI test passes unchanged with the workout service in its "not authorized" state.
 - **SC-006**: The onboarding, the score header with heart rate, and the summary with both rows pass the accessibility audit and show no truncated text at the largest agreed size on the 40 mm simulator in EN, PL and UK (screenshots in the PRs).
@@ -235,7 +235,7 @@ These can't be verified in the simulator; each implementation PR lists the ones 
 1. The app stays frontmost at every wrist raise for a whole match, during play, while paused (including a pause over 10 minutes) and on the summary until the workout is saved.
 2. The system permission sheet appears after Continue, and each answer leads to New match; after Not now the onboarding returns on the next launch; after the sheet has been answered, it never returns.
 3. The first heart-rate reading appears within 30 seconds; the header value roughly tracks the system Workout app's heart rate in a side-by-side check (same watch, a later session).
-4. The saved workout appears in the Fitness app and in Health as Tennis, starting at the match start and ending at the last point, with paused intervals, heart-rate graph and active energy, and counts toward the Activity rings.
+4. The saved workout appears in the Fitness app and in Health as Tennis, starting at the match start and ending when the summary opened (the winning point or the confirmed End), with paused intervals, heart-rate graph and active energy, and counts toward the Activity rings.
 5. Health's duration (Story 4 s6), average and maximum heart rate and active energy equal the summary's values.
 6. Undo from the summary, then finishing the match again, leaves exactly one workout in Health.
 7. A match ended with 0 points leaves no workout in Health.
@@ -251,8 +251,7 @@ These can't be verified in the simulator; each implementation PR lists the ones 
 ## Assumptions
 
 - **Engine:** no change to spec 001; the workout follows the app's match state (started, paused, summary, final, discarded), which spec 002 already has.
-- **Summary time:** in spec 002 the time on the summary is not part of the match's elapsed time. The workout follows that: it is paused while the summary shows, and the saved workout ends at the last point (Q2).
-- **Point times:** the engine's point events already record their time (spec 001); the workout's end time uses it, with no engine change.
+- **Summary time:** in spec 002 the time on the summary is not part of the match's elapsed time. The workout follows that: it stops when the summary opens, and the saved workout ends at that moment (Q2, R1-1).
 - **Energy unit:** the summary shows kilocalories with system formatting ("612 kcal" / «612 ккал»); the player's Health energy-unit preference (kJ) is not followed in this feature.
 - **Heart-rate values on the summary** are the workout session's own statistics for the match, not a separate Health query; after the match they are read from Health by workout identifier only (spec 004 / iPhone).
 - **Heart rate is not stored** anywhere by the app: the header and summary hold it in memory while shown (constitution IX).
@@ -267,9 +266,20 @@ These can't be verified in the simulator; each implementation PR lists the ones 
 Denys decided the open questions on 2026-10-15.
 
 - **Q1** — No court type: the workout's indoor/outdoor value is left unset, and New match gets no extra row.
-- **Q2** — A, with one change: the workout pauses when the summary opens, Undo on the summary resumes it, and Done saves it; if the summary stays open for 10 minutes, the workout is saved automatically and Undo is no longer offered. The saved workout ends at the time of the match's last point (point events carry their time), not when Done is tapped. After an early end, the workout is therefore shorter than the summary's Duration by the active time between the last point and End.
+- **Q2** — A, with one change: the workout pauses when the summary opens, Undo on the summary resumes it, and Done saves it; if the summary stays open for 10 minutes, the workout is saved automatically and Undo is no longer offered. The saved workout ends at the time of the match's last point (point events carry their time), not when Done is tapped. *Superseded by R1-1 below.*
 - **Q3** — While a workout runs, the header shows the heart icon and "--" before the first reading, after 30 seconds without a new one, and while paused; with no workout there is no row. Heart rate sits on the elapsed-time line, after the time.
 - **Q4** — After Not now, the onboarding returns on the next app launch until the system sheet has been answered once; never again after that.
 - **Q5** — Summary label "Active energy", value in kcal with system formatting.
 - **Q6** — A workout left running after the app was ended mid-match is real exercise: the app finishes it and saves it as it is. In spec 004, crash recovery resumes that workout with the recovered match instead of saving it.
 - **Health read text** — Adding active energy to the Info.plist read text (FR-004) is approved.
+
+### Review 1 decisions
+
+Denys decided the review 1 findings on 2026-10-15 ([report](https://github.com/dfinchenko/tennis-beat/pull/26#issuecomment-6196279852)).
+
+- **R1-1** — Q2 is simplified: the workout ends when the summary opens, at the winning point for a won match and at the confirmed End for an early end (that time on court is real activity). The summary's values equal the saved workout's. The "last point's time" rule is dropped. Undo on the summary still resumes the workout (Story 2 s4–s7, Story 4 s1, s4–s6, FR-007, FR-009, FR-013, SC-003).
+- **R1-2** — Without a workout, the summary keeps Undo as in spec 002 FR-020. The implementation PR adds "changed by spec 003" notes to spec 002 FR-020 and `docs/design/screens/watch-6-summary.md` (Story 2 s7, FR-007).
+- **R1-3** — The new read text goes into both apps' Info.plist catalogs and build settings, since the texts are shared (FR-004).
+- **R1-4** — UK onboarding line 2: «Пульс і активну енергію видно під час матчу й після нього.»
+- **R1-5** — Onboarding line 3, second sentence: "Tennis Beat sends nothing anywhere." / «Tennis Beat нікуди нічого не надсилає.» / «Tennis Beat niczego nigdzie nie wysyła.» (PL draft, added to #22).
+- **R1-6** — A failed save shows its notice on the next New match after Done (Story 4 s7, FR-015).
