@@ -16,7 +16,7 @@ struct ElapsedTimeView: View {
       TimelineView(ElapsedMinuteSchedule(clock: clock)) { context in
         Text(ScoreScreenModel.dimmedElapsed(clock.elapsed(at: context.date), locale: locale))
           .font(.watchTitle)
-          .foregroundStyle(Color.watchTextSecondary)
+          .foregroundStyle(Self.color(isDimmed: true))
           .lineLimit(1)
           .minimumScaleFactor(0.7)
           .accessibilityIdentifier(identifier)
@@ -26,12 +26,17 @@ struct ElapsedTimeView: View {
         Text(Self.format(clock.elapsed(at: context.date)))
           .font(.watchTitle)
           .monospacedDigit()
-          .foregroundStyle(Color.brandBall)
+          .foregroundStyle(Self.color(isDimmed: false))
           .lineLimit(1)
           .minimumScaleFactor(0.7)
           .accessibilityIdentifier(identifier)
       }
     }
+  }
+
+  /// The header colour: the ball colour, or grey in Always On (Watch 5).
+  static func color(isDimmed: Bool) -> Color {
+    isDimmed ? .watchTextSecondary : .brandBall
   }
 
   static func format(_ seconds: TimeInterval) -> String {

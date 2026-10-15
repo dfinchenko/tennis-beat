@@ -12,17 +12,35 @@ struct PlayerZoneView: View {
   /// sets no identifiers at all.
   var exposeValues = false
 
-  private var brand: Color { zone.player == .me ? .brandBall : .brandOpponent }
-  /// Watch 5 samples: the dimmed accents are the brand colours at 60 % on black (#86992F,
-  /// #416D99) and the fills at 10 % (#161908, #0A1119).
-  private var accent: Color { isDimmed ? brand.opacity(0.6) : brand }
-  private var fill: Color {
-    if isDimmed { return brand.opacity(0.1) }
-    return zone.player == .me ? .watchZoneMe : .watchZoneOpponent
-  }
-  private var setsColor: Color { isDimmed ? .watchTextSecondary : .watchTextPrimary }
-  private var gamesColor: Color { isDimmed ? .watchTextSecondary : accent }
+  private var palette: Palette { Palette(player: zone.player, isDimmed: isDimmed) }
+  private var accent: Color { palette.accent }
+  private var fill: Color { palette.fill }
+  private var setsColor: Color { palette.sets }
+  private var gamesColor: Color { palette.games }
   private var id: String { "zone.\(zone.player.rawValue)" }
+
+  /// A zone's colours, lit (Watch 3) or dimmed (Watch 5).
+  struct Palette: Equatable {
+    /// The label, serve mark, pill and point display.
+    let accent: Color
+    let fill: Color
+    let sets: Color
+    let games: Color
+
+    init(player: Player, isDimmed: Bool) {
+      let brand: Color = player == .me ? .brandBall : .brandOpponent
+      // Watch 5 samples: the dimmed accents are the brand colours at 60 % on black (#86992F,
+      // #416D99) and the fills at 10 % (#161908, #0A1119).
+      accent = isDimmed ? brand.opacity(0.6) : brand
+      if isDimmed {
+        fill = brand.opacity(0.1)
+      } else {
+        fill = player == .me ? .watchZoneMe : .watchZoneOpponent
+      }
+      sets = isDimmed ? .watchTextSecondary : .watchTextPrimary
+      games = isDimmed ? .watchTextSecondary : accent
+    }
+  }
 
   var body: some View {
     // The court-side pill goes after sets and games when it fits there, and on its own row
