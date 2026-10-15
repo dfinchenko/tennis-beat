@@ -35,3 +35,26 @@ The tests were committed first, in **`fa6bd25`** (T003, T004, T008, T011–T015)
 **The 002 UI tests (SC-005):** with the helper's `-uiTestHealth denied` default (T008), the full UI suite on the code before the UI-test wait fix ran 71 tests: 60 passed, 6 skipped (the opt-in screenshot tests), and 5 failed, all of them new onboarding tests (below). Every spec 002 UI test passed.
 
 **One test-harness problem, fixed before review (not an expectation change):** the onboarding UI tests first waited for Continue to be hittable at launch. On the 40 mm watch Continue starts below the fold, so they timed out even with the onboarding on screen. They now wait for the title, and the `tap` helper scrolls to the buttons as before. With that change all six pass on `6fee9dc`.
+
+**Not run for evidence:** `ScreenshotUITests.testHealthOnboardingScreens` (T015) is opt-in (it skips unless `SCREENSHOT_LANGUAGE` is set, so CI skips it) and asserts nothing: it only attaches the PR screenshots. Run for the screenshots in EN, PL and UK at the default size and XXXL.
+
+### Review 1 and Denys's design condition (#29)
+
+**Continue visible without scrolling** ([Denys, #29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908)): `HealthOnboardingUITests.testDesignContinueVisibleWithoutScrollingAtDefaultSize` was committed in **`99cec81`**, before the pinned Continue. Run on `99cec81`: failed, "Continue off screen in en" (the test stops at the first language). With the pinned Continue it passes in EN, PL and UK.
+
+**R1-3, `InfoPlistTextTests` "FR-004 each catalog's EN read text names heart rate and active energy"** now reads each catalog's EN value instead of a constant in the test (listed in `test-expectation-changes.md`). Run against a recorded mutation (never committed): the watch catalog's EN `NSHealthShareUsageDescription` set back to the spec 002 text, "Tennis Beat reads your heart rate to show it in your match summary. Health data stays in the Health app.". Result: `readTextNamesTypes(catalog:)` and `readTextInCatalog(catalog:)` failed for the watch catalog and passed for the iPhone catalog, which kept the new text.
+
+**`HealthOnboardingUITests.testUS1s2TextScrollsAbovePinnedContinue`** checks the pinned layout: the text drags up until Not now and line 3 sit above Continue. It was written after the pinned Continue (it doesn't apply to the earlier layout, where Not now sits under Continue), so it was run against a recorded mutation of the final code (never committed):
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Onboarding/HealthOnboardingView.swift
++++ b/TennisBeat/TennisBeat Watch App/Onboarding/HealthOnboardingView.swift
+       }
+     }
++    .scrollDisabled(true)  // MUTATION
+     // Denys's design condition on #29: at the default size Continue stays visible without
+```
+
+Result: failed, "Not now under Continue" (Not now's bottom at 348 pt, Continue's top at 135 pt). Without the mutation it passes.
+
+**Another test-harness finding:** with the pinned Continue, a quick XCUITest `swipeUp()` on the watch simulator doesn't scroll the onboarding's `ScrollView`, while a press-and-drag and the Digital Crown do (a temporary probe, not committed: Not now moved from y 304 to 82 under both). The UI tests and the screenshot test now use the helper `dragUp()` (a press-and-drag). Scrolling with a finger and the crown on a real watch is part of device check 2.

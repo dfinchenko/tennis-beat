@@ -142,3 +142,15 @@ extension XCUIApplication {
     return false
   }
 }
+
+extension XCUIApplication {
+  /// Drags the content up by most of the screen, like a finger. On the watch simulator a
+  /// quick `swipeUp()` doesn't always scroll a `ScrollView` that has a bottom inset (the
+  /// pinned Continue of the Health onboarding, spec 003); a drag and the Digital Crown do.
+  @MainActor
+  func dragUp() {
+    let start = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6))
+    let end = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+    start.press(forDuration: 0.1, thenDragTo: end)
+  }
+}

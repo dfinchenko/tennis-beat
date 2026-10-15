@@ -71,7 +71,7 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 ## Device checklist (Denys, before every TestFlight build)
 - [ ] Full match on court: scoring, undo, change-of-ends haptics
 - [ ] Health permission denied: scoring still works, no crashes
-- [ ] Health onboarding (spec 003, device check 2): on a fresh install the onboarding shows before New match; Continue shows the system Health sheet and every answer leads to New match; after Not now the onboarding returns on the next launch; once the sheet has been answered it never returns
+- [ ] Health onboarding (spec 003, device check 2): on a fresh install the onboarding shows before New match; Continue shows the system Health sheet and every answer leads to New match; after Not now the onboarding returns on the next launch; once the sheet has been answered it never returns; at the default text size Continue is visible without scrolling, the text scrolls with a finger and with the Digital Crown up to Not now above Continue; and VoiceOver reads the title, the three lines, Continue, then Not now; on a cold launch right after install the onboarding still appears (the app waits at most 1 s for HealthKit's answer and skips the onboarding for that launch if it is slower)
 - [ ] Always On: score readable, no seconds or animations
 - [ ] Largest agreed Dynamic Type size (spec 002, Q9: every size on setup, controls and summary; the largest standard size on the score screen): nothing clipped. Layout is checked on the 40 mm watch simulator (the smallest watch watchOS 26 supports); the real-device check runs on Denys's own watch
 - [ ] iPhone far away during the match: match arrives later

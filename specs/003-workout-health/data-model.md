@@ -127,7 +127,7 @@ No statistics (`workoutState` `none` or `failed`) → no rows: the spec 002 summ
 | `skippedThisLaunch` | `Bool` | Not now (Q4); not stored |
 | `needsOnboarding` | derived | `requestStatus == .shouldRequest && !skippedThisLaunch` |
 
-Commands: `continue()` → `requestAuthorization()`, then `requestStatus = .unnecessary`; `notNow()` → `skippedThisLaunch = true`. Both lead to New match (Story 1 s3, s4).
+Commands: `allow()` (Continue; `continue` is a Swift keyword) → `requestAuthorization()`, then `requestStatus = .unnecessary`; `notNow()` → `skippedThisLaunch = true`. Both lead to New match (Story 1 s3, s4).
 
 Launch: the status read is fast and local. The root view waits for it, up to **1 second**, before showing anything, so New match never flashes before the onboarding (Story 1 s1). On `.shouldRequest` it shows the onboarding; on any other answer, or when 1 s passes without one, it shows New match, so a slow read never blocks the remembered format and Start (Story 1 s6). An answer that arrives after the timeout is ignored for this launch. `HealthOnboarding` takes an injected `sleep` for the wait, so tests drive it by hand.
 

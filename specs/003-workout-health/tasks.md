@@ -91,7 +91,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 - [X] T011 [P] [US1] `UnitTests/HealthOnboardingTests.swift` (data-model § HealthOnboarding):
   - "US1 s1": `.shouldRequest` → `needsOnboarding` true;
-  - "US1 s3": `continue()` calls `requestAuthorization()` once, then `needsOnboarding` false;
+  - "US1 s3": `allow()` (Continue) calls `requestAuthorization()` once, then `needsOnboarding` false;
   - "US1 s4": `notNow()` → false, no request; a new `HealthOnboarding` (next launch) with the same `.shouldRequest` → true again;
   - "US1 s5": `.unnecessary` → false; `.unknown` → false;
   - "US1 s1, s6": while the status is being read, the root shows nothing; `.shouldRequest` within 1 s → onboarding, never New match first; no answer after 1 s (`ManualSleep` released) → New match, and a late `.shouldRequest` is ignored for this launch.
@@ -108,7 +108,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 ### Code
 
 - [X] T016 [US1] Add the onboarding strings to `App/Localizable.xcstrings` from the copy table: EN source, PL draft, UK (line 2 approved R1-4, line 3 second sentence R1-5), using «Здоров’я» with the typographic apostrophe (research R9, R13). No string addresses the player as «ти» / «ви».
-- [X] T017 [US1] Create `App/Health/HealthOnboarding.swift` (`@Observable`, main actor): `requestStatus`, `skippedThisLaunch` (not stored, Q4), `needsOnboarding`, `continue()`, `notNow()`; reads the status once at launch.
+- [X] T017 [US1] Create `App/Health/HealthOnboarding.swift` (`@Observable`, main actor): `requestStatus`, `skippedThisLaunch` (not stored, Q4), `needsOnboarding`, `allow()` (Continue), `notNow()`; reads the status once at launch.
 - [X] T018 [US1] Create `App/Onboarding/HealthOnboardingView.swift` (research R14): a `ScrollView` with the title (Watch/Headline), three lines (Watch/Body, `watch/text-secondary`), Continue (primary capsule, `brand/ball`) and Not now (secondary capsule, `watch/surface-raised`), identifiers of contract §1. No Dynamic Type cap.
 - [X] T019 [US1] `App/RootView.swift`: wait for the status read up to 1 s (data-model § HealthOnboarding, Launch), then show `HealthOnboardingView` while `needsOnboarding`, otherwise the setup flow. Both buttons lead to New match.
 - [X] T020 [US1] FR-004 texts, **catalogs first**: update `NSHealthShareUsageDescription` in `App/InfoPlist.xcstrings` and `TennisBeat/TennisBeat/InfoPlist.xcstrings` (EN, PL, UK from the copy table), then `INFOPLIST_KEY_NSHealthShareUsageDescription` in all four app build configurations in `TennisBeat/TennisBeat.xcodeproj/project.pbxproj` to the exact EN value (R1-3). Run `scripts/gates/check-infoplist-strings.sh` and `check-project-format.sh`.

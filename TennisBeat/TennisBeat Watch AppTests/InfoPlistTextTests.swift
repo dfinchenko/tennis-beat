@@ -41,13 +41,19 @@ struct InfoPlistTextTests {
     }
   }
 
-  @Test("FR-004 the EN read text names heart rate and active energy")
-  func readTextNamesTypes() {
-    let english = Self.readText["en"] ?? ""
-    #expect(english.contains("heart rate") && english.contains("active energy"))
-    // Positive control: the spec 002 text names heart rate only, and fails the check.
+  /// Whether a read text names both types FR-003 reads.
+  static func namesBothTypes(_ text: String) -> Bool {
+    text.contains("heart rate") && text.contains("active energy")
+  }
+
+  @Test(
+    "FR-004 each catalog's EN read text names heart rate and active energy", arguments: catalogs)
+  func readTextNamesTypes(catalog: URL) throws {
+    let english = try Self.values("NSHealthShareUsageDescription", in: catalog)["en"] ?? ""
+    #expect(Self.namesBothTypes(english), "\(catalog.lastPathComponent)")
+    // Positive control: the spec 002 text names heart rate only, and fails the same check.
     let old =
       "Tennis Beat reads your heart rate to show it in your match summary. Health data stays in the Health app."
-    #expect(!(old.contains("heart rate") && old.contains("active energy")))
+    #expect(!Self.namesBothTypes(old))
   }
 }

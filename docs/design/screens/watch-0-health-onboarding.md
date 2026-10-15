@@ -3,7 +3,7 @@
 ![Watch 0 — Health onboarding, top](watch-0-health-onboarding.png)
 ![Watch 0 — Health onboarding, bottom](watch-0-health-onboarding-bottom.png)
 
-- **Source:** added by spec 003 (Story 1, FR-002; research R14). There is no Figma frame: the export has only the iPhone version ([iPhone 1](iphone-1-health-permission.md)). The PNGs are simulator screenshots (Apple Watch SE 3, 40 mm, EN, default text size). **Approval:** Denys, in the 003 PR 1 review.
+- **Source:** added by spec 003 (Story 1, FR-002; research R14). There is no Figma frame: the export has only the iPhone version ([iPhone 1](iphone-1-health-permission.md)). The PNGs are simulator screenshots (Apple Watch SE 3, 40 mm, EN, default text size). **Approval:** [Denys, #29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908), with one condition: at the default text size on the 40 mm watch, Continue is visible without scrolling; at larger sizes scrolling is fine, as on the Controls page.
 - **Tokens:** `../tokens.json`. **Type:** `../typography.md`. Built only from tokens and styles spec 002 already uses.
 
 ## When it shows
@@ -13,10 +13,10 @@ Before New match, at launch, while the system Health permission sheet has never 
 Black background, one `ScrollView` (no Dynamic Type cap):
 1. Title "Matches as workouts in Health" (Watch/Headline, `brand/ball`), a header for VoiceOver.
 2. Three lines (Watch/Body, `watch/text-secondary`): what is saved, what is read, that data stays in Health.
-3. **Continue**: primary capsule (`brand/ball`, text `brand/on-ball`, ≥ 44 pt), the same style as Start on New match. It shows the system sheet; any answer leads to New match.
+3. **Continue**: primary capsule (`brand/ball`, text `brand/on-ball`, ≥ 44 pt), the same style as Start on New match. It shows the system sheet; any answer leads to New match. At the default text size and smaller it is **pinned to the bottom** over a black band, so it shows without scrolling while the text scrolls above it ([Denys's condition](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908)); at larger sizes it sits after the text and scrolls with it.
 4. **Not now**: secondary capsule (`watch/surface-raised`, `watch/text-primary`, ≥ 44 pt), the same style as Undo on the summary. New match, no sheet.
 
-On the 40 mm watch the buttons sit below the fold at the default size; the screen scrolls (US1 s2).
+On the 40 mm watch at the default size the text and Not now scroll; Continue stays on screen. Sort priorities ask VoiceOver for the title, the three lines, Continue, then Not now, wherever Continue is drawn; the order on a real watch is part of device check 2.
 
 ## Texts
 From the spec 003 copy table (EN / PL / UK; PL drafts go to the native review, #22):

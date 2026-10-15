@@ -47,6 +47,21 @@ final class HealthOnboardingUITests: XCTestCase {
     }
   }
 
+  /// US1 s2 with the pinned Continue: the text scrolls, so the last line and Not now come into
+  /// view above Continue at the default size.
+  @MainActor
+  func testUS1s2TextScrollsAbovePinnedContinue() {
+    let app = launchOnboarding()
+    let continueButton = app.element("health.onboarding.continue")
+    let notNow = app.element("health.onboarding.notNow")
+    let lastLine = app.element("health.onboarding.line.3")
+    for _ in 0..<3 where notNow.frame.maxY > continueButton.frame.minY + 1 { app.dragUp() }
+    XCTAssertGreaterThanOrEqual(notNow.frame.minY, app.frame.minY, "Not now above the screen")
+    XCTAssertLessThanOrEqual(
+      notNow.frame.maxY, continueButton.frame.minY + 1, "Not now under Continue")
+    XCTAssertGreaterThanOrEqual(lastLine.frame.minY, app.frame.minY - 1, "line 3 scrolled past")
+  }
+
   @MainActor
   func testUS1s3ContinueOpensNewMatch() {
     let app = launchOnboarding()

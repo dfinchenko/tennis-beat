@@ -22,7 +22,9 @@ final class ScreenshotUITests: XCTestCase {
       arguments, language: language, readyElement: "health.onboarding.title")
     app.element("health.onboarding").swipeDown()
     attach(app, "0-health-onboarding")
-    app.reveal(app.element("health.onboarding.notNow"))
+    // Continue is pinned at the default size, so `reveal` sees Not now as on screen; drag the
+    // text to its end instead.
+    for _ in 0..<3 { app.dragUp() }
     attach(app, "0b-health-onboarding-bottom")
   }
 
