@@ -15,6 +15,16 @@ nonisolated struct LaunchOptions: Sendable {
   /// `-uiTestPoints MMO…`: points played as soon as the match opens (M = Me, O = Opponent),
   /// so UI tests reach a score that Always On, where the zones take no taps, can show.
   var points: [Player] = []
+  /// `-uiTestHealth denied|shouldRequest|granted|failing`: the fake workout service instead
+  /// of HealthKit (spec 003, contract §2).
+  var healthMode: FakeHealthMode?
+  /// `-uiTestHeartRate 142`: one reading when the match starts.
+  var heartRate: Int?
+  /// `-uiTestWorkoutStats 138,171,612`: the statistics the summary gets; an empty field is
+  /// no value.
+  var workoutStats: WorkoutStatistics?
+  /// `-uiTestSaveFails`: saving the workout fails.
+  var saveFails = false
 
   static let current = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
 
@@ -32,6 +42,11 @@ nonisolated struct LaunchOptions: Sendable {
           }
         }
       }
+      healthMode = Self.value(after: "-uiTestHealth", in: arguments).flatMap(
+        FakeHealthMode.init(rawValue:))
+      heartRate = Self.value(after: "-uiTestHeartRate", in: arguments).flatMap { Int($0) }
+      workoutStats = Self.value(after: "-uiTestWorkoutStats", in: arguments).flatMap(Self.stats)
+      saveFails = arguments.contains("-uiTestSaveFails")
       if let index = arguments.firstIndex(of: "-coinToss"), index + 1 < arguments.count {
         switch arguments[index + 1] {
         case "me": coinToss = .me
@@ -40,5 +55,21 @@ nonisolated struct LaunchOptions: Sendable {
         }
       }
     #endif
+  }
+
+  private static func value(after flag: String, in arguments: [String]) -> String? {
+    guard let index = arguments.firstIndex(of: flag), index + 1 < arguments.count else {
+      return nil
+    }
+    return arguments[index + 1]
+  }
+
+  /// "average,maximum,kcal"; exactly three fields, an empty one is no value.
+  private static func stats(_ text: String) -> WorkoutStatistics? {
+    let fields = text.split(separator: ",", omittingEmptySubsequences: false).map(String.init)
+    guard fields.count == 3 else { return nil }
+    return WorkoutStatistics(
+      averageHeartRate: Int(fields[0]), maximumHeartRate: Int(fields[1]),
+      activeEnergy: Double(fields[2]))
   }
 }

@@ -12,7 +12,7 @@ struct SessionTests {
   private func makeSession(_ store: FormatStore? = nil) -> MatchSession {
     MatchSession(
       store: store ?? makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
-      now: clock.now)
+      workout: FakeWorkoutService.denied(), now: clock.now)
   }
 
   private func makeStore() -> FormatStore {
@@ -66,7 +66,7 @@ struct SessionTests {
     var tosses = 0
     let session = MatchSession(
       store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
-      now: clock.now,
+      workout: FakeWorkoutService.denied(), now: clock.now,
       coinToss: {
         tosses += 1
         return tosses.isMultiple(of: 2) ? .opponent : .me
@@ -93,7 +93,7 @@ struct SessionTests {
   ) -> MatchSession {
     let session = MatchSession(
       store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
-      now: clock.now, makeFormat: { _ in format })
+      workout: FakeWorkoutService.denied(), now: clock.now, makeFormat: { _ in format })
     session.start(firstServer: firstServer)
     return session
   }
@@ -148,7 +148,8 @@ struct SessionTests {
     #expect(session.clock?.elapsed(at: clock.now()) == 60)
   }
 
-  @Test("US2 s11 after any taps, undos, corrections and pauses the screen model equals the engine's")
+  @Test(
+    "US2 s11 after any taps, undos, corrections and pauses the screen model equals the engine's")
   func modelMatchesEngine() throws {
     var rng = SplitMix64(seed: SplitMix64.testSeed)
     for format in FormatChoice.allCombinations.compactMap(\.matchFormat) {
@@ -180,7 +181,8 @@ struct SessionTests {
     tap("MMO", on: session)
     let state = try #require(session.match?.state)
     let english = ScoreScreenModel(state: state, isPaused: false, locale: Locale(identifier: "en"))
-    let ukrainian = ScoreScreenModel(state: state, isPaused: false, locale: Locale(identifier: "uk"))
+    let ukrainian = ScoreScreenModel(
+      state: state, isPaused: false, locale: Locale(identifier: "uk"))
     #expect(english.summaryAccessibilityLabel != ukrainian.summaryAccessibilityLabel)
     for player in Player.allCases {
       #expect(english[player].points == ukrainian[player].points)
@@ -215,8 +217,14 @@ struct SessionTests {
     arguments: [
       ("game", MatchScript.games(1, for: .me) + "MMM", "M"),
       ("set", MatchScript.games(5, for: .me) + "MMM", "M"),
-      ("match tie-break", MatchScript.games(6, for: .me) + MatchScript.games(5, for: .opponent) + "OOO", "O"),
-      ("match tie-break point", MatchScript.games(6, for: .me) + MatchScript.games(6, for: .opponent) + "MMMOO", "O"),
+      (
+        "match tie-break",
+        MatchScript.games(6, for: .me) + MatchScript.games(5, for: .opponent) + "OOO", "O"
+      ),
+      (
+        "match tie-break point",
+        MatchScript.games(6, for: .me) + MatchScript.games(6, for: .opponent) + "MMMOO", "O"
+      ),
     ])  // ITF: SV-02, TB-02
   func undoAcrossBoundary(_ name: String, setup: String, last: String) throws {
     let session = playing(PointOutcomeTests.format(matchTieBreak: true))
@@ -263,7 +271,9 @@ struct SessionTests {
   func noPointAfterEarlyEnd() {
     let haptics = RecordingHaptics()
     let session = MatchSession(
-      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(), now: clock.now,
+      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(),
+      workout: FakeWorkoutService.denied(),
+      now: clock.now,
       makeFormat: { _ in PointOutcomeTests.format() })
     session.start(firstServer: .me)
     tap("M", on: session)
@@ -313,7 +323,10 @@ struct SessionTests {
   @Test("US4 s9 Server works in a tie-break and while paused")  // ITF: CE-02, TB-02
   func correctServerInTieBreak() throws {
     let session = playing()
-    tap(MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent) + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MMM", on: session)
+    tap(
+      MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent)
+        + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MMM", on: session
+    )
     #expect(session.match?.state.isTieBreak == true)
     session.pause()
     let before = try #require(session.match?.state)
@@ -358,10 +371,14 @@ struct SessionTests {
     #expect(session.route == .setup)
   }
 
-  @Test("Edge: pause and resume in a tie-break leave the tie-break, points, server and side unchanged")  // ITF: TB-02, TB-04
+  @Test(
+    "Edge: pause and resume in a tie-break leave the tie-break, points, server and side unchanged")  // ITF: TB-02, TB-04
   func pauseInTieBreak() throws {
     let session = playing()
-    tap(MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent) + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MOM", on: session)
+    tap(
+      MatchScript.games(5, for: .me) + MatchScript.games(5, for: .opponent)
+        + MatchScript.games(1, for: .me) + MatchScript.games(1, for: .opponent) + "MOM", on: session
+    )
     let before = try #require(session.match?.state)
     #expect(before.isTieBreak)
     session.pause()
@@ -418,7 +435,8 @@ struct SessionTests {
   func doneKeepsFormat() {
     let store = makeStore()
     let session = MatchSession(
-      store: store, haptics: RecordingHaptics(), announcer: RecordingAnnouncer(), now: clock.now)
+      store: store, haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
+      workout: FakeWorkoutService.denied(), now: clock.now)
     session.formatChoice.setLength = .four
     session.formatChoice.atFortyAll = .decidingPoint
     session.start(firstServer: .me)
@@ -436,7 +454,9 @@ struct SessionTests {
   func undoFromSummaryNoHaptic() {
     let haptics = RecordingHaptics()
     let session = MatchSession(
-      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(), now: clock.now,
+      store: makeStore(), haptics: haptics, announcer: RecordingAnnouncer(),
+      workout: FakeWorkoutService.denied(),
+      now: clock.now,
       makeFormat: { _ in PointOutcomeTests.format(.oneSet) })
     session.start(firstServer: .me)
     // 6–3 on an odd game: the state before the match point is not a change of ends, but
@@ -454,4 +474,3 @@ struct SessionTests {
     #expect(session.route == .playing)  // positive control
   }
 }
-

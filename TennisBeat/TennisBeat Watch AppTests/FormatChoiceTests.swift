@@ -100,7 +100,7 @@ struct FormatChoiceTests {
   func invalidFormatNeverStarts() {
     let session = MatchSession(
       store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
-      now: Date.init, makeFormat: { _ in nil })
+      workout: FakeWorkoutService.denied(), now: Date.init, makeFormat: { _ in nil })
     session.start(firstServer: .me)
     #expect(session.route == .setup)
     #expect(session.match == nil)
@@ -109,7 +109,7 @@ struct FormatChoiceTests {
     // Positive control: the same session with a buildable format starts.
     let control = MatchSession(
       store: makeStore(), haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
-      now: Date.init, makeFormat: { $0.matchFormat })
+      workout: FakeWorkoutService.denied(), now: Date.init, makeFormat: { $0.matchFormat })
     control.start(firstServer: .me)
     #expect(control.route == .playing)
   }

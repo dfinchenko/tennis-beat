@@ -19,6 +19,9 @@ final class MatchSession {
 
   @ObservationIgnored let haptics: HapticPlaying
   @ObservationIgnored let announcer: Announcing
+  /// The workout behind the match (spec 003). Not called yet: the lifecycle comes in 003
+  /// PR 2 (T010).
+  @ObservationIgnored let workout: WorkoutService
   @ObservationIgnored let now: () -> Date
   /// The language for announcements; read per command, so a language change applies next time.
   @ObservationIgnored let locale: () -> Locale
@@ -28,7 +31,7 @@ final class MatchSession {
 
   init(
     store: FormatStore, haptics: HapticPlaying, announcer: Announcing,
-    now: @escaping () -> Date,
+    workout: WorkoutService, now: @escaping () -> Date,
     makeFormat: @escaping (FormatChoice) -> MatchFormat? = { $0.matchFormat },
     coinToss: @escaping () -> Player = CoinToss.systemToss,
     locale: @escaping () -> Locale = { .current }
@@ -36,6 +39,7 @@ final class MatchSession {
     self.store = store
     self.haptics = haptics
     self.announcer = announcer
+    self.workout = workout
     self.now = now
     self.makeFormat = makeFormat
     self.coinToss = coinToss
@@ -135,7 +139,8 @@ final class MatchSession {
     guard isInProgress, !isPaused, let match else { return }
     clock?.pause(at: now())
     isPaused = true
-    announce([statusChange(from: match.state, to: match.state, wasPaused: false)].compactMap(\.self))
+    announce(
+      [statusChange(from: match.state, to: match.state, wasPaused: false)].compactMap(\.self))
   }
 
   /// Continues the clock and the tap zones (Story 4 s6). No haptic.
@@ -232,7 +237,8 @@ final class MatchSession {
     static var preview: MatchSession {
       MatchSession(
         store: FormatStore(defaults: UserDefaults(suiteName: "preview") ?? .standard),
-        haptics: WatchHaptics(), announcer: VoiceOverAnnouncer(), now: Date.init)
+        haptics: WatchHaptics(), announcer: VoiceOverAnnouncer(),
+        workout: FakeWorkoutService(mode: .denied, now: Date.init), now: Date.init)
     }
   }
 #endif
