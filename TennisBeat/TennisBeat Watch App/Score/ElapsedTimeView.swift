@@ -34,9 +34,10 @@ struct ElapsedTimeView: View {
     }
   }
 
-  /// The header colour: the ball colour, or grey in Always On (Watch 5).
+  /// The header colour: the ball colour, or `text-tertiary` grey in Always On (Watch 5,
+  /// Story 6 s1).
   static func color(isDimmed: Bool) -> Color {
-    isDimmed ? .watchTextSecondary : .brandBall
+    isDimmed ? .watchTextTertiary : .brandBall
   }
 
   static func format(_ seconds: TimeInterval) -> String {

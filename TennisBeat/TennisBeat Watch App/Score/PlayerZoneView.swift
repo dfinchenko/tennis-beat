@@ -5,7 +5,7 @@ import TennisCore
 /// (Watch 3, FR-006, FR-007).
 struct PlayerZoneView: View {
   let zone: ScoreScreenModel.Zone
-  /// Always On (Watch 5): darker fills and dimmed colours, grey sets and games.
+  /// Always On (Watch 5): darker fills and dimmed colours, grey completed sets.
   var isDimmed = false
   /// `-uiTestExposeValues`: the values carry identifiers for UI tests (research R7). On
   /// watchOS, XCUITest lists texts even when they are hidden from VoiceOver, so production
@@ -38,7 +38,9 @@ struct PlayerZoneView: View {
         fill = player == .me ? .watchZoneMe : .watchZoneOpponent
       }
       sets = isDimmed ? .watchTextSecondary : .watchTextPrimary
-      games = isDimmed ? .watchTextSecondary : accent
+      // Always On: the current games keep the dimmed player colour, as in Watch 5; only the
+      // completed sets go grey (Story 6 s1, #24 decisions).
+      games = accent
     }
   }
 
