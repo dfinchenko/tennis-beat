@@ -4,6 +4,7 @@ These PNGs (@2x) were exported manually by Denys on 2026-10-06 from the Screens 
 
 | Screen | Figma frame | PNG | Spec |
 | --- | --- | --- | --- |
+| Watch 0 — Health onboarding (spec 003) | — (no Figma frame; simulator screenshots) | [png](watch-0-health-onboarding.png) | [spec](watch-0-health-onboarding.md) |
 | Watch 1 — New match | 1 · Новий матч (10:3) | [png](watch-1-new-match.png) | [spec](watch-1-new-match.md) |
 | Watch 2 — First server | 2 · Перша подача (10:16) | [png](watch-2-first-server.png) | [spec](watch-2-first-server.md) |
 | Watch 3 — Score | 3 · Рахунок (10:24) | [png](watch-3-score.png) | [spec](watch-3-score.md) |

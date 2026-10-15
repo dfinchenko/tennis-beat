@@ -11,7 +11,7 @@ final class HealthOnboardingUITests: XCTestCase {
   private func launchOnboarding(_ language: String = "en") -> XCUIApplication {
     XCUIApplication.launched(
       ["-uiTestHealth", "shouldRequest", "-resetFormat"], language: language,
-      readyElement: "health.onboarding.continue")
+      readyElement: "health.onboarding.title")
   }
 
   @MainActor

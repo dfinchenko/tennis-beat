@@ -98,7 +98,7 @@ final class AccessibilityAuditUITests: XCTestCase {
           var arguments = ["-uiTestHealth", "shouldRequest"]
           if let size { arguments += ["-UIPreferredContentSizeCategoryName", size] }
           let app = XCUIApplication.launched(
-            arguments, language: language, readyElement: "health.onboarding.continue")
+            arguments, language: language, readyElement: "health.onboarding.title")
           for id in ["health.onboarding.continue", "health.onboarding.notNow"] {
             let button = app.element(id)
             app.reveal(button)

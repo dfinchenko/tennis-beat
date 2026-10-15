@@ -4,6 +4,8 @@ import SwiftUI
 /// what Tennis Beat saves to and reads from Health, with Continue (the system sheet) and Not
 /// now. It scrolls and has no Dynamic Type cap (US6 s2).
 struct HealthOnboardingView: View {
+  /// Catalog keys, also the identifiers (contract §1).
+  private static let lines = (1...3).map { "health.onboarding.line.\($0)" }
   @Environment(HealthOnboarding.self) private var onboarding
   @State private var isRequesting = false
 
@@ -17,12 +19,12 @@ struct HealthOnboardingView: View {
           .accessibilityAddTraits(.isHeader)
           .accessibilityIdentifier("health.onboarding.title")
 
-        ForEach(1...3, id: \.self) { number in
-          Text(LocalizedStringKey("health.onboarding.line.\(number)"))
+        ForEach(Self.lines, id: \.self) { key in
+          Text(LocalizedStringKey(key))
             .font(.watchBody)
             .foregroundStyle(Color.watchTextSecondary)
             .fixedSize(horizontal: false, vertical: true)
-            .accessibilityIdentifier("health.onboarding.line.\(number)")
+            .accessibilityIdentifier(key)
         }
 
         Button {

@@ -19,7 +19,7 @@ final class ScreenshotUITests: XCTestCase {
       arguments += ["-UIPreferredContentSizeCategoryName", size]
     }
     let app = XCUIApplication.launched(
-      arguments, language: language, readyElement: "health.onboarding.continue")
+      arguments, language: language, readyElement: "health.onboarding.title")
     app.element("health.onboarding").swipeDown()
     attach(app, "0-health-onboarding")
     app.reveal(app.element("health.onboarding.notNow"))
