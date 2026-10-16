@@ -34,7 +34,7 @@ final class ScoreAccessibilityUITests: XCTestCase {
 
   /// Spec 003 US6 s2, US3 s1 ([#31 L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542);
   /// T040): a three-digit heart rate at the largest standard size on 40 mm in EN, PL and UK,
-  /// at 0–0 and in the longest case (paused in a match tie-break). The heart rate sits under
+  /// at 0–0, in a match tie-break (the longest drawn status) and paused in it. The heart rate sits under
   /// the elapsed time, never beside it under the system clock; the status follows it on its
   /// line or moves below it, never overlapping; nothing leaves the screen; and the zones keep
   /// the spec 002 frames (the same state without a workout).
@@ -44,8 +44,10 @@ final class ScoreAccessibilityUITests: XCTestCase {
     let format = "{length=bestOfThree;setLength=four;atFortyAll=advantage;thirdSet=tieBreakToTen;}"
     let toMatchTieBreak = String(repeating: "M", count: 16) + String(repeating: "O", count: 16)
     for language in ["en", "pl", "uk"] {
-      for longest in [false, true] {
-        XCTContext.runActivity(named: "\(language) \(longest ? "paused match tie-break" : "0–0")") {
+      for state in ["0–0", "match tie-break", "paused match tie-break"] {
+        let longest = state != "0–0"
+        let paused = state.hasPrefix("paused")
+        XCTContext.runActivity(named: "\(language) \(state)") {
           _ in
           @MainActor func launch(_ health: [String]) -> XCUIApplication {
             let app = XCUIApplication.launched(
@@ -56,7 +58,7 @@ final class ScoreAccessibilityUITests: XCTestCase {
               language: language)
             app.tap("setup.start", until: "firstServer.me")
             app.tap("firstServer.me", until: "zone.me")
-            if longest {
+            if paused {
               app.showControls()
               app.tap("controls.pauseResume")
               app.showScore()
@@ -70,8 +72,8 @@ final class ScoreAccessibilityUITests: XCTestCase {
 
           let app = launch(["-uiTestHealth", "granted", "-uiTestHeartRate", "205"])
           let value = app.element("heartRate.value")
-          // Paused shows "--" (US3 s3); 0–0 shows the reading.
-          XCTAssertTrue(value.waitForLabel(longest ? "--" : "205"))
+          // Paused shows "--" (US3 s3); otherwise the reading.
+          XCTAssertTrue(value.waitForLabel(paused ? "--" : "205"))
           let heart = app.element("heartRate").frame
           let elapsed = app.element("elapsed").frame
           XCTAssertTrue(app.frame.contains(heart), "\(heart)")
