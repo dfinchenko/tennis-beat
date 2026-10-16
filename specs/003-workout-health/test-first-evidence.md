@@ -95,4 +95,4 @@ The tests were committed first, in **`026050e`**, before the fixes.
 
 **Run 6, `WorkoutLifecycleTests` at `026050e` without `HealthKitStatisticsTests.swift`** (deleted in a throwaway `git worktree add --detach` tree only, so the rest compiles): failed: "US2 s9 a workout that fails to start leaves the match running with no further call" (no `discard` after `.failed`). The other lifecycle tests passed, including the R1-5 edit of "Edge: early end long after the last point", which only removes an always-true expectation (listed in `test-expectation-changes.md`).
 
-**Run 7, unit tests at the fix:** 291 test cases passed, 0 failed (`HealthKitStatisticsTests` 2 new).
+**Run 7, unit tests at `9ba9e9a`** (the fixes): 291 test cases passed, 0 failed (`HealthKitStatisticsTests` 2 new). `WorkoutUITests` (2) and `SummaryUITests` (6) passed at `9ba9e9a`; the rest of the UI suite has no code it reaches changed since run 3, except the discard after a failed start, which only `WorkoutUITests` reaches.
