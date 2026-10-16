@@ -79,6 +79,7 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 - [ ] Another workout running (spec 003, device check 10): start a match while the system Workout app has a workout running; the match starts; record which workout survives
 - [ ] Workout battery (spec 003, device check 12): a 90-minute match with a workout uses about as much battery as the system Workout app's tennis workout (record the percentage)
 - [ ] Workout without the iPhone (spec 003, device check 13): the workout saves on the watch and appears on the iPhone after they reconnect
+- [ ] Done, then a new match at once (spec 003, #30 R1-3): tap Done, then Start and First server right away; the new match gets a workout (the app stays on screen), and Health has the previous match's workout too
 - [ ] App ended mid-match with a workout running (spec 003, device check 14): after a force-quit, the relaunch saves the workout as it is and opens New match
 - [ ] Always On: score readable, no seconds or animations
 - [ ] Largest agreed Dynamic Type size (spec 002, Q9: every size on setup, controls and summary; the largest standard size on the score screen): nothing clipped. Layout is checked on the 40 mm watch simulator (the smallest watch watchOS 26 supports); the real-device check runs on Denys's own watch

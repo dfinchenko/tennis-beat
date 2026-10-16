@@ -52,7 +52,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `done()` | `saving`, `saved` | — (route → `.setup`) | none (no second save); a running save still sets the notice flag if it fails |
 | `done()` | `none`, `failed` | — (route → `.setup`; `none` for the next match) | none |
 | `endEarly()` with 0 points | `running`, `paused` | `discarded` → (`none` for the next match) | `discard()` |
-| `.failed` | `running`, `paused`, `summary` | `failed` | none |
+| `.failed` | `running`, `paused`, `summary` | `failed` | `discard()`, so the failed session can't stay active (#30 R1-1) |
 | `.endedUnexpectedly` | `running`, `paused` | `failed` | `save(endingAt: now())` once, best effort: a failure is ignored and sets no notice flag (research R3, [#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)) |
 | `.endedUnexpectedly` | `summary` | `failed`; the 10-minute task cancelled | `save(endingAt: openedAt)` once, best effort, as above |
 | `.heartRate(r)` | `running`, `paused` | same | `latestHeartRate = r` |

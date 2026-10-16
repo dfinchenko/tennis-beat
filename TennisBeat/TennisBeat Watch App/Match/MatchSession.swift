@@ -328,6 +328,7 @@ final class MatchSession {
       case .running, .paused, .summary:
         cancelSummaryTimeout()
         workoutState = .failed
+        workout.discard()  // ends the failed session, so it can't stay active (#30 R1-1)
       default: break
       }
     case .endedUnexpectedly:

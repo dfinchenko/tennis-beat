@@ -82,6 +82,8 @@ final class HealthKitWorkoutService: WorkoutService {
 
   func save(endingAt date: Date) async throws -> SavedWorkout {
     guard let live = current else { throw NotAvailable() }
+    // The save owns it from here: nothing else reads the ended workout (#30 R1-2).
+    current = nil
     return try await live.save(endingAt: date)
   }
 
@@ -107,18 +109,22 @@ final class HealthKitWorkoutService: WorkoutService {
 
   /// Average and maximum heart rate (rounded beats per minute) and active energy
   /// (kilocalories), from the builder or the saved workout (research R7).
-  static func statistics(_ lookup: (HKQuantityType) -> HKStatistics?) -> WorkoutStatistics {
-    let beatsPerMinute = HKUnit.count().unitDivided(by: .minute())
+  nonisolated static func statistics(_ lookup: (HKQuantityType) -> HKStatistics?) -> WorkoutStatistics {
     let heartRate = lookup(HKQuantityType(.heartRate))
-    let energy = lookup(HKQuantityType(.activeEnergyBurned))
+    return statistics(
+      averageHeartRate: heartRate?.averageQuantity(),
+      maximumHeartRate: heartRate?.maximumQuantity(),
+      activeEnergy: lookup(HKQuantityType(.activeEnergyBurned))?.sumQuantity())
+  }
+
+  nonisolated static func statistics(
+    averageHeartRate: HKQuantity?, maximumHeartRate: HKQuantity?, activeEnergy: HKQuantity?
+  ) -> WorkoutStatistics {
+    let beatsPerMinute = HKUnit.count().unitDivided(by: .minute())
     return WorkoutStatistics(
-      averageHeartRate: heartRate?.averageQuantity().map {
-        Int($0.doubleValue(for: beatsPerMinute).rounded())
-      },
-      maximumHeartRate: heartRate?.maximumQuantity().map {
-        Int($0.doubleValue(for: beatsPerMinute).rounded())
-      },
-      activeEnergy: energy?.sumQuantity()?.doubleValue(for: .kilocalorie()))
+      averageHeartRate: averageHeartRate.map { Int($0.doubleValue(for: beatsPerMinute).rounded()) },
+      maximumHeartRate: maximumHeartRate.map { Int($0.doubleValue(for: beatsPerMinute).rounded()) },
+      activeEnergy: activeEnergy?.doubleValue(for: .kilocalorie()))
   }
 }
 
@@ -183,10 +189,12 @@ private final class LiveWorkout: NSObject, HKWorkoutSessionDelegate, HKLiveWorko
       statistics: HealthKitWorkoutService.statistics { workout.statistics(for: $0) })
   }
 
+  /// FR-008, and a workout that failed (#30 R1-1).
   func discard() {
     isEnding = true
-    session.end()
-    builder.discardWorkout()  // FR-008
+    resumeStopped()
+    if session.state != .ended { session.end() }
+    builder.discardWorkout()
   }
 
   /// `stopActivity(with:)`, then waits for `.stopped` (at most 3 s) before `end()`.

@@ -86,3 +86,13 @@ The tests were committed first, in **`f54757f`** (T024–T027, T033, the `Workou
 `WorkoutUITests` is a smoke test of existing behaviour (T033): against the code before `2fab92a` the session never called the workout, so both tests would pass there too; run 4 is their evidence.
 
 **Not run for evidence:** `ScreenshotUITests.testWorkoutSummaryScreens` is opt-in and asserts only that the summary shows; it attaches the PR screenshots.
+
+### Review 1 fixes (#30 R1-1, R1-4, R1-5)
+
+The tests were committed first, in **`026050e`**, before the fixes.
+
+**Run 5, unit tests at `026050e`:** the target doesn't compile. `HealthKitStatisticsTests.swift`: extra arguments in the call to `HealthKitWorkoutService.statistics` (no `statistics(averageHeartRate:maximumHeartRate:activeEnergy:)` yet). This covers both `HealthKitStatisticsTests` tests.
+
+**Run 6, `WorkoutLifecycleTests` at `026050e` without `HealthKitStatisticsTests.swift`** (deleted in a throwaway `git worktree add --detach` tree only, so the rest compiles): failed: "US2 s9 a workout that fails to start leaves the match running with no further call" (no `discard` after `.failed`). The other lifecycle tests passed, including the R1-5 edit of "Edge: early end long after the last point", which only removes an always-true expectation (listed in `test-expectation-changes.md`).
+
+**Run 7, unit tests at the fix:** 291 test cases passed, 0 failed (`HealthKitStatisticsTests` 2 new).
