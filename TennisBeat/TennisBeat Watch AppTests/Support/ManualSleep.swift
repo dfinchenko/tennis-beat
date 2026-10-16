@@ -1,13 +1,19 @@
-/// A `sleep` the test ends by hand, for `WatchHaptics`' delayed change-of-ends haptic.
+/// A `sleep` the test ends by hand, for `WatchHaptics`' delayed change-of-ends haptic and the
+/// session's 10-minute summary timeout.
 @MainActor
 final class ManualSleep {
   private var waiters: [CheckedContinuation<Void, Never>] = []
+  /// Every duration asked for, in order.
+  private(set) var requested: [Duration] = []
 
   var waiting: Int { waiters.count }
 
-  /// Pass as `WatchHaptics(sleep:)`.
+  /// Pass as `WatchHaptics(sleep:)` or `MatchSession(sleep:)`.
   var sleep: @Sendable (Duration) async throws -> Void {
-    { @MainActor [self] _ in await withCheckedContinuation { self.waiters.append($0) } }
+    { @MainActor [self] duration in
+      requested.append(duration)
+      await withCheckedContinuation { self.waiters.append($0) }
+    }
   }
 
   /// Ends every pending sleep.

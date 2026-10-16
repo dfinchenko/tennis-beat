@@ -53,8 +53,9 @@ Row order on the summary: title, chips, Duration, Heart rate, Active energy, Don
 | 10 minutes on the summary | save as on Done; Undo removed; on failure Undo returns and the notice follows Done (R3-2, R1-6) |
 | `endEarly()` with 0 points | discard |
 | Relaunch with a running workout | save at that moment; New match (FR-009a) |
+| The workout ends unexpectedly | save what it collected, once, best effort (now, or the summary opening); then as without a workout: Undo kept ([#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)) |
 
-Without permission, or after a failure, no row of this table calls the workout, and the 002 contract §4 and §5 apply unchanged.
+Without permission, or after a failure (except the best-effort save of the row above), no row of this table calls the workout, and the 002 contract §4 and §5 apply unchanged.
 
 ## 5. Session interface (for spec 004)
 

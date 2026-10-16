@@ -34,11 +34,13 @@ struct FakeWorkoutServiceTests {
   }
 
   @Test("Contract §2: failing — the workout reports .failed after start")
-  func failing() {
+  func failing() async {
     let fake = FakeWorkoutService(mode: .failing, now: clock.now)
     var events: [WorkoutEvent] = []
     fake.onEvent = { _, event in events.append(event) }
     _ = fake.start(at: clock.current)
+    // Reported after `start` returns, as HealthKit does, so the session knows the token.
+    await settle()
     #expect(events == [.failed])
   }
 

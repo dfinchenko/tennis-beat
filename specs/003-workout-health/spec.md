@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560))
+**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560); R6-3 and R6-4 from [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) applied at Denys's request in [#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908))
 
 **Input**: User description: "Spec 003: Workout and Health on the watch, not the iPhone side (iPhone comes after persistence and sync in 004). Every match runs a workout session (activity type tennis) that keeps the app frontmost on the wrist for the whole match; it pauses with the match. Live heart rate in the score-screen header; average/max heart rate and active energy on the summary when available. The workout is saved to Health when the match ends (won or ended early). A match ended with 0 points saves no workout. Health permission onboarding on the watch before the first match; everything works without permission (no heart rate, no workout saved). Health integration is named in the UI and strings (App Review 2.5.1). Out of scope: iPhone, sync, crash recovery (spec 004). Open questions: indoor vs outdoor court; when exactly the workout ends, given that undo works after the match has ended (at the winning point or on Done); what the header shows when heart rate is unavailable. List the device-only checks."
 
@@ -59,10 +59,10 @@ When a match starts, a tennis workout starts with it. The app stays on screen wh
 4. **Given** the match is won, or ended early with at least one point played, **When** the summary opens, **Then** the workout pauses, and its end time is recorded at that moment: the winning point for a won match, the confirmed End for an early end (Q2, R1-1, R2-1).
 5. **Given** the summary, **When** the player taps Undo, **Then** the match returns and the workout resumes.
 6. **Given** the summary, **When** the player taps Done, **Then** the workout is saved to Health, ending at the moment the summary opened (Q2, R1-1).
-7. **Given** the summary stays open for 10 minutes without Done or Undo, **Then** the workout is finished and saved as on Done, and the summary no longer offers Undo; Done still returns to New match (Q2). Without a workout (Story 5), the summary keeps Undo as in spec 002 FR-020, however long it is open (R1-2). A match whose workout failed to start or to save counts as without a workout: the summary keeps Undo, and after a failed 10-minute save Undo returns and the match continues with no workout (R3-2).
+7. **Given** the summary stays open for 10 minutes without Done or Undo, **Then** the workout is finished and saved as on Done, and the summary no longer offers Undo; Done still returns to New match (Q2). Without a workout (Story 5), the summary keeps Undo as in spec 002 FR-020, however long it is open (R1-2). Undo is hidden from the moment a save starts and returns only if the save fails (R6-3). A match whose workout failed to start or to save, or ended unexpectedly (s10), counts as without a workout: the summary keeps Undo, and after a failed 10-minute save Undo returns and the match continues with no workout (R3-2, R6-4).
 8. **Given** End is confirmed with no point in the event list (no point played, or every point undone), **Then** the match is discarded as in spec 002, and the workout is discarded: nothing is saved to Health.
 9. **Given** the workout could not start (permission missing, another app's workout running, or a system error), **Then** the match starts and runs exactly as in spec 002, with no heart rate and no workout saved, and no error blocks the player (Story 5).
-10. **Given** the workout ends unexpectedly during a match (a system error), **Then** the match continues unchanged, the heart-rate row disappears, and no workout is saved for that match.
+10. **Given** the workout ends unexpectedly during a match (a system error), **Then** the match continues unchanged as a match without a workout (s7: the summary keeps Undo), and the heart-rate row disappears. Whatever the ended workout collected is saved to Health if possible, as in Q6; no other workout is saved for that match (R6-4).
 
 ---
 
@@ -168,11 +168,11 @@ The onboarding, the heart-rate row and the summary rows work with VoiceOver, lar
 *Workout lifecycle*
 - **FR-005**: When a match starts and workout saving is allowed, a workout with activity type tennis MUST start, with no court type set (Q1).
 - **FR-006**: The workout MUST pause when the match pauses and resume when it resumes, so its active time equals the match's elapsed time to within 1 second.
-- **FR-007**: The workout MUST pause when the summary opens (the winning point, or the confirmed End), with its end time recorded at that moment, and resume when Undo on the summary returns to the match. It MUST be saved on Done, or 10 minutes after the summary opened without Done or Undo, and the saved workout MUST end at the moment the summary opened (the last time, after any Undo). After that save succeeds the summary MUST NOT offer Undo. Without a workout, the summary's Undo stays as in spec 002 FR-020; a workout that failed to start or to save counts as no workout, and a failed save also shows the FR-015 notice (Q2, R1-1, R1-2, R3-2).
+- **FR-007**: The workout MUST pause when the summary opens (the winning point, or the confirmed End), with its end time recorded at that moment, and resume when Undo on the summary returns to the match. It MUST be saved on Done, or 10 minutes after the summary opened without Done or Undo, and the saved workout MUST end at the moment the summary opened (the last time, after any Undo). From the moment that save starts the summary MUST NOT offer Undo; it returns only if the save fails (R6-3). Without a workout, the summary's Undo stays as in spec 002 FR-020; a workout that failed to start or to save, or ended unexpectedly (FR-010), counts as no workout, and a failed save also shows the FR-015 notice (Q2, R1-1, R1-2, R3-2, R6-4).
 - **FR-008**: A match discarded with 0 points in its event list MUST NOT save a workout; its workout MUST be discarded.
 - **FR-009**: A match MUST save at most one workout, from the match start to the moment the summary opened (the last time, after any Undo), with its paused intervals.
 - **FR-009a**: When watchOS hands the app a running workout after the app was ended mid-match, the app MUST finish it at that moment and save it to Health as it is (Q6), then open New match.
-- **FR-010**: If the workout can't start or ends unexpectedly, the match MUST continue as in spec 002, with no heart-rate row from then on and no workout saved for it. No error may block scoring.
+- **FR-010**: If the workout can't start, the match MUST continue as in spec 002, with no heart-rate row and no workout saved for it. If the workout ends unexpectedly, the match MUST continue as in spec 002 as a match without a workout (no heart-rate row from then on; the summary keeps Undo, FR-007), and whatever the ended workout collected MUST be saved to Health if possible, as in Q6; no other workout is saved for that match (R6-4). No error may block scoring.
 - **FR-011**: The workout's state MUST follow the match's state only. The scoring engine MUST NOT know about the workout, and no workout event may change the score, the elapsed time or the summary's Duration.
 
 *Heart rate and energy*
@@ -301,3 +301,10 @@ Denys decided these on 2026-10-15 in the 003 plan review, recorded in his [#28 c
 - **Copy table** — «Здоров’я» is written exactly as Apple writes it, with the typographic apostrophe.
 - **Delivery order** — The onboarding PR comes first, then the workout lifecycle (Assumptions, Delivery).
 - **Permissions** — As in Apple's sample: FR-003 as written (save workouts; read heart rate and active energy). Device check 4 decides; if the saved workout lacks heart-rate or energy data, a spec change to FR-003/FR-004 is opened instead of a workaround.
+
+### Plan-review follow-up decisions
+
+Denys decided these on 2026-10-15 in his [#28 comment on R6-3 and R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527), and asked for them to be applied in 003 PR 2 ([#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908)).
+
+- **R6-3** — Undo on the summary is hidden from the moment a save starts (Done or the 10-minute timeout); it returns only if the save fails, as in R3-2 (Story 2 s7, FR-007).
+- **R6-4** — A workout that ends unexpectedly mid-match: the match continues as "without a workout" and the summary keeps Undo. Whatever the ended workout collected is saved to Health if possible, as in Q6 (Story 2 s7, s10, FR-007, FR-010).
