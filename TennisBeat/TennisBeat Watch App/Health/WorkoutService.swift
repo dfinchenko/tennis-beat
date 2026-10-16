@@ -18,7 +18,8 @@ protocol WorkoutService: AnyObject {
   /// The workout's statistics so far (research R7).
   func statistics() -> WorkoutStatistics
   /// Ends and saves the current workout at `date`, or at HealthKit's last event if later
-  /// (research R2).
+  /// (research R2). Also finishes a workout the system ended, with what it collected
+  /// (#28 R6-4). The call takes the current workout before its first suspension.
   func save(endingAt date: Date) async throws -> SavedWorkout
   /// Ends the current workout without saving it (FR-008).
   func discard()
@@ -66,4 +67,30 @@ nonisolated struct WorkoutStatistics: Hashable, Sendable {
 nonisolated struct SavedWorkout: Hashable, Sendable {
   let uuid: UUID
   let statistics: WorkoutStatistics
+}
+
+/// The workout as the session sees it (data-model § WorkoutState). In memory only.
+nonisolated enum WorkoutState: Hashable, Sendable {
+  /// No workout for this match: permission not given, or no match yet.
+  case none
+  case running
+  case paused
+  /// The summary is showing; the session is paused and the end date is fixed (research R2).
+  case summary(openedAt: Date)
+  /// A save started (Done or the 10-minute timeout); Undo is hidden (#28 R6-3).
+  case saving
+  case saved
+  /// Ended with 0 points (FR-008).
+  case discarded
+  /// Didn't start, ended unexpectedly, or the timeout save failed: the match goes on as
+  /// without a workout (FR-010, R3-2, #28 R6-4).
+  case failed
+}
+
+/// The saved workout's end (research R2, #28 R5-2): HealthKit stamps `pause()` itself, a few
+/// milliseconds after the clock, and every workout event must lie inside the workout.
+nonisolated enum WorkoutEndDate {
+  static func effective(requested: Date, eventDates: [Date]) -> Date {
+    max(requested, eventDates.max() ?? requested)
+  }
 }

@@ -8,13 +8,29 @@
 import SwiftUI
 import TennisCore
 
+/// The one workout service, shared by the session, the onboarding and the workout recovery.
+enum AppServices {
+  static let workout: WorkoutService = makeWorkoutService()
+
+  /// HealthKit, or the fake for `-uiTestHealth` (contract §2).
+  private static func makeWorkoutService() -> WorkoutService {
+    let options = LaunchOptions.current
+    guard let mode = options.healthMode else { return HealthKitWorkoutService() }
+    let fake = FakeWorkoutService(mode: mode, now: Date.init, saveFails: options.saveFails)
+    if let stats = options.workoutStats { fake.stats = stats }
+    return fake
+  }
+}
+
 @main
 struct TennisBeat_Watch_AppApp: App {
+  @WKApplicationDelegateAdaptor private var appDelegate: AppDelegate
+  @Environment(\.scenePhase) private var scenePhase
   @State private var session: MatchSession
   @State private var onboarding: HealthOnboarding
 
   init() {
-    let workout = Self.makeWorkoutService()
+    let workout = AppServices.workout
     _session = State(initialValue: Self.makeSession(workout: workout))
     _onboarding = State(initialValue: HealthOnboarding(service: workout))
   }
@@ -27,6 +43,10 @@ struct TennisBeat_Watch_AppApp: App {
         .task { await onboarding.load() }
         .modifier(ForcedAlwaysOn(isOn: LaunchOptions.current.alwaysOn))
     }
+    .onChange(of: scenePhase) { _, phase in
+      // Research R4: the 10-minute save, if the timer missed while the app was suspended.
+      if phase == .active { session.checkSummaryTimeout() }
+    }
   }
 
   /// `-uiTestAlwaysOn`: as if the wrist were lowered.
@@ -36,15 +56,6 @@ struct TennisBeat_Watch_AppApp: App {
     func body(content: Content) -> some View {
       if isOn { content.environment(\.isLuminanceReduced, true) } else { content }
     }
-  }
-
-  /// HealthKit, or the fake for `-uiTestHealth` (contract §2).
-  private static func makeWorkoutService() -> WorkoutService {
-    let options = LaunchOptions.current
-    guard let mode = options.healthMode else { return HealthKitWorkoutService() }
-    let fake = FakeWorkoutService(mode: mode, now: Date.init, saveFails: options.saveFails)
-    if let stats = options.workoutStats { fake.stats = stats }
-    return fake
   }
 
   private static func makeSession(workout: WorkoutService) -> MatchSession {

@@ -2,7 +2,8 @@ import SwiftUI
 import TennisCore
 
 /// Watch 6 — Summary: the result, a chip per set, the duration, Done and Undo (Story 5,
-/// FR-019, FR-020). It scrolls, and there are no heart-rate or calorie rows (spec 003).
+/// FR-019, FR-020). It scrolls. Spec 003: Undo is hidden once the workout is being saved;
+/// the heart-rate and energy rows come in 003 PR 4.
 struct SummaryView: View {
   @Environment(MatchSession.self) private var session
   @Environment(\.locale) private var locale
@@ -65,14 +66,17 @@ struct SummaryView: View {
           .buttonStyle(CapsuleButtonStyle(fill: .brandBall, text: .brandOnBall))
           .accessibilityIdentifier("summary.done")
 
-          // Q7: a secondary Undo under Done.
-          Button(action: session.undo) {
-            Text("score.undo")
-              .font(.watchTitle)
-              .multilineTextAlignment(.center)
+          // Q7: a secondary Undo under Done. Spec 003: gone once a workout save has started;
+          // back if it fails (FR-007, R3-2, #28 R6-3).
+          if session.canUndo {
+            Button(action: session.undo) {
+              Text("score.undo")
+                .font(.watchTitle)
+                .multilineTextAlignment(.center)
+            }
+            .buttonStyle(CapsuleButtonStyle(fill: .watchSurfaceRaised, text: .watchTextPrimary))
+            .accessibilityIdentifier("summary.undo")
           }
-          .buttonStyle(CapsuleButtonStyle(fill: .watchSurfaceRaised, text: .watchTextPrimary))
-          .accessibilityIdentifier("summary.undo")
         }
       }
     }

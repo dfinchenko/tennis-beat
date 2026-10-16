@@ -67,7 +67,7 @@ final class WorkoutHarness {
   }
 }
 
-enum CallKind: Hashable {
+nonisolated enum CallKind: Hashable, Sendable {
   case start, pause, resume, save, discard
 
   init?(_ call: FakeWorkoutService.Call) {

@@ -8,7 +8,7 @@ import Testing
 /// after 10 minutes (spec 003 Story 2 s6, s7, Story 4 s4–s7; FR-007, FR-009, FR-015; T025).
 @MainActor
 struct WorkoutSaveTests {
-  enum Step: CustomStringConvertible {
+  nonisolated enum Step: CustomStringConvertible, Sendable {
     case point(String)
     case pause, resume, undo, endEarly, done, timeout, win
 
@@ -27,7 +27,7 @@ struct WorkoutSaveTests {
   }
 
   /// A scripted match: each step with the calls the fake has after it.
-  struct Script: CustomTestStringConvertible {
+  nonisolated struct Script: CustomTestStringConvertible, Sendable {
     let name: String
     let steps: [(Step, [CallKind])]
     let saves: Int
@@ -35,7 +35,7 @@ struct WorkoutSaveTests {
     var testDescription: String { name }
   }
 
-  static let scripts: [Script] = [
+  nonisolated static let scripts: [Script] = [
     Script(
       name: "won", steps: [(.win, [.start, .pause]), (.done, [.start, .pause, .save])], saves: 1),
     Script(

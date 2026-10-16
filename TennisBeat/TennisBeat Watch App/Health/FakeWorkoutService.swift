@@ -28,8 +28,20 @@ final class FakeWorkoutService: WorkoutService {
 
   struct SaveFailed: Error {}
 
-  private(set) var mode: FakeHealthMode
+  /// Settable, so tests can change the permission in "Settings" (Story 5 s4).
+  var mode: FakeHealthMode
   private(set) var calls: [Call] = []
+  /// The dates HealthKit would stamp on its pause and resume events: the call's time plus
+  /// `eventDelay` (research R2).
+  private(set) var eventDates: [Date] = []
+  /// The end each save used, after `WorkoutEndDate.effective` (#28 R5-2).
+  private(set) var savedEndDates: [Date] = []
+  /// How long after `now()` the fake stamps its pause and resume events.
+  var eventDelay: TimeInterval = 0
+  /// The workout started last.
+  private(set) var currentToken: WorkoutToken?
+  /// Runs inside `save` after the call is recorded, so tests can hold the save back.
+  var beforeSaveReturns: (() async -> Void)?
   /// The statistics `statistics()` and `save` report (`-uiTestWorkoutStats`).
   var stats = WorkoutStatistics()
   var saveFails: Bool
@@ -67,23 +79,44 @@ final class FakeWorkoutService: WorkoutService {
   func start(at date: Date) -> WorkoutToken {
     let token = WorkoutToken()
     calls.append(.start(at: date, token: token))
-    if mode == .failing { onEvent?(token, .failed) }
+    currentToken = token
+    eventDates = []
+    // Reported after `start` returns, as HealthKit does (research R3).
+    if mode == .failing { Task { @MainActor in self.onEvent?(token, .failed) } }
     return token
   }
 
-  func pause() { calls.append(.pause(at: now())) }
+  func pause() {
+    calls.append(.pause(at: now()))
+    eventDates.append(now() + eventDelay)
+  }
 
-  func resume() { calls.append(.resume(at: now())) }
+  func resume() {
+    calls.append(.resume(at: now()))
+    eventDates.append(now() + eventDelay)
+  }
 
   func statistics() -> WorkoutStatistics { stats }
 
   func save(endingAt date: Date) async throws -> SavedWorkout {
     calls.append(.save(endingAt: date))
+    let end = WorkoutEndDate.effective(requested: date, eventDates: eventDates)
+    await beforeSaveReturns?()
     if saveFails { throw SaveFailed() }
+    savedEndDates.append(end)
     return SavedWorkout(uuid: UUID(), statistics: stats)
   }
 
   func discard() { calls.append(.discard(at: now())) }
 
   func recoverAndSave() async { calls.append(.recoverAndSave) }
+
+  /// Sends `event` as the workout with `token` (tests).
+  func emit(_ event: WorkoutEvent, token: WorkoutToken) { onEvent?(token, event) }
+
+  /// The system ends the current workout (Story 2 s10).
+  func endUnexpectedly() {
+    guard let currentToken else { return }
+    onEvent?(currentToken, .endedUnexpectedly)
+  }
 }
