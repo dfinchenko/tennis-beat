@@ -13,3 +13,14 @@ No other expectation changed. Helper and wait changes that leave every expectati
 - the onboarding UI tests waiting for the title instead of Continue;
 - the injected `workout:` argument in the 002 unit tests.
 - the new `dragUp()` UI-test helper, used by the onboarding scrolling test and the screenshot test instead of `swipeUp()`.
+
+## `feat/003-workout` (PR 2)
+
+| Test | Old → new expectation | Source |
+| --- | --- | --- |
+| `FakeWorkoutServiceTests` "Contract §2: failing — the workout reports .failed after start" | `.failed` delivered during `start(at:)` → delivered after `start(at:)` returns (the test now waits with `settle()`, then expects the same `[.failed]`). The session can only match the event to its workout once `start` has returned the token; HealthKit reports start errors asynchronously too. | research R3 ("`startActivity` and `beginCollection` report errors asynchronously"), R11 |
+
+No other expectation changed. Helper changes that leave every expectation as it was, and so are not listed above:
+- `ManualSleep` records the durations it was asked for (`requested`), so the timeout tests can check the 10 minutes;
+- the new `WorkoutHarness`, `CallKind` and `SaveGate` test support;
+- the spec 002 tests still run with the `denied` fake, so their summary keeps Undo (SC-005).

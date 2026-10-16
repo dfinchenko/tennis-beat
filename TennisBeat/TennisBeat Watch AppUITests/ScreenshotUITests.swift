@@ -191,6 +191,32 @@ final class ScreenshotUITests: XCTestCase {
     attach(app, "19-summary-match-tie-break")
   }
 
+  /// Spec 003 PR 2: the summary of a won match with a workout (paused, not yet saved, so Undo
+  /// shows), and with a workout that failed to start (as in spec 002).
+  @MainActor
+  func testWorkoutSummaryScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var size: [String] = []
+    if let category = environment["SCREENSHOT_TEXT_SIZE"] {
+      size = ["-UIPreferredContentSizeCategoryName", category]
+    }
+    let oneSetOfFour = "{length=oneSet;setLength=four;atFortyAll=advantage;thirdSet=fullSet;}"
+    for (health, name) in [("granted", "20-summary-workout"), ("failing", "21-summary-workout-failed")] {
+      let app = XCUIApplication.launched(
+        ["-lastFormat.v1", oneSetOfFour, "-uiTestHealth", health] + size, language: language)
+      app.tap("setup.start", until: "firstServer.me")
+      app.tap("firstServer.me", until: "zone.me")
+      for _ in 0..<16 { app.element("zone.me").tap() }
+      XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+      app.reveal(app.element("summary.undo"))
+      attach(app, name)
+      app.terminate()
+    }
+  }
+
   /// Watch 5 next to `docs/design/screens/watch-5-always-on.png`: Me won the first set 6–4
   /// and leads 3–2, 30–15.
   @MainActor

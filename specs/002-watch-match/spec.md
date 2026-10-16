@@ -256,7 +256,7 @@ Every screen works with VoiceOver, with larger text sizes on the smallest suppor
 
 *Summary*
 - **FR-019**: When the match is won or ended early, the elapsed time MUST stop and the summary MUST show: the title (Win / Loss / the unfinished title), a chip per set in Me–Opponent order (the match tie-break with its point score [ITF: MT-05]), and Duration. Lost sets MUST be dimmed and also identifiable without colour.
-- **FR-020**: The summary MUST offer Done, which returns to New match. It MUST offer Undo (Q7), which returns to the score screen after removing the last event.
+- **FR-020**: The summary MUST offer Done, which returns to New match. It MUST offer Undo (Q7), which returns to the score screen after removing the last event. *Changed by spec 003 (R1-2, R3-2, [#28 R6-3](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)):* with a workout, Undo is hidden from the moment the workout save starts (Done, or 10 minutes on the summary) and is gone once the workout is saved; a failed save brings it back. Without a workout the summary keeps Undo as stated here.
 
 *Always On*
 - **FR-021**: In the dimmed state the score screen MUST follow Watch 5: whole minutes only, no seconds, no Undo, no animations, dimmed colours, and the elements listed in Story 6, scenario 2 hidden (Q8).
