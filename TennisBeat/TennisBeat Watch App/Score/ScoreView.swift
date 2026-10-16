@@ -56,23 +56,15 @@ struct ScoreView: View {
       if model.showsUndo { undoButton }
 
       VStack(alignment: .leading, spacing: 0) {
-        ElapsedTimeView(
-          clock: clock,
-          heartRate: { [session, isLuminanceReduced] date in
-            HeartRateDisplay(
-              workoutState: session.workoutState, reading: session.latestHeartRate, now: date,
-              isDimmed: isLuminanceReduced)
-          }, exposeValues: exposeValues, isDimmed: isLuminanceReduced
+        ElapsedTimeView(clock: clock, heartRate: heartRate(at:), isDimmed: isLuminanceReduced)
+          .accessibilitySortPriority(2)
+        // The heart rate, then the status (#31 L1); VoiceOver reads the heart rate with the
+        // elapsed time and the status inside the summary (Story 7 s2).
+        HeaderStatusLine(
+          clock: clock, status: model.statusText, heartRate: heartRate(at:),
+          isDimmed: isLuminanceReduced, exposeValues: exposeValues
         )
-        .accessibilitySortPriority(2)
-        // The status line; VoiceOver reads it inside the summary instead (Story 7 s2).
-        Text(model.statusText)
-          .font(.watchFootnote)
-          .foregroundStyle(Color.watchTextSecondary)
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-          .frame(maxWidth: .infinity, minHeight: 16, alignment: .leading)
-          .accessibilityHidden(true)
+        .frame(maxWidth: .infinity, minHeight: 16, alignment: .leading)
       }
       .frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading)
       .overlay {
@@ -86,6 +78,13 @@ struct ScoreView: View {
       }
       .accessibilityElement(children: .contain)
     }
+  }
+
+  /// The header's heart rate at `date` (Story 3, FR-012).
+  private func heartRate(at date: Date) -> HeartRateDisplay {
+    HeartRateDisplay(
+      workoutState: session.workoutState, reading: session.latestHeartRate, now: date,
+      isDimmed: isLuminanceReduced)
   }
 
   private var undoButton: some View {
