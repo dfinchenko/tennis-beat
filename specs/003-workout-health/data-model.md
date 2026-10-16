@@ -53,7 +53,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `done()` | `none`, `failed` | — (route → `.setup`; `none` for the next match) | none |
 | `endEarly()` with 0 points | `running`, `paused` | `discarded` → (`none` for the next match) | `discard()` |
 | `.failed` | `running`, `paused`, `summary` | `failed` | `discard()`, so the failed session can't stay active (#30 R1-1) |
-| `.endedUnexpectedly` | `running`, `paused` | `failed` | `save(endingAt: now())` once, best effort: a failure is ignored and sets no notice flag (research R3, [#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)) |
+| `.endedUnexpectedly` | `running`, `paused` | `failed` | `save(endingAt: now())` once, best effort; a failure sets the notice flag as any failed save does (research R3, [#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527), [P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)) |
 | `.endedUnexpectedly` | `summary` | `failed`; the 10-minute task cancelled | `save(endingAt: openedAt)` once, best effort, as above |
 | `.heartRate(r)` | `running`, `paused` | same | `latestHeartRate = r` |
 | `.heartRate(r)` | `summary`, `saving` | same | ignored: the header isn't shown and the summary uses the snapshot |
@@ -75,7 +75,7 @@ Invariants (tested, SC-002):
 | `workoutState` | `WorkoutState` | As above |
 | `latestHeartRate` | `HeartRateReading?` | Latest reading; cleared with the match (FR-014) |
 | `summaryStatistics` | `WorkoutStatistics?` | The summary snapshot (R7); cleared on Undo and Done |
-| `pendingSaveFailureNotice` | `Bool` | Shown once on New match after Done, including when it turns true while New match is already showing (FR-015, R5) |
+| `pendingSaveFailureNotice` | `Bool` | Shown once on New match after Done, including when it turns true while New match is already showing, whichever match the failed save belongs to; several failures set it once, so they give one notice (FR-015, R5, [P2-2](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)) |
 | `sleep` | `@Sendable (Duration) async throws -> Void` | Injected; drives the 10-minute timeout (R4) |
 
 Changed derived value:
