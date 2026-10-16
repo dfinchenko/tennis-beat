@@ -177,6 +177,8 @@ struct WorkoutLifecycleTests {
     h.start()
     await settle()
     #expect(h.session.workoutState == .failed)
+    // #30 R1-1: the failed workout is ended, so its session can't stay active.
+    #expect(h.kinds == [.start, .discard])
     h.tap("MMM")
     h.session.pause()
     h.session.resume()
@@ -185,7 +187,7 @@ struct WorkoutLifecycleTests {
     #expect(h.session.canUndo)  // R3-2: a failed workout keeps Undo
     h.session.done()
     await settle()
-    #expect(h.kinds == [.start])
+    #expect(h.kinds == [.start, .discard])
     #expect(h.sleeper.waiting == 0)
   }
 
@@ -327,8 +329,8 @@ struct WorkoutLifecycleTests {
     let lastPoint = h.clock.current
     h.clock.advance(by: 1200)
     h.session.endEarly()
+    #expect(lastPoint != h.clock.current)
     #expect(h.session.workoutState == .summary(openedAt: h.clock.current))
-    #expect(h.session.workoutState != .summary(openedAt: lastPoint))
   }
 
   /// Active time from the fake's calls: from the start to `end`, minus the paused intervals.
