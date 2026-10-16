@@ -56,8 +56,15 @@ struct ScoreView: View {
       if model.showsUndo { undoButton }
 
       VStack(alignment: .leading, spacing: 0) {
-        ElapsedTimeView(clock: clock, isDimmed: isLuminanceReduced)
-          .accessibilitySortPriority(2)
+        ElapsedTimeView(
+          clock: clock,
+          heartRate: { [session, isLuminanceReduced] date in
+            HeartRateDisplay(
+              workoutState: session.workoutState, reading: session.latestHeartRate, now: date,
+              isDimmed: isLuminanceReduced)
+          }, exposeValues: exposeValues, isDimmed: isLuminanceReduced
+        )
+        .accessibilitySortPriority(2)
         // The status line; VoiceOver reads it inside the summary instead (Story 7 s2).
         Text(model.statusText)
           .font(.watchFootnote)

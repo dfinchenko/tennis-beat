@@ -109,7 +109,9 @@ final class HealthKitWorkoutService: WorkoutService {
 
   /// Average and maximum heart rate (rounded beats per minute) and active energy
   /// (kilocalories), from the builder or the saved workout (research R7).
-  nonisolated static func statistics(_ lookup: (HKQuantityType) -> HKStatistics?) -> WorkoutStatistics {
+  nonisolated static func statistics(_ lookup: (HKQuantityType) -> HKStatistics?)
+    -> WorkoutStatistics
+  {
     let heartRate = lookup(HKQuantityType(.heartRate))
     return statistics(
       averageHeartRate: heartRate?.averageQuantity(),
@@ -230,6 +232,11 @@ private final class LiveWorkout: NSObject, HKWorkoutSessionDelegate, HKLiveWorko
     reportEnd()
   }
 
+  private func reading(_ reading: HeartRateReading) {
+    guard !isEnding, !didReport else { return }
+    send(token, .heartRate(reading))
+  }
+
   private func reportEnd() {
     guard !isEnding, !didReport else { return }
     didReport = true
@@ -256,7 +263,16 @@ private final class LiveWorkout: NSObject, HKWorkoutSessionDelegate, HKLiveWorko
   nonisolated func workoutBuilder(
     _ workoutBuilder: HKLiveWorkoutBuilder, didCollectDataOf collectedTypes: Set<HKSampleType>
   ) {
-    // Heart-rate readings for the header: 003 PR 3 (research R6).
+    // The latest heart-rate reading, for the header (research R6). Nothing is stored.
+    let heartRate = HKQuantityType(.heartRate)
+    guard collectedTypes.contains(heartRate),
+      let statistics = workoutBuilder.statistics(for: heartRate),
+      let quantity = statistics.mostRecentQuantity(),
+      let date = statistics.mostRecentQuantityDateInterval()?.end
+    else { return }
+    let bpm = Int(quantity.doubleValue(for: .count().unitDivided(by: .minute())).rounded())
+    let reading = HeartRateReading(bpm: bpm, date: date)
+    Task { @MainActor in self.reading(reading) }
   }
 
   nonisolated func workoutBuilderDidCollectEvent(_ workoutBuilder: HKLiveWorkoutBuilder) {}

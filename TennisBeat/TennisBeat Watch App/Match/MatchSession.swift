@@ -21,6 +21,9 @@ final class MatchSession {
   private(set) var workoutState: WorkoutState = .none
   /// A workout save failed; New match shows the notice once (FR-015, research R5). Not stored.
   private(set) var pendingSaveFailureNotice = false
+  /// The latest heart-rate reading of the running workout, for the header (Story 3). In
+  /// memory only, and cleared with the match (FR-014).
+  private(set) var latestHeartRate: HeartRateReading?
 
   @ObservationIgnored let haptics: HapticPlaying
   @ObservationIgnored let announcer: Announcing
@@ -73,6 +76,7 @@ final class MatchSession {
     let clock = MatchClock(startedAt: now())
     self.clock = clock
     isPaused = false
+    latestHeartRate = nil
     route = .playing
     // Permission is read at every start (Story 5 s4, research R3).
     if workout.canStartWorkout {
@@ -229,6 +233,7 @@ final class MatchSession {
         workout.discard()  // FR-008
         workoutState = .discarded
       }
+      latestHeartRate = nil
       return
     }
     do {
@@ -253,6 +258,7 @@ final class MatchSession {
     clock = nil
     isPaused = false
     formatChoice = store.load()
+    latestHeartRate = nil
     route = .setup
   }
 
@@ -265,7 +271,8 @@ final class MatchSession {
   /// suspended (research R4's safety net).
   func checkSummaryTimeout() {
     guard route == .summary, case .summary(let openedAt) = workoutState,
-      now().timeIntervalSince(openedAt) >= TimeInterval(Self.summaryTimeoutDuration.components.seconds)
+      now().timeIntervalSince(openedAt)
+        >= TimeInterval(Self.summaryTimeoutDuration.components.seconds)
     else { return }
     cancelSummaryTimeout()
     saveWorkout(endingAt: openedAt)
@@ -322,18 +329,21 @@ final class MatchSession {
   private func handle(_ event: WorkoutEvent, of token: WorkoutToken) {
     guard token == workoutToken else { return }
     switch event {
-    case .heartRate: break  // 003 PR 3
+    case .heartRate(let reading):
+      // Only the running or paused workout's readings count (data-model § WorkoutState).
+      if workoutState == .running || workoutState == .paused { latestHeartRate = reading }
     case .failed:
       switch workoutState {
       case .running, .paused, .summary:
         cancelSummaryTimeout()
         workoutState = .failed
+        latestHeartRate = nil
         workout.discard()  // ends the failed session, so it can't stay active (#30 R1-1)
       default: break
       }
     case .endedUnexpectedly:
-      // Without a workout from now on; what it collected is saved best effort, as in Q6,
-      // and a failure is ignored (#28 R6-4, research R3).
+      // Without a workout from now on; what it collected is saved best effort, as in Q6
+      // (#28 R6-4, research R3), and a failure shows the notice as any failed save (#30 P2-1).
       let end: Date
       switch workoutState {
       case .running, .paused: end = now()
@@ -342,7 +352,14 @@ final class MatchSession {
       }
       cancelSummaryTimeout()
       workoutState = .failed
-      Task.immediate { [workout] in _ = try? await workout.save(endingAt: end) }
+      latestHeartRate = nil
+      Task.immediate { [weak self, workout] in
+        do {
+          _ = try await workout.save(endingAt: end)
+        } catch {
+          self?.pendingSaveFailureNotice = true  // also after Done and a new match (R5)
+        }
+      }
     }
   }
 
