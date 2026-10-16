@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560); R6-3 and R6-4 from [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) applied at Denys's request in [#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908); R6-1 and the save-failure notice decisions from [#30](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428) applied)
+**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560); R6-3 and R6-4 from [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) applied at Denys's request in [#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908); the US3 s1 layout from [#31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542); R6-1 and the save-failure notice decisions from [#30](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428) applied)
 
 **Input**: User description: "Spec 003: Workout and Health on the watch, not the iPhone side (iPhone comes after persistence and sync in 004). Every match runs a workout session (activity type tennis) that keeps the app frontmost on the wrist for the whole match; it pauses with the match. Live heart rate in the score-screen header; average/max heart rate and active energy on the summary when available. The workout is saved to Health when the match ends (won or ended early). A match ended with 0 points saves no workout. Health permission onboarding on the watch before the first match; everything works without permission (no heart rate, no workout saved). Health integration is named in the UI and strings (App Review 2.5.1). Out of scope: iPhone, sync, crash recovery (spec 004). Open questions: indoor vs outdoor court; when exactly the workout ends, given that undo works after the match has ended (at the winning point or on Done); what the header shows when heart rate is unavailable. List the device-only checks."
 
@@ -76,7 +76,7 @@ The score-screen header shows the current heart rate next to the elapsed time.
 
 **Acceptance Scenarios**:
 
-1. **Given** a workout is running and a heart-rate reading has arrived, **Then** the header shows the heart icon and the latest reading in beats per minute with monospaced digits, on the elapsed-time line, after the time (Watch 3). The status line keeps its place under the elapsed time (spec 002). The layout at the largest standard size on 40 mm is recorded in `watch-3-score.md` in the implementation PR (Q3).
+1. **Given** a workout is running and a heart-rate reading has arrived, **Then** the header shows the heart icon and the latest reading in beats per minute with monospaced digits, on the line under the elapsed time, before the status (e.g. "♥ 142 · Рівно"; Watch 3). If the longest case (UK «Пауза. Матч-тай-брейк» with ♥ 205) doesn't fit at the largest standard size on 40 mm, the status moves to its own line below. The heart rate never goes under the system clock. The layout at the largest standard size on 40 mm is recorded in `watch-3-score.md` in the implementation PR (Q3, [L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542)).
 2. **Given** a new reading arrives, **Then** the header shows it without animation.
 3. **Given** a workout is running but no reading is available (none yet, no new reading for 30 seconds, the match is paused, or heart-rate access was not given), **Then** the header shows the heart icon and "--" (Q3).
 4. **Given** no workout is running, **Then** the header has no heart-rate row (as in spec 002).
@@ -176,7 +176,7 @@ The onboarding, the heart-rate row and the summary rows work with VoiceOver, lar
 - **FR-011**: The workout's state MUST follow the match's state only. The scoring engine MUST NOT know about the workout, and no workout event may change the score, the elapsed time or the summary's Duration.
 
 *Heart rate and energy*
-- **FR-012**: While a workout runs and a reading is available, the score header MUST show the latest heart rate (heart icon, beats per minute, monospaced digits) next to the elapsed time, and the heart icon with "--" when no reading is available: before the first one, after 30 seconds without a new one, and while paused (Q3). Without a running workout there MUST be no heart-rate row. Always On MUST NOT show heart rate.
+- **FR-012**: While a workout runs and a reading is available, the score header MUST show the latest heart rate (heart icon, beats per minute, monospaced digits) on the line under the elapsed time, before the status ([L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542)), and the heart icon with "--" when no reading is available: before the first one, after 30 seconds without a new one, and while paused (Q3). Without a running workout there MUST be no heart-rate row. Always On MUST NOT show heart rate.
 - **FR-013**: The summary MUST show "Heart rate avg / max" and "Active energy" (kcal, system formatting) from the same statistics as the saved workout, so the summary and Health show equal values, each only when it has a value, after Duration (Q5).
 - **FR-014**: Heart rate and energy values MUST be read live from the workout session and MUST NOT be written to any app storage, file or preference (constitution IX). After the match they exist only in Health.
 - **FR-015**: If saving the workout fails, the next New match after Done MUST show a one-time notice that the workout was not saved to Health, whichever match the failed save belongs to; several failed saves MUST give one notice (R1-6, P2-1, P2-2).
@@ -267,7 +267,7 @@ Denys decided the open questions on 2026-10-15.
 
 - **Q1** — No court type: the workout's indoor/outdoor value is left unset, and New match gets no extra row.
 - **Q2** — A, with one change: the workout pauses when the summary opens, Undo on the summary resumes it, and Done saves it; if the summary stays open for 10 minutes, the workout is saved automatically and Undo is no longer offered. The saved workout ends at the time of the match's last point (point events carry their time), not when Done is tapped. *Superseded by R1-1 below.*
-- **Q3** — While a workout runs, the header shows the heart icon and "--" before the first reading, after 30 seconds without a new one, and while paused; with no workout there is no row. Heart rate sits on the elapsed-time line, after the time.
+- **Q3** — While a workout runs, the header shows the heart icon and "--" before the first reading, after 30 seconds without a new one, and while paused; with no workout there is no row. Heart rate sits on the line under the elapsed time, before the status; the status moves to its own line below when both don't fit. The heart rate never goes under the system clock ([L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542), which replaces "on the elapsed-time line, after the time": on 40 mm that line runs under the system clock).
 - **Q4** — After Not now, the onboarding returns on the next app launch until the system sheet has been answered once; never again after that.
 - **Q5** — Summary label "Active energy", value in kcal with system formatting.
 - **Q6** — A workout left running after the app was ended mid-match is real exercise: the app finishes it and saves it as it is. In spec 004, crash recovery resumes that workout with the recovered match instead of saving it.
@@ -316,3 +316,9 @@ Denys decided these on 2026-10-16 in his [#30 comment](https://github.com/dfinch
 - **R6-1** — The workout's end time is recorded when the summary opens, or at HealthKit's last event if that is later (#28 R5-2; Story 4 s4, FR-007, FR-009, SC-003).
 - **P2-1** — A workout the system ended mid-match whose save fails shows the same "Workout not saved to Health" notice as any failed save (R1-6; Story 2 s10, Story 4 s7, FR-010, FR-015).
 - **P2-2** — The save-failure notice shows once on the next New match screen, whichever match it belongs to; several failed saves give one notice (#30 R2-4; Story 4 s7, FR-015).
+
+### PR 3 layout decision
+
+Denys decided this on 2026-10-16 in his [#31 comment](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542).
+
+- **L1** — US3 s1, option 1: the heart rate goes on the line under the elapsed time, before the status, e.g. "♥ 142 · Рівно". If the longest case (UK «Пауза. Матч-тай-брейк» with ♥ 205) doesn't fit at XXXL on 40 mm, the status moves to its own line below; the heart rate never goes under the system clock (Story 3 s1, FR-012, Q3).
