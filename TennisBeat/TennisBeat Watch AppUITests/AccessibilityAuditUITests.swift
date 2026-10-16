@@ -83,6 +83,34 @@ final class AccessibilityAuditUITests: XCTestCase {
     }
   }
 
+  /// Spec 003 US6 s1, s2 (SC-006): the Health onboarding in EN, PL and UK at the default
+  /// size, the largest standard size and the largest accessibility size; it scrolls, so
+  /// nothing may be clipped, and both buttons must be at least 44 pt tall.
+  @MainActor
+  func testUS6s1s2AuditHealthOnboarding() throws {
+    let sizes: [String?] = [
+      nil, ScoreAccessibilityUITests.largestStandard,
+      ScoreAccessibilityUITests.largestAccessibility,
+    ]
+    for language in ["en", "pl", "uk"] {
+      for size in sizes {
+        try XCTContext.runActivity(named: "onboarding \(language) \(size ?? "default")") { _ in
+          var arguments = ["-uiTestHealth", "shouldRequest"]
+          if let size { arguments += ["-UIPreferredContentSizeCategoryName", size] }
+          let app = XCUIApplication.launched(
+            arguments, language: language, readyElement: "health.onboarding.title")
+          for id in ["health.onboarding.continue", "health.onboarding.notNow"] {
+            let button = app.element(id)
+            app.reveal(button)
+            XCTAssertGreaterThanOrEqual(button.frame.height, 44, "\(id) \(language)")
+          }
+          try app.auditNamingElements()
+          app.terminate()
+        }
+      }
+    }
+  }
+
   @MainActor func testSC005AuditNewMatch() throws { try audit(.newMatch) }
   @MainActor func testSC005AuditPicker() throws { try audit(.picker) }
   @MainActor func testSC005AuditFirstServer() throws { try audit(.firstServer) }

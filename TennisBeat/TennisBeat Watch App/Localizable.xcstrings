@@ -337,6 +337,150 @@
         }
       }
     },
+    "health.onboarding.continue": {
+      "comment": "Health onboarding button: shows the system Health sheet",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dalej"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Продовжити"
+          }
+        }
+      }
+    },
+    "health.onboarding.line.1": {
+      "comment": "Health onboarding: what is saved (FR-002)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Each match is saved as a tennis workout in the Health app."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Każdy mecz zapisuje się w aplikacji Zdrowie jako trening tenisowy."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Кожен матч зберігається в програмі «Здоров’я» як тренування з тенісу."
+          }
+        }
+      }
+    },
+    "health.onboarding.line.2": {
+      "comment": "Health onboarding: what is read (FR-002)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart rate and active energy are shown during and after the match."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tętno i aktywna energia są widoczne w trakcie meczu i po nim."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульс і активну енергію видно під час матчу й після нього."
+          }
+        }
+      }
+    },
+    "health.onboarding.line.3": {
+      "comment": "Health onboarding: data stays in Health (FR-002)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Data stays in Health. Tennis Beat sends nothing anywhere."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dane zostają w Zdrowiu. Tennis Beat niczego nigdzie nie wysyła."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Дані лишаються в «Здоров’ї». Tennis Beat нікуди нічого не надсилає."
+          }
+        }
+      }
+    },
+    "health.onboarding.notNow": {
+      "comment": "Health onboarding button: skip for this launch",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not now"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nie teraz"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Не зараз"
+          }
+        }
+      }
+    },
+    "health.onboarding.title": {
+      "comment": "Health onboarding title (spec 003 FR-002)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Matches as workouts in Health"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mecze jako treningi w Zdrowiu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Матчі як тренування в «Здоров’ї»"
+          }
+        }
+      }
+    },
     "player.me": {
       "comment": "The person wearing the watch",
       "extractionState": "manual",

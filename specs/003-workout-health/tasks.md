@@ -54,8 +54,8 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 **Purpose**: the worktree and the Health folder. No behaviour yet.
 
-- [ ] T001 PR checklist step 1 for PR 1: worktree `.worktrees/003-onboarding`, branch `feat/003-onboarding`.
-- [ ] T002 Create the folders `App/Health/` and `App/Onboarding/` (synchronized groups: new files join the watch target). Confirm `App/TennisBeat Watch App.entitlements` already has `com.apple.developer.healthkit` and change nothing in it (research R9).
+- [X] T001 PR checklist step 1 for PR 1: worktree `.worktrees/003-onboarding`, branch `feat/003-onboarding`.
+- [X] T002 Create the folders `App/Health/` and `App/Onboarding/` (synchronized groups: new files join the watch target). Confirm `App/TennisBeat Watch App.entitlements` already has `com.apple.developer.healthkit` and change nothing in it (research R9).
 
 ---
 
@@ -65,17 +65,17 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests
 
-- [ ] T003 [P] `UnitTests/LaunchOptionsHealthTests.swift`: `-uiTestHealth denied|shouldRequest|granted|failing`, `-uiTestHeartRate 142`, `-uiTestWorkoutStats 138,171,612` (an empty field is `nil`: `138,171,` → no energy), `-uiTestSaveFails`, and unknown values → `nil` ([contract](contracts/ui-contract.md) §2). Positive control: no argument → `nil` mode, so production HealthKit is used.
-- [ ] T004 [P] `UnitTests/FakeWorkoutServiceTests.swift`: the fake records every call in order with its dates; each mode's `authorizationRequestStatus()` and `canStartWorkout` (`denied` → `.unnecessary`, false; `shouldRequest` → `.shouldRequest` until `requestAuthorization()`, then `.unnecessary` and true; `granted` → `.unnecessary`, true); `failing` emits `.failed` after `start`.
+- [X] T003 [P] `UnitTests/LaunchOptionsHealthTests.swift`: `-uiTestHealth denied|shouldRequest|granted|failing`, `-uiTestHeartRate 142`, `-uiTestWorkoutStats 138,171,612` (an empty field is `nil`: `138,171,` → no energy), `-uiTestSaveFails`, and unknown values → `nil` ([contract](contracts/ui-contract.md) §2). Positive control: no argument → `nil` mode, so production HealthKit is used.
+- [X] T004 [P] `UnitTests/FakeWorkoutServiceTests.swift`: the fake records every call in order with its dates; each mode's `authorizationRequestStatus()` and `canStartWorkout` (`denied` → `.unnecessary`, false; `shouldRequest` → `.shouldRequest` until `requestAuthorization()`, then `.unnecessary` and true; `granted` → `.unnecessary`, true); `failing` emits `.failed` after `start`.
 
 ### Code
 
-- [ ] T005 Create `App/Health/WorkoutService.swift` (data-model § WorkoutService): the `@MainActor` protocol with `authorizationRequestStatus() async -> AuthorizationRequestStatus` (`.shouldRequest`, `.unnecessary`, `.unknown`), `requestAuthorization() async`, `canStartWorkout`, `start(at:)`, `pause()`, `resume()`, `statistics()`, `save(endingAt:) async throws -> SavedWorkout`, `discard()`, `recoverAndSave() async`, `onEvent`. Also the `nonisolated` `Sendable` values `WorkoutEvent` (`.heartRate(HeartRateReading)`, `.failed`, `.endedUnexpectedly`, each tagged with a workout token that `start(at:)` returns), `HeartRateReading(bpm: Int, date: Date)`, `WorkoutStatistics(averageHeartRate: Int?, maximumHeartRate: Int?, activeEnergy: Double?)` and `SavedWorkout(uuid: UUID, statistics: WorkoutStatistics)`.
-- [ ] T006 Create `App/Health/FakeWorkoutService.swift`: in-memory, records calls (`calls: [Call]` with dates), configurable per step to fail, emits scripted readings and statistics; built from `LaunchOptions` in DEBUG (contract §2) and used directly by unit tests. Compiled in all configurations so unit tests can use it, but only `#if DEBUG` code creates it from launch arguments.
-- [ ] T007 Extend `App/Match/LaunchOptions.swift` with `healthMode`, `heartRate`, `workoutStats` and `saveFails` (contract §2), parsed only `#if DEBUG`.
-- [ ] T008 Change `UITests/Support/XCUIApplication+Helpers.swift`: `launched(_:)` appends `-uiTestHealth denied` unless the arguments already contain `-uiTestHealth`, so every 002 UI test runs against "not authorized" without an expectation change (SC-005, research R12).
-- [ ] T009 Create `App/Health/HealthKitWorkoutService.swift` with the authorization members only (research R8): `typesToShare = [HKObjectType.workoutType()]`, `typesToRead = [HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned)]` and nothing else (FR-003); `authorizationRequestStatus()` from `HKHealthStore.statusForAuthorizationRequest(toShare:read:)` (an error → `.unknown`); `requestAuthorization()` swallows errors; `canStartWorkout` is `authorizationStatus(for: .workoutType()) == .sharingAuthorized`. The workout members are stubs that do nothing until PR 2 (T028); no stub is reached because the PR 1 session never calls the service (T010), whatever `canStartWorkout` returns.
-- [ ] T010 Inject the service: `MatchSession.init` takes `workout: WorkoutService` (PR 1 stores it and doesn't call it yet). `App/TennisBeatApp.swift` builds `FakeWorkoutService` when `LaunchOptions.current.healthMode` is set, `HealthKitWorkoutService` otherwise. Update `MatchSession.preview` and every unit test that builds a session (pass a `denied` fake).
+- [X] T005 Create `App/Health/WorkoutService.swift` (data-model § WorkoutService): the `@MainActor` protocol with `authorizationRequestStatus() async -> AuthorizationRequestStatus` (`.shouldRequest`, `.unnecessary`, `.unknown`), `requestAuthorization() async`, `canStartWorkout`, `start(at:)`, `pause()`, `resume()`, `statistics()`, `save(endingAt:) async throws -> SavedWorkout`, `discard()`, `recoverAndSave() async`, `onEvent`. Also the `nonisolated` `Sendable` values `WorkoutEvent` (`.heartRate(HeartRateReading)`, `.failed`, `.endedUnexpectedly`, each tagged with a workout token that `start(at:)` returns), `HeartRateReading(bpm: Int, date: Date)`, `WorkoutStatistics(averageHeartRate: Int?, maximumHeartRate: Int?, activeEnergy: Double?)` and `SavedWorkout(uuid: UUID, statistics: WorkoutStatistics)`.
+- [X] T006 Create `App/Health/FakeWorkoutService.swift`: in-memory, records calls (`calls: [Call]` with dates), configurable per step to fail, emits scripted readings and statistics; built from `LaunchOptions` in DEBUG (contract §2) and used directly by unit tests. Compiled in all configurations so unit tests can use it, but only `#if DEBUG` code creates it from launch arguments.
+- [X] T007 Extend `App/Match/LaunchOptions.swift` with `healthMode`, `heartRate`, `workoutStats` and `saveFails` (contract §2), parsed only `#if DEBUG`.
+- [X] T008 Change `UITests/Support/XCUIApplication+Helpers.swift`: `launched(_:)` appends `-uiTestHealth denied` unless the arguments already contain `-uiTestHealth`, so every 002 UI test runs against "not authorized" without an expectation change (SC-005, research R12).
+- [X] T009 Create `App/Health/HealthKitWorkoutService.swift` with the authorization members only (research R8): `typesToShare = [HKObjectType.workoutType()]`, `typesToRead = [HKQuantityType(.heartRate), HKQuantityType(.activeEnergyBurned)]` and nothing else (FR-003); `authorizationRequestStatus()` from `HKHealthStore.statusForAuthorizationRequest(toShare:read:)` (an error → `.unknown`); `requestAuthorization()` swallows errors; `canStartWorkout` is `authorizationStatus(for: .workoutType()) == .sharingAuthorized`. The workout members are stubs that do nothing until PR 2 (T028); no stub is reached because the PR 1 session never calls the service (T010), whatever `canStartWorkout` returns.
+- [X] T010 Inject the service: `MatchSession.init` takes `workout: WorkoutService` (PR 1 stores it and doesn't call it yet). `App/TennisBeatApp.swift` builds `FakeWorkoutService` when `LaunchOptions.current.healthMode` is set, `HealthKitWorkoutService` otherwise. Update `MatchSession.preview` and every unit test that builds a session (pass a `denied` fake).
 
 **Checkpoint**: all 002 unit and UI tests pass unchanged (SC-005 holds from here on).
 
@@ -89,30 +89,30 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests
 
-- [ ] T011 [P] [US1] `UnitTests/HealthOnboardingTests.swift` (data-model § HealthOnboarding):
+- [X] T011 [P] [US1] `UnitTests/HealthOnboardingTests.swift` (data-model § HealthOnboarding):
   - "US1 s1": `.shouldRequest` → `needsOnboarding` true;
-  - "US1 s3": `continue()` calls `requestAuthorization()` once, then `needsOnboarding` false;
+  - "US1 s3": `allow()` (Continue) calls `requestAuthorization()` once, then `needsOnboarding` false;
   - "US1 s4": `notNow()` → false, no request; a new `HealthOnboarding` (next launch) with the same `.shouldRequest` → true again;
   - "US1 s5": `.unnecessary` → false; `.unknown` → false;
   - "US1 s1, s6": while the status is being read, the root shows nothing; `.shouldRequest` within 1 s → onboarding, never New match first; no answer after 1 s (`ManualSleep` released) → New match, and a late `.shouldRequest` is ignored for this launch.
-- [ ] T012 [P] [US1] `UnitTests/StringCatalogTests.swift`: keep the 002 tests and add `"FR-002 onboarding strings"` checking the keys `health.onboarding.title`, `.line.1`, `.line.2`, `.line.3`, `.continue`, `.notNow` exist in EN, PL and UK and the EN values equal the copy table.
-- [ ] T013 [P] [US1] `UnitTests/InfoPlistTextTests.swift`: `"FR-004"` both `InfoPlist.xcstrings` catalogs have the new `NSHealthShareUsageDescription` EN, PL and UK values of the copy table (UK with «Здоров’я», research R9), and the EN read text mentions heart rate and active energy. Positive control: the old text fails it.
-- [ ] T014 [P] [US1] `UITests/HealthOnboardingUITests.swift`:
+- [X] T012 [P] [US1] `UnitTests/StringCatalogTests.swift`: keep the 002 tests and add `"FR-002 onboarding strings"` checking the keys `health.onboarding.title`, `.line.1`, `.line.2`, `.line.3`, `.continue`, `.notNow` exist in EN, PL and UK and the EN values equal the copy table.
+- [X] T013 [P] [US1] `UnitTests/InfoPlistTextTests.swift`: `"FR-004"` both `InfoPlist.xcstrings` catalogs have the new `NSHealthShareUsageDescription` EN, PL and UK values of the copy table (UK with «Здоров’я», research R9), and the EN read text mentions heart rate and active energy. Positive control: the old text fails it.
+- [X] T014 [P] [US1] `UITests/HealthOnboardingUITests.swift`:
   - "US1 s1/s2": with `shouldRequest`, `health.onboarding` shows before `setup.format`; title, three lines, Continue and Not now exist with the copy-table EN texts;
   - "US1 s3": Continue → `setup.format` ready;
   - "US1 s4": Not now → `setup.format`; terminate and relaunch with `shouldRequest` → onboarding again;
   - "US1 s5": `granted` and `denied` → no onboarding;
   - "US1 s6": after Not now, Start → First server → a match starts as in 002.
-- [ ] T015 [P] [US6] Add the onboarding to `UITests/AccessibilityAuditUITests.swift` in EN, PL and UK at XXXL and at an accessibility size on 40 mm, and to `UITests/ScreenshotUITests.swift` (opt-in screenshots): no audit issue, both buttons ≥ 44 pt, nothing truncated (the screen scrolls) (US6 s1, s2, SC-006).
+- [X] T015 [P] [US6] Add the onboarding to `UITests/AccessibilityAuditUITests.swift` in EN, PL and UK at XXXL and at an accessibility size on 40 mm, and to `UITests/ScreenshotUITests.swift` (opt-in screenshots): no audit issue, both buttons ≥ 44 pt, nothing truncated (the screen scrolls) (US6 s1, s2, SC-006).
 
 ### Code
 
-- [ ] T016 [US1] Add the onboarding strings to `App/Localizable.xcstrings` from the copy table: EN source, PL draft, UK (line 2 approved R1-4, line 3 second sentence R1-5), using «Здоров’я» with the typographic apostrophe (research R9, R13). No string addresses the player as «ти» / «ви».
-- [ ] T017 [US1] Create `App/Health/HealthOnboarding.swift` (`@Observable`, main actor): `requestStatus`, `skippedThisLaunch` (not stored, Q4), `needsOnboarding`, `continue()`, `notNow()`; reads the status once at launch.
-- [ ] T018 [US1] Create `App/Onboarding/HealthOnboardingView.swift` (research R14): a `ScrollView` with the title (Watch/Headline), three lines (Watch/Body, `watch/text-secondary`), Continue (primary capsule, `brand/ball`) and Not now (secondary capsule, `watch/surface-raised`), identifiers of contract §1. No Dynamic Type cap.
-- [ ] T019 [US1] `App/RootView.swift`: wait for the status read up to 1 s (data-model § HealthOnboarding, Launch), then show `HealthOnboardingView` while `needsOnboarding`, otherwise the setup flow. Both buttons lead to New match.
-- [ ] T020 [US1] FR-004 texts, **catalogs first**: update `NSHealthShareUsageDescription` in `App/InfoPlist.xcstrings` and `TennisBeat/TennisBeat/InfoPlist.xcstrings` (EN, PL, UK from the copy table), then `INFOPLIST_KEY_NSHealthShareUsageDescription` in all four app build configurations in `TennisBeat/TennisBeat.xcodeproj/project.pbxproj` to the exact EN value (R1-3). Run `scripts/gates/check-infoplist-strings.sh` and `check-project-format.sh`.
-- [ ] T021 [US1] Add `docs/design/screens/watch-0-health-onboarding.md` with the 40 mm EN screenshot and the layout of T018, and a row for it in `docs/design/screens/README.md` (research R14). **Owner: Denys** approves the design in the PR review.
+- [X] T016 [US1] Add the onboarding strings to `App/Localizable.xcstrings` from the copy table: EN source, PL draft, UK (line 2 approved R1-4, line 3 second sentence R1-5), using «Здоров’я» with the typographic apostrophe (research R9, R13). No string addresses the player as «ти» / «ви».
+- [X] T017 [US1] Create `App/Health/HealthOnboarding.swift` (`@Observable`, main actor): `requestStatus`, `skippedThisLaunch` (not stored, Q4), `needsOnboarding`, `allow()` (Continue), `notNow()`; reads the status once at launch.
+- [X] T018 [US1] Create `App/Onboarding/HealthOnboardingView.swift` (research R14): a `ScrollView` with the title (Watch/Headline), three lines (Watch/Body, `watch/text-secondary`), Continue (primary capsule, `brand/ball`) and Not now (secondary capsule, `watch/surface-raised`), identifiers of contract §1. No Dynamic Type cap.
+- [X] T019 [US1] `App/RootView.swift`: wait for the status read up to 1 s (data-model § HealthOnboarding, Launch), then show `HealthOnboardingView` while `needsOnboarding`, otherwise the setup flow. Both buttons lead to New match.
+- [X] T020 [US1] FR-004 texts, **catalogs first**: update `NSHealthShareUsageDescription` in `App/InfoPlist.xcstrings` and `TennisBeat/TennisBeat/InfoPlist.xcstrings` (EN, PL, UK from the copy table), then `INFOPLIST_KEY_NSHealthShareUsageDescription` in all four app build configurations in `TennisBeat/TennisBeat.xcodeproj/project.pbxproj` to the exact EN value (R1-3). Run `scripts/gates/check-infoplist-strings.sh` and `check-project-format.sh`.
+- [X] T021 [US1] Add `docs/design/screens/watch-0-health-onboarding.md` with the 40 mm EN screenshot and the layout of T018, and a row for it in `docs/design/screens/README.md` (research R14). **Owner: Denys** approves the design in the PR review.
 - [ ] T022 [US1] PR checklist steps 2–8 for PR 1. Device check for Denys: **2** (the sheet after Continue; Not now returns next launch; never again after an answer).
 
 **Checkpoint**: PR 1 merged; a fresh install asks for Health with context; all 002 tests green.

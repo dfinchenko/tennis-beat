@@ -12,7 +12,9 @@ struct CoinTossTests {
     let suite = "CoinTossTests.\(UUID().uuidString)"
     let session = MatchSession(
       store: FormatStore(defaults: UserDefaults(suiteName: suite)!),
-      haptics: RecordingHaptics(), announcer: RecordingAnnouncer(), now: Date.init,
+      haptics: RecordingHaptics(), announcer: RecordingAnnouncer(),
+      workout: FakeWorkoutService.denied(),
+      now: Date.init,
       coinToss: { .opponent })
     let result = session.tossCoin()
     #expect(result == .opponent)

@@ -6,15 +6,18 @@ extension XCUIApplication {
   static let launchTimeout: TimeInterval = 20
 
   /// Launches with `arguments` in `language` (English unless stated) and returns once
-  /// `readyElement` (by default the first New match row) is ready for taps.
+  /// `readyElement` (by default the first New match row) is ready for taps. Without an
+  /// explicit `-uiTestHealth` mode the app gets the "denied" fake (sheet answered, no
+  /// workouts), so every spec 002 test runs as before (spec 003 SC-005, research R12).
   @MainActor
   static func launched(
     _ arguments: [String], language: String = "en", readyElement: String = "setup.format",
     file: StaticString = #filePath, line: UInt = #line
   ) -> XCUIApplication {
     let app = XCUIApplication()
+    let health = arguments.contains("-uiTestHealth") ? [] : ["-uiTestHealth", "denied"]
     app.launchArguments =
-      arguments + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
+      arguments + health + ["-AppleLanguages", "(\(language))", "-AppleLocale", language]
     app.launch()
     app.waitUntilReady(readyElement, file: file, line: line)
     return app
@@ -140,3 +143,14 @@ extension XCUIApplication {
   }
 }
 
+extension XCUIApplication {
+  /// Drags the content up by most of the screen, like a finger. On the watch simulator a
+  /// quick `swipeUp()` doesn't always scroll a `ScrollView` that has a bottom inset (the
+  /// pinned Continue of the Health onboarding, spec 003); a drag and the Digital Crown do.
+  @MainActor
+  func dragUp() {
+    let start = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.6))
+    let end = coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.1))
+    start.press(forDuration: 0.1, thenDragTo: end)
+  }
+}

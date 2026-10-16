@@ -20,7 +20,8 @@ struct SessionFeedbackTests {
     let suite = "SessionFeedbackTests.\(UUID().uuidString)"
     let session = MatchSession(
       store: FormatStore(defaults: UserDefaults(suiteName: suite)!), haptics: haptics,
-      announcer: announcer, now: clock.now, makeFormat: { _ in format },
+      announcer: announcer, workout: FakeWorkoutService.denied(), now: clock.now,
+      makeFormat: { _ in format },
       locale: { Locale(identifier: "en") })
     session.start(firstServer: firstServer)
     return session
@@ -257,7 +258,9 @@ struct SessionFeedbackTests {
 
   // MARK: Controls (US3 s7, US4 s10, FR-008)
 
-  @Test("US3 s7 pause, resume, correction and early end play no haptic; all but resume cancel a pending one")
+  @Test(
+    "US3 s7 pause, resume, correction and early end play no haptic; all but resume cancel a pending one"
+  )
   func controlsPlayNoHaptic() {
     let session = makeSession()
     tap("MMMM", on: session)  // game 1: change of ends pending
@@ -301,4 +304,3 @@ struct SessionFeedbackTests {
     #expect(announcer.announcements == ["Paused"])
   }
 }
-

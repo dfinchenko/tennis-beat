@@ -8,19 +8,19 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tennis Beat reads your heart rate to show it in your match summary. Health data stays in the Health app."
+            "value": "Tennis Beat reads your heart rate and active energy to show them during and after a match. Health data stays in the Health app."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tennis Beat odczytuje Twoje tętno, aby pokazać je w podsumowaniu meczu. Dane zdrowotne pozostają w aplikacji Zdrowie."
+            "value": "Tennis Beat odczytuje Twoje tętno i aktywną energię, aby pokazać je w trakcie meczu i po nim. Dane zdrowotne pozostają w aplikacji Zdrowie."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tennis Beat зчитує ваш пульс, щоб показати його в підсумку матчу. Дані про здоров’я залишаються в програмі «Здоров’я»."
+            "value": "Tennis Beat зчитує ваш пульс і активну енергію, щоб показати їх під час матчу й після нього. Дані про здоров’я залишаються в програмі «Здоров’я»."
           }
         }
       }
