@@ -172,6 +172,7 @@ Why the rest of the order: PR 2 is the main reason for the feature (the app stay
 ## Dependencies and open inputs
 
 - **R3-2 (decided)**: a match whose workout failed to start, ended unexpectedly or failed to save keeps Undo on the summary (research R3, R5).
+- **R6-3, R6-4 (decided)** ([Denys, #28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)): Undo is hidden from the start of a save; a workout that ended unexpectedly counts as without a workout, and what it collected is saved best effort, as in Q6 (research R3). Applied to the spec in 003 PR 2.
 - **Share permission for heart rate and energy (device check 4, decided)**: the plan follows Apple's pattern (share the workout type only, research R8). If the device shows a workout without its heart-rate graph or energy, a spec change to FR-003/FR-004 is opened, not a workaround.
 - **Summary vs Health values (device check 5)**: research R7 explains a possible fraction-of-a-beat difference from late samples, and its fix, which needs no spec change.
 - **Copy**: the PL rows and the draft rows go in as drafts; the Polish native review (#22) doesn't block the PRs. The UK strings use the catalog's typographic apostrophe («Здоров’я», R9).

@@ -35,7 +35,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `summary(openedAt: Date)` | Summary shown; session paused; the end date fixed (R2) | — | yes | yes |
 | `saving` / `saved` | Save started (Done or timeout) / succeeded | — | yes | **no** (FR-007): hidden from the start of the save, so a tap can't resume a session that is ending; it returns only if a timeout save fails (R3-2). Confirmed by [Denys, #28 R6-3](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) |
 | `discarded` | 0-point End (FR-008) | — | — | — |
-| `failed` | Didn't start, ended unexpectedly (FR-010), or the timeout save failed | none | none: Duration only, also after a failed timeout save (Story 4 s3, R3-2) | yes (research R3, R3-2) |
+| `failed` | Didn't start, ended unexpectedly (FR-010; what it collected is saved best effort, [#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)), or the timeout save failed | none | none: Duration only, also after a failed timeout save (Story 4 s3, R3-2) | yes (research R3, R3-2) |
 
 ### Transitions
 
@@ -52,7 +52,9 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | `done()` | `saving`, `saved` | — (route → `.setup`) | none (no second save); a running save still sets the notice flag if it fails |
 | `done()` | `none`, `failed` | — (route → `.setup`; `none` for the next match) | none |
 | `endEarly()` with 0 points | `running`, `paused` | `discarded` → (`none` for the next match) | `discard()` |
-| `.failed` or `.endedUnexpectedly` | `running`, `paused`, `summary` | `failed` | none (the service has already dropped the builder) |
+| `.failed` | `running`, `paused`, `summary` | `failed` | none |
+| `.endedUnexpectedly` | `running`, `paused` | `failed` | `save(endingAt: now())` once, best effort: a failure is ignored and sets no notice flag (research R3, [#28 R6-4](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527)) |
+| `.endedUnexpectedly` | `summary` | `failed`; the 10-minute task cancelled | `save(endingAt: openedAt)` once, best effort, as above |
 | `.heartRate(r)` | `running`, `paused` | same | `latestHeartRate = r` |
 | `.heartRate(r)` | `summary`, `saving` | same | ignored: the header isn't shown and the summary uses the snapshot |
 | any event | `saving` | same | ignored, including the `.ended` caused by the save's own `end()`; a failure comes only from `save` throwing (#28 R5-4) |
@@ -60,7 +62,7 @@ Implementations: `HealthKitWorkoutService` (production) and `FakeWorkoutService`
 | any event with another workout's token | any | same | dropped (R11, #28 R5-3) |
 
 Invariants (tested, SC-002):
-- at most one `save` per match (FR-009);
+- at most one `save` per match (FR-009), the best-effort save of an unexpectedly ended workout included;
 - `save` is never called after `discard`, and `discard` never after `save`;
 - `save(endingAt:)` gets the `stoppedAt` of the **last** summary opening (R2-3);
 - no workout event changes `match`, `clock`, `route` (except through the commands above) or `isPaused` (FR-011).
