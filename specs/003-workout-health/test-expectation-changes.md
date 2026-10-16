@@ -26,3 +26,12 @@ No other expectation changed. Helper changes that leave every expectation as it 
 - `ManualSleep` records the durations it was asked for (`requested`), so the timeout tests can check the 10 minutes;
 - the new `WorkoutHarness`, `CallKind` and `SaveGate` test support;
 - the spec 002 tests still run with the `denied` fake, so their summary keeps Undo (SC-005).
+
+## `feat/003-heart-rate` (PR 3)
+
+| Test | Old → new expectation | Source |
+| --- | --- | --- |
+| `WorkoutLifecycleTests` "US2 s10, #28 R6-4 a failing best-effort save sets no notice" → "US2 s10, #30 P2-1 a failing best-effort save shows the notice as any failed save" | `pendingSaveFailureNotice` stays `false` after the failing best-effort save, and after End and Done → `true` at both points; the save count (1) is unchanged. A new test checks that a best-effort save that succeeds sets no notice. Denys's decision [#30 P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428). | US2-S10, FR-010, FR-015 (P2-1) |
+
+No other expectation changed. The `latestHeartRate == nil` line added to `WorkoutSaveTests` "R5-3 Done, then a new match at once" is a new expectation (planned in T024, possible only now), not a changed one.
+

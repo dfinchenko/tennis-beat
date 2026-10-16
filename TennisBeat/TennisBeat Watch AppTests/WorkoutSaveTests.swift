@@ -312,6 +312,7 @@ struct WorkoutSaveTests {
     gate.open()
     await settle()
     #expect(h.session.workoutState == .running)
+    #expect(h.session.latestHeartRate == nil)
     #expect(h.fake.calls == calls)
     #expect(h.session.pendingSaveFailureNotice)
   }
