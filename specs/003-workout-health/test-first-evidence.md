@@ -58,3 +58,31 @@ The tests were committed first, in **`fa6bd25`** (T003, T004, T008, T011–T015)
 Result: failed, "Not now under Continue" (Not now's bottom at 348 pt, Continue's top at 135 pt). Without the mutation it passes.
 
 **Another test-harness finding:** with the pinned Continue, a quick XCUITest `swipeUp()` on the watch simulator doesn't scroll the onboarding's `ScrollView`, while a press-and-drag and the Digital Crown do (a temporary probe, not committed: Not now moved from y 304 to 82 under both). The UI tests and the screenshot test now use the helper `dragUp()` (a press-and-drag). Scrolling with a finger and the crown on a real watch is part of device check 2.
+
+## PR 2 `feat/003-workout` (workout lifecycle)
+
+The tests were committed first, in **`f54757f`** (T024–T027, T033, the `WorkoutHarness` support and the `FakeWorkoutServiceTests` "failing" wait), before any lifecycle code.
+
+**Run 1, unit tests at `f54757f`:** the test target doesn't compile (49 errors). `WorkoutHarness.swift`: extra argument `sleep` in the `MatchSession` call; no member `currentToken` on `FakeWorkoutService`. `WorkoutLifecycleTests.swift`: no member `configuration` on `HealthKitWorkoutService`; no member `workoutState` on `MatchSession`. `WorkoutSaveTests.swift`: cannot find `WorkoutEndDate`; no members `beforeSaveReturns`, `emit`, `eventDates`, `eventDelay`, `savedEndDates` on the fake; no members `checkSummaryTimeout`, `dismissSaveFailureNotice`, `pendingSaveFailureNotice`, `workoutState` on `MatchSession`. `WorkoutPermissionTests.swift`: the fake's `mode` setter is inaccessible; no `workoutState`. `WorkoutRecoveryTests.swift`: cannot find `WorkoutRecovery`; no `pendingSaveFailureNotice`, `workoutState`. Every test in these files is covered by this run. The changed `FakeWorkoutServiceTests` "failing" test is in the same target, so it didn't run either; against the code before `2fab92a` it passes trivially (the old fake reported `.failed` during `start`), and its change is listed in `test-expectation-changes.md`.
+
+**Compile fixes in the tests, made with the code in `2fab92a`** (no expectation changed): the `WorkoutSaveTests` script table (`Step`, `Script`, `scripts`) and `CallKind` are marked `nonisolated`, because Swift Testing reads arguments outside the main actor.
+
+**Run 2, unit tests at `2fab92a`:** 289 test cases passed, 0 failed (FakeWorkoutServiceTests 7, WorkoutLifecycleTests 21, WorkoutSaveTests 23, WorkoutPermissionTests 4, WorkoutRecoveryTests 2, with parameterized cases).
+
+**Run 3, the full UI suite at `2fab92a`:** 75 tests, 69 passed and 6 skipped (the opt-in screenshot tests), 0 failed, including both `WorkoutUITests` and every spec 002 UI test (SC-005).
+
+**Run 4, a recorded mutation of `6a58f2f`** (never committed): the summary hides Undo whenever the match has a workout.
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Summary/SummaryView.swift
++++ b/TennisBeat/TennisBeat Watch App/Summary/SummaryView.swift
+-          if session.canUndo {
++          if session.canUndo && session.workoutState == .none {
+```
+
+- failed: `WorkoutUITests` `testUS2s4s6WithAWorkoutTheSummaryOffersUndoAndDoneOpensNewMatch` and `testUS2s9AFailedWorkoutLeavesTheMatchAsInSpec002` (`summary.undo` missing, lines 35 and 44);
+- passed: all six `SummaryUITests`, which run with the `denied` fake, so the 002 summary keeps Undo (SC-005).
+
+`WorkoutUITests` is a smoke test of existing behaviour (T033): against the code before `2fab92a` the session never called the workout, so both tests would pass there too; run 4 is their evidence.
+
+**Not run for evidence:** `ScreenshotUITests.testWorkoutSummaryScreens` is opt-in and asserts only that the summary shows; it attaches the PR screenshots.
