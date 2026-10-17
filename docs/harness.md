@@ -82,6 +82,9 @@ Then Denys reviews the spec and sets `Status: Approved`. After that: `/speckit-p
 - [ ] Workout without the iPhone (spec 003, device check 13): the workout saves on the watch and appears on the iPhone after they reconnect
 - [ ] Done, then a new match at once (spec 003, #30 R1-3): tap Done, then Start and First server right away; the new match gets a workout (the app stays on screen), and Health has the previous match's workout too
 - [ ] App ended mid-match with a workout running (spec 003, device check 14): after a force-quit, the relaunch saves the workout as it is and opens New match; then start a match right away: it gets a workout, or, if the recovered workout hasn't ended yet, runs safely without one (#30 R2-1)
+- [ ] Heart rate in the header (spec 003, device check 3): the first reading appears within 30 seconds of the match start, under the elapsed time and never under the system clock; the value roughly tracks the system Workout app's heart rate in a side-by-side check (same watch, a later session); a new reading changes the number without animation, and the zones don't move when it does
+- [ ] Heart rate denied, workouts allowed (spec 003, device check 9, header part; the summary part comes with PR 4): the workout is saved and the header shows ♥ "--"
+- [ ] Watch taken off mid-match (spec 003, device check 11): within about 30 seconds the header shows ♥ "--"; the match continues and scoring works
 - [ ] Always On: score readable, no seconds or animations
 - [ ] Largest agreed Dynamic Type size (spec 002, Q9: every size on setup, controls and summary; the largest standard size on the score screen): nothing clipped. Layout is checked on the 40 mm watch simulator (the smallest watch watchOS 26 supports); the real-device check runs on Denys's own watch
 - [ ] iPhone far away during the match: match arrives later
