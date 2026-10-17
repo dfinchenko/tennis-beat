@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-15
 
-**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560); R6-3 and R6-4 from [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) applied at Denys's request in [#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908); the US3 s1 layout from [#31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542); R6-1 and the save-failure notice decisions from [#30](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428) applied)
+**Status**: Approved (2026-10-15, Denys; re-approved with the plan-review decisions in [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201412560); R6-3 and R6-4 from [#28](https://github.com/dfinchenko/tennis-beat/pull/28#issuecomment-6201620527) applied at Denys's request in [#29](https://github.com/dfinchenko/tennis-beat/pull/29#issuecomment-6203433908); the US3 s1 layout from [#31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542); the US6 s2 zone condition from [#31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677); R6-1 and the save-failure notice decisions from [#30](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428) applied)
 
 **Input**: User description: "Spec 003: Workout and Health on the watch, not the iPhone side (iPhone comes after persistence and sync in 004). Every match runs a workout session (activity type tennis) that keeps the app frontmost on the wrist for the whole match; it pauses with the match. Live heart rate in the score-screen header; average/max heart rate and active energy on the summary when available. The workout is saved to Health when the match ends (won or ended early). A match ended with 0 points saves no workout. Health permission onboarding on the watch before the first match; everything works without permission (no heart rate, no workout saved). Health integration is named in the UI and strings (App Review 2.5.1). Out of scope: iPhone, sync, crash recovery (spec 004). Open questions: indoor vs outdoor court; when exactly the workout ends, given that undo works after the match has ended (at the winning point or on Done); what the header shows when heart rate is unavailable. List the device-only checks."
 
@@ -134,7 +134,7 @@ The onboarding, the heart-rate row and the summary rows work with VoiceOver, lar
 **Acceptance Scenarios**:
 
 1. **Given** the onboarding, the score header with heart rate, or the summary with the new rows, **Then** each passes an accessibility audit with no missing labels, and every button is at least 44 pt tall.
-2. **Given** the largest text size agreed in spec 002 (Q9) on the 40 mm watch, **Then** no text on the onboarding or the summary is truncated (screens scroll), and the score header shows the elapsed time and heart rate without truncation, without shrinking the tap zones below spec 002's layout (Q3).
+2. **Given** the largest text size agreed in spec 002 (Q9) on the 40 mm watch, **Then** no text on the onboarding or the summary is truncated (screens scroll), and the score header shows the elapsed time and heart rate without truncation (Q3). When the status doesn't fit beside the heart rate, it moves to its own line and the tap zones may shrink below spec 002's layout, with two conditions: zones never go below 44 pt; zone size changes only when the status itself changes (e.g. entering or leaving a match tie-break), never between ordinary points, so tapping by feel stays reliable ([L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)).
 3. **Given** the watch language is English, Polish or Ukrainian, **Then** every new string is in that language and follows the copy table; heart rate and energy use plural forms and system unit formatting; the Health app is named as the system names it in that language.
 4. **Given** any new element, **Then** no meaning is carried by colour alone: the heart icon is always next to a text label or VoiceOver phrase.
 
@@ -317,8 +317,12 @@ Denys decided these on 2026-10-16 in his [#30 comment](https://github.com/dfinch
 - **P2-1** — A workout the system ended mid-match whose save fails shows the same "Workout not saved to Health" notice as any failed save (R1-6; Story 2 s10, Story 4 s7, FR-010, FR-015).
 - **P2-2** — The save-failure notice shows once on the next New match screen, whichever match it belongs to; several failed saves give one notice (#30 R2-4; Story 4 s7, FR-015).
 
-### PR 3 layout decision
+### PR 3 layout decisions
 
 Denys decided this on 2026-10-16 in his [#31 comment](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542).
 
 - **L1** — US3 s1, option 1: the heart rate goes on the line under the elapsed time, before the status, e.g. "♥ 142 · Рівно". If the longest case (UK «Пауза. Матч-тай-брейк» with ♥ 205) doesn't fit at XXXL on 40 mm, the status moves to its own line below; the heart rate never goes under the system clock (Story 3 s1, FR-012, Q3).
+
+Denys decided this on 2026-10-17 in his [#31 comment](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677), on the agent's [report](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223910180) that L1 and US6 s2 conflict in a running match tie-break.
+
+- **L2** — US6 s2, option 1: when the status doesn't fit beside the heart rate, it moves to its own line and the zones may shrink, with two conditions: zones never go below 44 pt; zone size changes only when the status itself changes (e.g. entering or leaving a match tie-break), never between ordinary points, so tapping by feel stays reliable. The layout test covers both conditions.
