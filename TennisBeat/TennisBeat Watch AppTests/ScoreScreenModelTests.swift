@@ -153,6 +153,36 @@ struct ScoreScreenModelTests {
     #expect(dimmed("MMMOOO").layoutStatusText == "")
   }
 
+  @Test(
+    "US6 s2 L2 the drawn status is empty or the phase's layout status, never wider"
+  )  // ITF: GM-02, NA-01, TB-01, MT-03
+  func statusNeverWiderThanLayout() {
+    // #31 R2-3: the header's lines are chosen for layoutStatusText, so a drawn status other
+    // than it could make the zones move between points.
+    let noAd = PointOutcomeTests.format(.bestOfThree, .six, .noAd)
+    let matchTieBreak = PointOutcomeTests.format(matchTieBreak: true)
+    let toSixAll = g(5, .me) + g(5, .opponent) + g(1, .me) + g(1, .opponent)
+    let toMatchTieBreak = g(6, .me) + g(6, .opponent)
+    let advantageGame = ["", "M", "MM", "MMM", "MMMO", "MMMOO", "MMMOOO", "MMMOOOM", "MMMOOOMO"]
+    var models: [ScoreScreenModel] = []
+    for locale in [Self.en, Self.pl, Self.uk] {
+      for paused in [false, true] {
+        for points in advantageGame {
+          models.append(model(points, paused: paused, locale: locale))
+          models.append(model(points, format: noAd, paused: paused, locale: locale))
+        }
+        for extra in ["", "M", "MO", "MMOOMMO"] {
+          models.append(model(toSixAll + extra, paused: paused, locale: locale))
+          models.append(
+            model(toMatchTieBreak + extra, format: matchTieBreak, paused: paused, locale: locale))
+        }
+      }
+    }
+    for model in models {
+      #expect(model.statusText.isEmpty || model.statusText == model.layoutStatusText)
+    }
+  }
+
   @Test("US2 s8 the status line in PL and UK", arguments: [(pl, "Równowaga"), (uk, "Рівно")])
   func statusTranslated(locale: Locale, deuce: String) {
     #expect(model("MMMOOO", locale: locale).statusText == deuce)
