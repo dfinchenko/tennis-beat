@@ -199,3 +199,9 @@ The test was committed first, in **`bc57eac`**: `ScoreScreenModelTests` "US6 s2 
 ```
 
 - failed: `statusNeverWiderThanLayout` (the new test) and `statusLine` ("US2 s8 …").
+
+## `feat/003-ci-budget` (CI time budget)
+
+No test is added. The layout test's default scope changes (see `test-expectation-changes.md`).
+
+**Run 1, the worst case at the branch's test change** (no `LAYOUT_MATRIX`): `testUS6s2HeartRateFitsAndKeepsTheZones` passed in 93 s on Apple Watch SE 3 40 mm (the full matrix took 511 s, PR 3 run 13). The full matrix runs in this PR's CI, because the PR changes the CI files (`scripts/layout-scope.sh`).
