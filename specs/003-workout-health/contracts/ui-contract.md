@@ -9,7 +9,7 @@ Additions to the [002 UI contract](../../002-watch-match/contracts/ui-contract.m
 | Health onboarding | `health.onboarding` | The screen (scroll view) |
 | Health onboarding | `health.onboarding.title`, `health.onboarding.line.1` … `.3` | Texts (Story 1 s2) |
 | Health onboarding | `health.onboarding.continue`, `health.onboarding.notNow` | Buttons |
-| Score | `heartRate` | The heart-rate row; absent without a workout (Story 3 s4) and in Always On. Its label is the VoiceOver text (Story 3 s6). With `-uiTestExposeValues` the drawn number has `heartRate.value` ("142" or "--") |
+| Score | `heartRate`, `heartRate.value`, `status` | With `-uiTestExposeValues` only: the heart rate on the line under the elapsed time (absent without a workout, Story 3 s4, and in Always On), its label the VoiceOver text (Story 3 s6), the drawn number `heartRate.value` ("142" or "--"); and the status line `status`. In production VoiceOver reads the heart rate as the value of `elapsed` and the status inside `score.summary`, so neither is its own element |
 | Summary | `summary.heartRate`, `summary.energy` | The rows, each one VoiceOver element of at least 44 pt (as `summary.duration`); absent when hidden (Story 4 s2, s3) |
 | New match | `health.saveFailed`, `health.saveFailed.ok` | The one-time notice and its OK (FR-015). The alert button is found by its label if watchOS drops the identifier, as for `confirm.end` |
 

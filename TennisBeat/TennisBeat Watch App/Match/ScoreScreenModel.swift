@@ -27,6 +27,11 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
   let zones: [Zone]
   /// The status line: "Paused", a game state, or empty (FR-008); empty in Always On (Q8).
   let statusText: String
+  /// The longest status the current phase can show: "Paused", "Match tie-break", "Tie-break",
+  /// or "Deuce" / "Deciding point" in ordinary games; empty in Always On and after the match.
+  /// The header is laid out for it, so its lines, and the zones, change only when the phase
+  /// does, never between points ([#31 L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)).
+  let layoutStatusText: String
   /// Undo in the header; hidden in Always On (FR-021).
   let showsUndo: Bool
   /// Whether the match takes points now (`MatchSession.acceptsPoints`).
@@ -40,10 +45,11 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
     zones.first { $0.player == player }!
   }
 
-  /// `isDimmed`: the Always On rendering (Watch 5, FR-021).
+  /// `isDimmed`: the Always On rendering (Watch 5, FR-021). `gameScoring` names the status of
+  /// ordinary games at 40–40 for `layoutStatusText`.
   init(
     state: MatchState, isPaused: Bool, locale: Locale, acceptsPoints: Bool = true,
-    isDimmed: Bool = false
+    isDimmed: Bool = false, gameScoring: GameScoring = .advantage
   ) {
     func text(_ resource: LocalizedStringResource) -> String {
       Self.text(resource, locale: locale)
@@ -54,6 +60,18 @@ nonisolated struct ScoreScreenModel: Hashable, Sendable {
 
     let gameState = Self.gameState(state).map(text) ?? ""
     statusText = isDimmed ? "" : isPaused ? text("status.paused") : gameState
+    layoutStatusText =
+      if isDimmed || (state.status != .inProgress && !isPaused) {
+        ""
+      } else if isPaused {
+        text("status.paused")
+      } else if state.isMatchTieBreak {
+        text("status.matchTieBreak")
+      } else if state.isTieBreak {
+        text("status.tieBreak")
+      } else {
+        text(gameScoring == .noAd ? "status.decidingPoint" : "status.deuce")
+      }
     showsUndo = !isDimmed
     self.acceptsPoints = acceptsPoints
     statusAccessibilityText =

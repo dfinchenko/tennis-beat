@@ -72,6 +72,25 @@ struct FakeWorkoutServiceTests {
     #expect(fake.calls.last == .save(endingAt: clock.current))
   }
 
+  @Test("Contract §2: -uiTestHeartRate — one reading at the start, for that workout")
+  func heartRateAtStart() async {
+    let fake = FakeWorkoutService(mode: .granted, now: clock.now, heartRate: 142)
+    var events: [(WorkoutToken, WorkoutEvent)] = []
+    fake.onEvent = { events.append(($0, $1)) }
+    let token = fake.start(at: clock.current)
+    await settle()
+    #expect(events.count == 1)
+    #expect(events.first?.0 == token)
+    #expect(events.first?.1 == .heartRate(HeartRateReading(bpm: 142, date: clock.current)))
+    // Positive control: without the argument there is no reading.
+    let silent = FakeWorkoutService(mode: .granted, now: clock.now)
+    var none: [WorkoutEvent] = []
+    silent.onEvent = { none.append($1) }
+    _ = silent.start(at: clock.current)
+    await settle()
+    #expect(none.isEmpty)
+  }
+
   @Test("Each start gets a new token")
   func tokens() {
     let fake = FakeWorkoutService(mode: .granted, now: clock.now)

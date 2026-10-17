@@ -4,7 +4,9 @@ import Testing
 @testable import TennisBeat_Watch_App
 
 /// FR-009a: a workout left running when the app was ended is saved as it is (Q6, research
-/// R10; T027).
+/// R10; T027). These tests run against the fake; the HealthKit path
+/// (`HealthKitWorkoutService.recoverAndSave()`) is checked on a device only, device check 14
+/// (#30 R2-3).
 @MainActor
 struct WorkoutRecoveryTests {
   @Test("FR-009a recovery saves the running workout once and leaves New match")

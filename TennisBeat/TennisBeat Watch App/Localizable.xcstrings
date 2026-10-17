@@ -613,6 +613,114 @@
         }
       }
     },
+    "score.heartRate.accessibility %lld": {
+      "comment": "VoiceOver: the heart rate in the score header, after the elapsed time (spec 003 Story 3 s6)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Heart rate, %lld beat per minute"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Heart rate, %lld beats per minute"
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tętno, %lld uderzenie na minutę"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tętno, %lld uderzenia na minutę"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tętno, %lld uderzeń na minutę"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Tętno, %lld uderzenia na minutę"
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "variations": {
+            "plural": {
+              "one": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пульс, %lld удар на хвилину"
+                }
+              },
+              "few": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пульс, %lld удари на хвилину"
+                }
+              },
+              "many": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пульс, %lld ударів на хвилину"
+                }
+              },
+              "other": {
+                "stringUnit": {
+                  "state": "translated",
+                  "value": "Пульс, %lld удару на хвилину"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "score.heartRate.unavailable": {
+      "comment": "VoiceOver: the score header's heart rate shows \"--\" (spec 003 Story 3 s6, Q3)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart rate unavailable"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tętno niedostępne"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульс недоступний"
+          }
+        }
+      }
+    },
     "score.points.advantage": {
       "comment": "Point display for advantage (glossary: AD in all languages)",
       "extractionState": "manual",

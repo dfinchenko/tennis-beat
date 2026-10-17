@@ -1,10 +1,13 @@
 import SwiftUI
 
 /// Elapsed match time, redrawn every second: minutes and seconds, or hours from one hour on,
-/// with monospaced digits (FR-009, FR-022, research R5).
+/// with monospaced digits (FR-009, FR-022, research R5). Spec 003: its VoiceOver value is the
+/// heart rate (Story 3 s6, research R6).
 struct ElapsedTimeView: View {
   let clock: MatchClock
   var identifier = "elapsed"
+  /// The heart rate at a given time, read by VoiceOver; none by default (spec 002 screens).
+  var heartRate: (Date) -> HeartRateDisplay = { _ in .hidden }
   /// Always On (Watch 5), passed by the score view. Read here from the environment, it
   /// stayed false under `-uiTestAlwaysOn` in the simulator while the score view's was true.
   var isDimmed = false
@@ -29,6 +32,11 @@ struct ElapsedTimeView: View {
           .foregroundStyle(Self.color(isDimmed: false))
           .lineLimit(1)
           .minimumScaleFactor(0.7)
+          // VoiceOver reads the heart rate with the time, not as its own stop (Story 3 s6);
+          // it is drawn on the line below (HeaderStatusLine, #31 L1).
+          .accessibilityValue(
+            Text(heartRate(context.date).accessibilityLabel(locale: locale) ?? "")
+          )
           .accessibilityIdentifier(identifier)
       }
     }

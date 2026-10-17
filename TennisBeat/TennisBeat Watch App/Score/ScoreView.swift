@@ -14,7 +14,8 @@ struct ScoreView: View {
     if let match = session.match, let clock = session.clock {
       let model = ScoreScreenModel(
         state: match.state, isPaused: session.isPaused, locale: locale,
-        acceptsPoints: session.acceptsPoints, isDimmed: isLuminanceReduced)
+        acceptsPoints: session.acceptsPoints, isDimmed: isLuminanceReduced,
+        gameScoring: match.setup.format.gameScoring)
       VStack(spacing: 4) {
         header(model, clock: clock)
         ForEach(model.zones, id: \.player) { zone in
@@ -56,16 +57,16 @@ struct ScoreView: View {
       if model.showsUndo { undoButton }
 
       VStack(alignment: .leading, spacing: 0) {
-        ElapsedTimeView(clock: clock, isDimmed: isLuminanceReduced)
+        ElapsedTimeView(clock: clock, heartRate: heartRate(at:), isDimmed: isLuminanceReduced)
           .accessibilitySortPriority(2)
-        // The status line; VoiceOver reads it inside the summary instead (Story 7 s2).
-        Text(model.statusText)
-          .font(.watchFootnote)
-          .foregroundStyle(Color.watchTextSecondary)
-          .lineLimit(1)
-          .minimumScaleFactor(0.7)
-          .frame(maxWidth: .infinity, minHeight: 16, alignment: .leading)
-          .accessibilityHidden(true)
+        // The heart rate, then the status (#31 L1); VoiceOver reads the heart rate with the
+        // elapsed time and the status inside the summary (Story 7 s2).
+        HeaderStatusLine(
+          clock: clock, status: model.statusText, layoutStatus: model.layoutStatusText,
+          heartRate: heartRate(at:),
+          isDimmed: isLuminanceReduced, exposeValues: exposeValues
+        )
+        .frame(maxWidth: .infinity, minHeight: 16, alignment: .leading)
       }
       .frame(maxWidth: .infinity, minHeight: 44, alignment: .topLeading)
       .overlay {
@@ -79,6 +80,13 @@ struct ScoreView: View {
       }
       .accessibilityElement(children: .contain)
     }
+  }
+
+  /// The header's heart rate at `date` (Story 3, FR-012).
+  private func heartRate(at date: Date) -> HeartRateDisplay {
+    HeartRateDisplay(
+      workoutState: session.workoutState, reading: session.latestHeartRate, now: date,
+      isDimmed: isLuminanceReduced)
   }
 
   private var undoButton: some View {

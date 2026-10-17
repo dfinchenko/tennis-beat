@@ -204,7 +204,9 @@ final class ScreenshotUITests: XCTestCase {
       size = ["-UIPreferredContentSizeCategoryName", category]
     }
     let oneSetOfFour = "{length=oneSet;setLength=four;atFortyAll=advantage;thirdSet=fullSet;}"
-    for (health, name) in [("granted", "20-summary-workout"), ("failing", "21-summary-workout-failed")] {
+    for (health, name) in [
+      ("granted", "20-summary-workout"), ("failing", "21-summary-workout-failed"),
+    ] {
       let app = XCUIApplication.launched(
         ["-lastFormat.v1", oneSetOfFour, "-uiTestHealth", health] + size, language: language)
       app.tap("setup.start", until: "firstServer.me")
@@ -215,6 +217,46 @@ final class ScreenshotUITests: XCTestCase {
       attach(app, name)
       app.terminate()
     }
+  }
+
+  /// Spec 003 Story 3, US6 s2 (T040, #31 L1): the score header at deuce with a three-digit
+  /// heart rate and with no reading ("--"), then in a match tie-break, running and paused
+  /// (the longest status).
+  @MainActor
+  func testHeartRateScoreScreens() throws {
+    let environment = ProcessInfo.processInfo.environment
+    guard let language = environment["SCREENSHOT_LANGUAGE"] else {
+      throw XCTSkip("set SCREENSHOT_LANGUAGE to take screenshots")
+    }
+    var size: [String] = []
+    if let category = environment["SCREENSHOT_TEXT_SIZE"] {
+      size = ["-UIPreferredContentSizeCategoryName", category]
+    }
+    for (reading, name) in [
+      (["-uiTestHeartRate", "205"], "22-score-heart-rate"), ([], "23-score-heart-rate-none"),
+    ] {
+      let app = XCUIApplication.launched(
+        ["-resetFormat", "-uiTestHealth", "granted", "-uiTestPoints", "MMMOOO"] + reading + size,
+        language: language)
+      app.tap("setup.start", until: "firstServer.me")
+      app.tap("firstServer.me", until: "zone.me")
+      attach(app, name)
+      app.terminate()
+    }
+    // The longest case (#31 L1): paused in a match tie-break.
+    let format = "{length=bestOfThree;setLength=four;atFortyAll=advantage;thirdSet=tieBreakToTen;}"
+    let app = XCUIApplication.launched(
+      [
+        "-lastFormat.v1", format, "-uiTestHealth", "granted", "-uiTestHeartRate", "205",
+        "-uiTestPoints", String(repeating: "M", count: 16) + String(repeating: "O", count: 16),
+      ] + size, language: language)
+    app.tap("setup.start", until: "firstServer.me")
+    app.tap("firstServer.me", until: "zone.me")
+    attach(app, "24-score-heart-rate-match-tie-break")
+    app.showControls()
+    app.tap("controls.pauseResume")
+    app.showScore()
+    attach(app, "25-score-heart-rate-paused-match-tie-break")
   }
 
   /// Watch 5 next to `docs/design/screens/watch-5-always-on.png`: Me won the first set 6–4

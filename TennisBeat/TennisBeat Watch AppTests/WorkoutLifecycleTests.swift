@@ -253,7 +253,7 @@ struct WorkoutLifecycleTests {
     #expect(h.saveCount == 1)
   }
 
-  @Test("US2 s10, #28 R6-4 a failing best-effort save sets no notice")
+  @Test("US2 s10, #30 P2-1 a failing best-effort save shows the notice as any failed save")
   func endedSaveFailsSilently() async {
     let h = WorkoutHarness(saveFails: true)
     h.start()
@@ -262,12 +262,99 @@ struct WorkoutLifecycleTests {
     await settle()
     #expect(h.saveCount == 1)
     #expect(h.session.workoutState == .failed)
-    #expect(!h.session.pendingSaveFailureNotice)
+    #expect(h.session.pendingSaveFailureNotice)
     h.session.endEarly()
     h.session.done()
     await settle()
-    #expect(!h.session.pendingSaveFailureNotice)
+    #expect(h.session.pendingSaveFailureNotice)
     #expect(h.saveCount == 1)
+  }
+
+  @Test("#30 P2-1 a best-effort save that succeeds sets no notice")
+  func endedSaveSucceeds() async {
+    let h = WorkoutHarness()
+    h.start()
+    h.tap("M")
+    h.fake.endUnexpectedly()
+    await settle()
+    #expect(h.saveCount == 1)
+    #expect(!h.session.pendingSaveFailureNotice)
+  }
+
+  // MARK: Heart rate (Story 3, T038)
+
+  static func reading(_ bpm: Int, _ h: WorkoutHarness) -> WorkoutEvent {
+    .heartRate(HeartRateReading(bpm: bpm, date: h.clock.current))
+  }
+
+  @Test("US3 s1 a reading is kept while the workout runs or is paused")
+  func readingsWhileRunning() async throws {
+    let h = WorkoutHarness()
+    h.start()
+    #expect(h.session.latestHeartRate == nil)
+    let token = try #require(h.token)
+    h.fake.emit(Self.reading(140, h), token: token)
+    #expect(h.session.latestHeartRate?.bpm == 140)
+    h.session.pause()
+    h.fake.emit(Self.reading(131, h), token: token)
+    #expect(h.session.latestHeartRate?.bpm == 131)
+    h.session.resume()
+    h.fake.emit(Self.reading(150, h), token: token)
+    #expect(h.session.latestHeartRate == HeartRateReading(bpm: 150, date: h.clock.current))
+  }
+
+  @Test("US3 s4 readings are ignored once the workout failed, was discarded or saved")
+  func readingsIgnoredAfterTheWorkout() async throws {
+    // Failed to start.
+    let failing = WorkoutHarness(.failing)
+    failing.start()
+    await settle()
+    #expect(failing.session.workoutState == .failed)
+    failing.fake.emit(Self.reading(140, failing), token: try #require(failing.token))
+    #expect(failing.session.latestHeartRate == nil)
+
+    // Ended unexpectedly: the reading before it is dropped with the row.
+    let ended = WorkoutHarness()
+    ended.start()
+    let endedToken = try #require(ended.token)
+    ended.fake.emit(Self.reading(140, ended), token: endedToken)
+    ended.fake.endUnexpectedly()
+    await settle()
+    #expect(ended.session.latestHeartRate == nil)
+    ended.fake.emit(Self.reading(141, ended), token: endedToken)
+    #expect(ended.session.latestHeartRate == nil)
+
+    // Discarded (0-point End).
+    let discarded = WorkoutHarness()
+    discarded.start()
+    let discardedToken = try #require(discarded.token)
+    discarded.session.endEarly()
+    #expect(discarded.session.workoutState == .discarded)
+    discarded.fake.emit(Self.reading(140, discarded), token: discardedToken)
+    #expect(discarded.session.latestHeartRate == nil)
+
+    // Saved by the 10-minute timeout, the summary still open.
+    let saved = WorkoutHarness()
+    saved.start()
+    let savedToken = try #require(saved.token)
+    saved.win()
+    await saved.fireTimeout()
+    #expect(saved.session.workoutState == .saved)
+    saved.fake.emit(Self.reading(140, saved), token: savedToken)
+    #expect(saved.session.latestHeartRate == nil)
+  }
+
+  @Test("FR-014 the reading is cleared with the match on Done and at the next start")
+  func readingClearedWithTheMatch() async throws {
+    let h = WorkoutHarness()
+    h.start()
+    h.fake.emit(Self.reading(140, h), token: try #require(h.token))
+    #expect(h.session.latestHeartRate != nil)  // positive control
+    h.win()
+    h.session.done()
+    #expect(h.session.latestHeartRate == nil)
+    h.start()
+    #expect(h.session.latestHeartRate == nil)
   }
 
   @Test(

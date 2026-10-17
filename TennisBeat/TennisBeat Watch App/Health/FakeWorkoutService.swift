@@ -50,14 +50,20 @@ final class FakeWorkoutService: WorkoutService {
   /// Runs before `authorizationRequestStatus()` answers, so tests can hold the answer back.
   var beforeStatus: (() async -> Void)?
   var onEvent: ((WorkoutToken, WorkoutEvent) -> Void)?
+  /// `-uiTestHeartRate`: one reading of this many beats per minute when a workout starts.
+  var heartRate: Int?
 
   private let now: () -> Date
   private var answered: Bool
 
-  init(mode: FakeHealthMode, now: @escaping () -> Date, saveFails: Bool = false) {
+  init(
+    mode: FakeHealthMode, now: @escaping () -> Date, saveFails: Bool = false,
+    heartRate: Int? = nil
+  ) {
     self.mode = mode
     self.now = now
     self.saveFails = saveFails
+    self.heartRate = heartRate
     answered = mode != .shouldRequest
   }
 
@@ -83,6 +89,10 @@ final class FakeWorkoutService: WorkoutService {
     eventDates = []
     // Reported after `start` returns, as HealthKit does (research R3).
     if mode == .failing { Task { @MainActor in self.onEvent?(token, .failed) } }
+    if mode == .granted, let heartRate {
+      let reading = HeartRateReading(bpm: heartRate, date: now())
+      Task { @MainActor in self.onEvent?(token, .heartRate(reading)) }
+    }
     return token
   }
 
