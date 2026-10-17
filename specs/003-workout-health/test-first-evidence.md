@@ -96,3 +96,52 @@ The tests were committed first, in **`026050e`**, before the fixes.
 **Run 6, `WorkoutLifecycleTests` at `026050e` without `HealthKitStatisticsTests.swift`** (deleted in a throwaway `git worktree add --detach` tree only, so the rest compiles): failed: "US2 s9 a workout that fails to start leaves the match running with no further call" (no `discard` after `.failed`). The other lifecycle tests passed, including the R1-5 edit of "Edge: early end long after the last point", which only removes an always-true expectation (listed in `test-expectation-changes.md`).
 
 **Run 7, unit tests at `9ba9e9a`** (the fixes): 291 test cases passed, 0 failed (`HealthKitStatisticsTests` 2 new). `WorkoutUITests` (2) and `SummaryUITests` (6) passed at `9ba9e9a`; the rest of the UI suite has no code it reaches changed since run 3, except the discard after a failed start, which only `WorkoutUITests` reaches.
+
+## PR 3 `feat/003-heart-rate` (heart rate in the header)
+
+The tests were committed first, in **`c07cc5b`** (T037–T040, the #30 P2-1 expectation change and the T045 follow-ups), before any heart-rate code.
+
+**Run 1, unit tests at `c07cc5b`:** the target doesn't compile. The compiler stops at the first error of each batch, so three probes, each with the earlier failing file removed in the working tree only (restored after), give one error per file: `HeartRateDisplayTests.swift:18` cannot find `HeartRateDisplay`; `FakeWorkoutServiceTests.swift:77` extra argument `heartRate`; `WorkoutSaveTests.swift:315` no member `latestHeartRate`. This covers every test in these files, and `WorkoutLifecycleTests` (same target), whose "#30 P2-1" test expects the notice the old code doesn't set.
+
+**Run 2, UI tests at `c07cc5b`** (the unit test files swapped to their `c07cc5b~1` versions in the working tree only, so the UI target builds; restored after):
+- failed: `HeartRateUITests` `testUS3s1AReadingShowsInTheHeader`, `testUS3s3NoReadingShowsDashes`, `testUS3s6VoiceOverReadsTheHeartRateWithTheElapsedTime`; `ScoreAccessibilityUITests` `testUS6s2AuditScoreWithHeartRate`, `testUS6s2HeartRateFitsAndKeepsTheZones`;
+- passed: `testUS3s4NoRowWithoutAWorkout`, `testUS3s5AlwaysOnHidesTheHeartRate`, which check an absence; run 5 is their evidence.
+
+**Run 3, unit tests at `a7272d0`** (the code): 317 test cases passed, 0 failed.
+
+**Run 4, UI tests at `a7272d0`:** `HeartRateUITests`, `ScoreAccessibilityUITests` and `AlwaysOnUITests`, 15 tests, 0 failed.
+
+**Run 5, a recorded mutation of `a7272d0`** (never committed): the heart rate always shows "--", and Always On never takes the dimmed branch.
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Score/ElapsedTimeView.swift
++++ b/TennisBeat/TennisBeat Watch App/Score/ElapsedTimeView.swift
+-    if isDimmed {
++    if false {
+-        let display = heartRate(context.date)
++        let display = HeartRateDisplay.unavailable
+```
+
+- failed: `testUS3s4NoRowWithoutAWorkout` (line 47) and `testUS3s5AlwaysOnHidesTheHeartRate` (line 59).
+
+### #31 L1 (the heart rate under the elapsed time)
+
+The screenshots of `a7272d0` showed the heart rate on the elapsed-time line, under the system clock. Denys decided L1; the test was changed first, in **`b4f827f`**.
+
+**Run 6, `testUS6s2HeartRateFitsAndKeepsTheZones` at `b4f827f`:** failed, "3.25 is less than 22.0 - under the elapsed time" (the first attempt's runner was killed by a simulator hiccup and is not counted).
+
+**Run 7, at `41e5818`** (the L1 code): the same 15 UI tests passed. The test then covered only the paused match tie-break, which draws only "Paused".
+
+**Run 8, at `bb5b1c2`** (the test now also covers the running match tie-break, the longest drawn status): failed, zones `[(2, 116.5, 158, 54.5), (2, 58.5, 158, 54)]` ≠ `[(2, 111.5, 158, 59.5), (2, 48, 158, 59.5)]`: the status moves to its own line and the zones shrink. A prototype that shrinks the status to stay on one line (minimum scale 0.5) still truncated it ("Match…") and was reverted, never committed. Reported to Denys, who decided L2.
+
+### #31 L2 (zones may shrink, but only with the phase)
+
+The tests were committed first, in **`8e284d8`** (the UI test walks points inside each phase) and **`3084a6b`** (`ScoreScreenModelTests` "US6 s2 L2 …").
+
+**Run 9, `testUS6s2HeartRateFitsAndKeepsTheZones` at `8e284d8`** (the L1 code): failed, "zones move within the phase: games ♥205 after MMMOOO", `[(2, 116.5, 158, 54.5), (2, 58.5, 158, 54)]` ≠ `[(2, 111.5, 158, 59.5), (2, 48, 158, 59.5)]`: in EN at XXXL "♥ 205 · Deuce" doesn't fit, so the zones shrank between ordinary points.
+
+**Run 10, unit tests at `3084a6b`** (built in a throwaway `git worktree add --detach` tree): the target doesn't compile: `ScoreScreenModelTests.swift:22` extra argument `gameScoring`; lines 142–153 no member `layoutStatusText`. This covers every test in `ScoreScreenModelTests`.
+
+**Runs 11–12, on the L2 code before `c20bbbc`** (not evidence; they found two problems): run 11 failed "under the elapsed time" at 0–0: the blank second line didn't scale like the status text, so at XXXL it pushed the heart rate 3 pt up (fixed in `7c0f24d`); run 12 failed "zones move within the phase … after M" with the Me zone at x 2.08, width 157.83: its press animation, caught right after the tap. `c20bbbc` makes the test wait for the frames to settle and name the state on failure; no expectation changed.
+
+**Run 13, at `7c0f24d`:** `testUS6s2HeartRateFitsAndKeepsTheZones` passed (511 s).

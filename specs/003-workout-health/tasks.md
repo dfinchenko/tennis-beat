@@ -183,7 +183,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 ### Tests
 
 - [X] T036 PR checklist step 1 for PR 3: worktree `.worktrees/003-heart-rate`, branch `feat/003-heart-rate`.
-- [ ] T037 [P] [US3] `UnitTests/HeartRateDisplayTests.swift` (data-model § HeartRateDisplay):
+- [X] T037 [P] [US3] `UnitTests/HeartRateDisplayTests.swift` (data-model § HeartRateDisplay):
   - "US3 s1": `running` + a reading 5 s old → `.value(142)`;
   - "US3 s3": no reading → `.unavailable`; a reading exactly 30 s old → `.value`, at 30.001 s → `.unavailable`; `paused` → `.unavailable`;
   - "US3 s4": `.none` and `.failed` → `.hidden`;
@@ -191,22 +191,22 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
   - "US3 s6": VoiceOver "Heart rate, 142 beats per minute", "Heart rate unavailable", in EN, PL and UK, with PL and UK plural forms for 1, 2, 5 and 22 (positive control: PL differs from EN);
   - "Edge: heart rate above 199": `.value(205)` text is "205";
   - "US3 s2": `animation` is `nil` for every display (a new reading is shown without animation).
-- [ ] T038 [P] [US3] `UnitTests/WorkoutLifecycleTests.swift` additions: `.heartRate` events update `latestHeartRate` only while `running`/`paused`; ignored after `.saved`, `.discarded`, `.failed`; `latestHeartRate` is `nil` after Done (FR-014). "US2 s10" `endedSaveFailsSilently` now expects the notice flag after a failing best-effort save ([#30 P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)), listed in `test-expectation-changes.md`.
-- [ ] T039 [P] [US3] `UITests/HeartRateUITests.swift`:
+- [X] T038 [P] [US3] `UnitTests/WorkoutLifecycleTests.swift` additions: `.heartRate` events update `latestHeartRate` only while `running`/`paused`; ignored after `.saved`, `.discarded`, `.failed`; `latestHeartRate` is `nil` after Done (FR-014). "US2 s10" `endedSaveFailsSilently` now expects the notice flag after a failing best-effort save ([#30 P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)), listed in `test-expectation-changes.md`.
+- [X] T039 [P] [US3] `UITests/HeartRateUITests.swift`:
   - "US3 s1": `granted -uiTestHeartRate 142 -uiTestExposeValues` → `heartRate.value` is "142", and `heartRate`'s label is the VoiceOver text;
   - "US3 s2" is checked in T037's unit test, not here (UI tests can't see animations);
   - "US3 s4": `denied` → no `heartRate` element;
   - "US3 s5": `-uiTestAlwaysOn` → no `heartRate` element;
   - "US3 s3": `granted` without readings → "--".
-- [ ] T040 [P] [US6] Add the score screen with `granted -uiTestHeartRate 205` to the accessibility audits and screenshots in EN, PL and UK at XXXL on 40 mm: time and heart rate untruncated; zones unchanged from 002 while the status fits beside the heart rate, otherwise at least 44 pt and changing only with the phase, never between points ([#31 L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)) (US6 s2, Q3).
+- [X] T040 [P] [US6] Add the score screen with `granted -uiTestHeartRate 205` to the accessibility audits and screenshots in EN, PL and UK at XXXL on 40 mm: time and heart rate untruncated; zones unchanged from 002 while the status fits beside the heart rate, otherwise at least 44 pt and changing only with the phase, never between points ([#31 L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)) (US6 s2, Q3).
 
 ### Code
 
-- [ ] T041 [US3] Add `score.heartRate.accessibility %lld` (plural) and `score.heartRate.unavailable` to `App/Localizable.xcstrings` (copy table, research R13).
-- [ ] T042 [US3] Create `App/Health/HeartRateDisplay.swift` (`nonisolated`, pure); add `latestHeartRate` to `MatchSession` and handle `.heartRate` events; `HealthKitWorkoutService` emits readings from `workoutBuilder(_:didCollectDataOf:)` (research R6). The best-effort save after `.endedUnexpectedly` sets `pendingSaveFailureNotice` when it fails ([#30 P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)).
-- [ ] T043 [US3] `App/Score/ScoreView.swift` / `App/Score/ElapsedTimeView.swift`: the heart-rate row (with a unit test in `UnitTests/HeartRateDisplayTests.swift`, written first in T037: "US3 s2" `HeartRateDisplay.animation` is `nil` for a reading change, and the view applies it with `.transaction { $0.animation = display.animation }`) on the line under the elapsed time, before the status, with the status on its own line below when both don't fit (`HeaderStatusLine`, `ViewThatFits`, research R6, [#31 L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542)), laid out for the phase's longest status (`ScoreScreenModel.layoutStatusText`, unit-tested in `ScoreScreenModelTests`, [#31 L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)), `status/heart` icon, Watch/Footnote, monospaced digits, no animation; part of the elapsed-time element's VoiceOver value; identifiers `heartRate`, `heartRate.value`, `status` with `-uiTestExposeValues` (contract §1).
-- [ ] T044 [US3] `docs/design/screens/watch-3-score.md`: replace "Heart-rate row is hidden in spec 002" with the Q3 layout and the XXXL 40 mm result (US3 s1).
-- [ ] T045 [US3] PR checklist steps 2–8 for PR 3. Device checks for Denys: **3, 9** (header part), **11**. Also the #30 review 2 follow-ups: device check 14 adds "start a match right after the relaunch" (R2-1); device checks 4 and 15 check that Duration equals Health after the 10-minute auto-save too (R2-2); `WorkoutRecoveryTests`' doc comment says the HealthKit recovery path is checked on a device only (R2-3).
+- [X] T041 [US3] Add `score.heartRate.accessibility %lld` (plural) and `score.heartRate.unavailable` to `App/Localizable.xcstrings` (copy table, research R13).
+- [X] T042 [US3] Create `App/Health/HeartRateDisplay.swift` (`nonisolated`, pure); add `latestHeartRate` to `MatchSession` and handle `.heartRate` events; `HealthKitWorkoutService` emits readings from `workoutBuilder(_:didCollectDataOf:)` (research R6). The best-effort save after `.endedUnexpectedly` sets `pendingSaveFailureNotice` when it fails ([#30 P2-1](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428)).
+- [X] T043 [US3] `App/Score/ScoreView.swift` / `App/Score/ElapsedTimeView.swift`: the heart-rate row (with a unit test in `UnitTests/HeartRateDisplayTests.swift`, written first in T037: "US3 s2" `HeartRateDisplay.animation` is `nil` for a reading change, and the view applies it with `.transaction { $0.animation = display.animation }`) on the line under the elapsed time, before the status, with the status on its own line below when both don't fit (`HeaderStatusLine`, `ViewThatFits`, research R6, [#31 L1](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6223261542)), laid out for the phase's longest status (`ScoreScreenModel.layoutStatusText`, unit-tested in `ScoreScreenModelTests`, [#31 L2](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6237948677)), `status/heart` icon, Watch/Footnote, monospaced digits, no animation; part of the elapsed-time element's VoiceOver value; identifiers `heartRate`, `heartRate.value`, `status` with `-uiTestExposeValues` (contract §1).
+- [X] T044 [US3] `docs/design/screens/watch-3-score.md`: replace "Heart-rate row is hidden in spec 002" with the Q3 layout and the XXXL 40 mm result (US3 s1).
+- [X] T045 [US3] PR checklist steps 2–8 for PR 3. Device checks for Denys: **3, 9** (header part), **11**. Also the #30 review 2 follow-ups: device check 14 adds "start a match right after the relaunch" (R2-1); device checks 4 and 15 check that Duration equals Health after the 10-minute auto-save too (R2-2); `WorkoutRecoveryTests`' doc comment says the HealthKit recovery path is checked on a device only (R2-3).
 
 ---
 
