@@ -124,6 +124,8 @@ The tests were committed first, in **`c07cc5b`** (T037–T040, the #30 P2-1 expe
 
 - failed: `testUS3s4NoRowWithoutAWorkout` (line 47) and `testUS3s5AlwaysOnHidesTheHeartRate` (line 59).
 
+**Not run for evidence:** `ScreenshotUITests.testHeartRateScoreScreens` (added in `c07cc5b`, its states extended in `b4f827f`) is opt-in through `SCREENSHOT_LANGUAGE` and asserts nothing but that the score screen shows; it only attaches the PR screenshots, so it is one of the 8 skipped tests in the full-suite runs (#31 R2-1).
+
 ### #31 L1 (the heart rate under the elapsed time)
 
 The screenshots of `a7272d0` showed the heart rate on the elapsed-time line, under the system clock. Denys decided L1; the test was changed first, in **`b4f827f`**.
@@ -182,3 +184,18 @@ The tests were committed first, in **`8e284d8`** (the UI test walks points insid
 ```
 
 - failed: `testUS3s5AlwaysOnHidesTheHeartRate` (line 59). Run 5's mutation of `ElapsedTimeView` (`a7272d0`) stays valid for the unchanged tests; runs 15 and 16 repeat it on the current code.
+
+### Review 2 fixes (#31 R2-3)
+
+The test was committed first, in **`bc57eac`**: `ScoreScreenModelTests` "US6 s2 L2 the drawn status is empty or the phase's layout status, never wider". It checks existing code, so it passes there.
+
+**Run 17, a recorded mutation of `bc57eac`** (never committed): a set tie-break draws "Deciding point" while the header is laid out for "Tie-break".
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Match/ScoreScreenModel.swift
++++ b/TennisBeat/TennisBeat Watch App/Match/ScoreScreenModel.swift
+-    if state.isTieBreak { return "status.tieBreak" }
++    if state.isTieBreak { return "status.decidingPoint" }
+```
+
+- failed: `statusNeverWiderThanLayout` (the new test) and `statusLine` ("US2 s8 …").

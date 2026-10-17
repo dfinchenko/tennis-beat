@@ -22,7 +22,8 @@ final class MatchSession {
   /// A workout save failed; New match shows the notice once (FR-015, research R5). Not stored.
   private(set) var pendingSaveFailureNotice = false
   /// The latest heart-rate reading of the running workout, for the header (Story 3). In
-  /// memory only, and cleared with the match (FR-014).
+  /// memory only, and cleared with the match (FR-014). It is kept while the summary is open:
+  /// after Undo within 30 s the header shows it again, as Q3's freshness allows (#31 R2-4).
   private(set) var latestHeartRate: HeartRateReading?
 
   @ObservationIgnored let haptics: HapticPlaying
