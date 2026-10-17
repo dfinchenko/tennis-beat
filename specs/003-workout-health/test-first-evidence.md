@@ -147,3 +147,38 @@ The tests were committed first, in **`8e284d8`** (the UI test walks points insid
 **Run 13, at `7c0f24d`:** `testUS6s2HeartRateFitsAndKeepsTheZones` passed (511 s).
 
 **Run 14, the full watch suite at `7c0f24d`** (`fb8dbc2` changes docs only): 309 tests in the result bundle (225 unit test functions, 84 UI tests), 301 passed, 8 skipped (the opt-in screenshot tests), 0 failed, including `ScoreScreenModelTests` "US6 s2 L2 …" and every spec 002 UI test (SC-005).
+
+### Review 1 fixes (#31 R1-1, R1-3)
+
+**Run 15, a recorded mutation of `7357a51`** (never committed; #31 R1-1 and R1-3): a successful best-effort save also sets the notice, and the header's heart rate ignores the workout state.
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Match/MatchSession.swift
++++ b/TennisBeat/TennisBeat Watch App/Match/MatchSession.swift
+           _ = try await workout.save(endingAt: end)
++          self?.pendingSaveFailureNotice = true
+--- a/TennisBeat/TennisBeat Watch App/Health/HeartRateDisplay.swift
++++ b/TennisBeat/TennisBeat Watch App/Health/HeartRateDisplay.swift
+-    guard !isDimmed else {
++    guard !isDimmed || true else {
+     switch workoutState {
++    case _ where true: self = .unavailable
+```
+
+- failed: `WorkoutLifecycleTests` "#30 P2-1 a best-effort save that succeeds sets no notice" (`endedSaveSucceeds`), which uses no new API and passes on the code before `a7272d0` too, so this run is its evidence (R1-1); `HeartRateUITests.testUS3s4NoRowWithoutAWorkout` (line 47), on the current header (`HeaderStatusLine`, R1-3);
+- passed: `testUS3s5AlwaysOnHidesTheHeartRate`: in Always On `HeaderStatusLine` draws only the status and never asks for the heart rate, so a second guard covers it (run 16).
+
+**Run 16, a recorded mutation of `7357a51`** (never committed): both Always On guards removed.
+
+```diff
+--- a/TennisBeat/TennisBeat Watch App/Score/HeaderStatusLine.swift
++++ b/TennisBeat/TennisBeat Watch App/Score/HeaderStatusLine.swift
+-    if isDimmed {
++    if false {
+--- a/TennisBeat/TennisBeat Watch App/Score/ScoreView.swift
++++ b/TennisBeat/TennisBeat Watch App/Score/ScoreView.swift
+-      isDimmed: isLuminanceReduced)
++      isDimmed: false)
+```
+
+- failed: `testUS3s5AlwaysOnHidesTheHeartRate` (line 59). Run 5's mutation of `ElapsedTimeView` (`a7272d0`) stays valid for the unchanged tests; runs 15 and 16 repeat it on the current code.

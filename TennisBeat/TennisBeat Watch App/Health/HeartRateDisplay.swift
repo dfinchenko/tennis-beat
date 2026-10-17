@@ -2,8 +2,8 @@ import Foundation
 import SwiftUI
 
 /// What the score header shows for heart rate (FR-012, Story 3; data-model
-/// § HeartRateDisplay, research R6). Pure: built from the workout state, the latest reading,
-/// the time and Always On.
+/// § HeartRateDisplay, research R6). A value type with no side effects, built from the workout
+/// state, the latest reading, the time and Always On; SwiftUI is imported only for `animation`.
 nonisolated enum HeartRateDisplay: Hashable, Sendable {
   /// No row: no running workout, or Always On (Story 3 s4, s5).
   case hidden
