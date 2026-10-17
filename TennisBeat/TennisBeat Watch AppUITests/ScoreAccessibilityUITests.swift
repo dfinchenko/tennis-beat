@@ -86,8 +86,16 @@ final class ScoreAccessibilityUITests: XCTestCase {
           }
           return app
         }
+        /// The zone frames once a tapped zone's press animation has ended.
         @MainActor func zones(_ app: XCUIApplication) -> [CGRect] {
-          ["zone.me", "zone.opponent"].map { app.element($0).frame }
+          var frames = ["zone.me", "zone.opponent"].map { app.element($0).frame }
+          for _ in 0..<20 {
+            Thread.sleep(forTimeInterval: 0.2)
+            let next = ["zone.me", "zone.opponent"].map { app.element($0).frame }
+            if next == frames { break }
+            frames = next
+          }
+          return frames
         }
 
         // Spec 002's layout: the same screen without a workout.
@@ -116,7 +124,8 @@ final class ScoreAccessibilityUITests: XCTestCase {
                 let elapsed = app.element("elapsed").frame
                 XCTAssertTrue(app.frame.contains(heart), "\(context) \(heart)")
                 XCTAssertTrue(app.frame.contains(elapsed), "\(context) \(elapsed)")
-                XCTAssertGreaterThanOrEqual(heart.minY, elapsed.maxY - 1, "under the elapsed time")
+                XCTAssertGreaterThanOrEqual(
+                  heart.minY, elapsed.maxY - 1, "under the elapsed time: \(context) \(heart) \(elapsed)")
                 let status = app.element("status")
                 if status.exists, !status.label.isEmpty {
                   XCTAssertTrue(app.frame.contains(status.frame), "\(context) \(status.frame)")
