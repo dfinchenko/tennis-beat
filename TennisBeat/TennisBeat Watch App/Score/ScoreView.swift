@@ -14,7 +14,8 @@ struct ScoreView: View {
     if let match = session.match, let clock = session.clock {
       let model = ScoreScreenModel(
         state: match.state, isPaused: session.isPaused, locale: locale,
-        acceptsPoints: session.acceptsPoints, isDimmed: isLuminanceReduced)
+        acceptsPoints: session.acceptsPoints, isDimmed: isLuminanceReduced,
+        gameScoring: match.setup.format.gameScoring)
       VStack(spacing: 4) {
         header(model, clock: clock)
         ForEach(model.zones, id: \.player) { zone in
@@ -61,7 +62,8 @@ struct ScoreView: View {
         // The heart rate, then the status (#31 L1); VoiceOver reads the heart rate with the
         // elapsed time and the status inside the summary (Story 7 s2).
         HeaderStatusLine(
-          clock: clock, status: model.statusText, heartRate: heartRate(at:),
+          clock: clock, status: model.statusText, layoutStatus: model.layoutStatusText,
+          heartRate: heartRate(at:),
           isDimmed: isLuminanceReduced, exposeValues: exposeValues
         )
         .frame(maxWidth: .infinity, minHeight: 16, alignment: .leading)
