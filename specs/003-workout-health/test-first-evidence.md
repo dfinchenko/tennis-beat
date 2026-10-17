@@ -145,3 +145,5 @@ The tests were committed first, in **`8e284d8`** (the UI test walks points insid
 **Runs 11–12, on the L2 code before `c20bbbc`** (not evidence; they found two problems): run 11 failed "under the elapsed time" at 0–0: the blank second line didn't scale like the status text, so at XXXL it pushed the heart rate 3 pt up (fixed in `7c0f24d`); run 12 failed "zones move within the phase … after M" with the Me zone at x 2.08, width 157.83: its press animation, caught right after the tap. `c20bbbc` makes the test wait for the frames to settle and name the state on failure; no expectation changed.
 
 **Run 13, at `7c0f24d`:** `testUS6s2HeartRateFitsAndKeepsTheZones` passed (511 s).
+
+**Run 14, the full watch suite at `7c0f24d`** (`fb8dbc2` changes docs only): 309 tests in the result bundle (225 unit test functions, 84 UI tests), 301 passed, 8 skipped (the opt-in screenshot tests), 0 failed, including `ScoreScreenModelTests` "US6 s2 L2 …" and every spec 002 UI test (SC-005).
