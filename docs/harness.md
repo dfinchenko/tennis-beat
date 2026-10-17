@@ -48,6 +48,18 @@ Added after PR #7 was merged at a head no reviewer had passed: nothing on GitHub
   3. Denys merges once review-gate and CI are green on that head. Any later push invalidates the review and the gate fails until a new review passes.
 - **Spec PRs stay in Draft** (Denys, 2026-10-15, after #26 was merged with the spec still Draft): the agent opens every spec PR as a GitHub draft PR and keeps it in Draft until Denys's approval commit (`Status: Approved`) has passed the final review. Only then does the agent mark the PR ready for review, so a spec PR that can be merged always carries an approved, reviewed spec.
 
+## CI time budget
+Decided by Denys on 2026-10-17 ([relayed on #31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308)), after #31's `watch-tests` took 42m34s of its 45-minute timeout. How the budget is met was also his choice ([relayed on #32](https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6240987129)).
+
+- **Keep PR CI under about 20 minutes** of wall time. A change that would push it over says so in the PR body, with the measured time, and proposes how to bring it back.
+- **The watch tests run in three parallel shards** (`.github/workflows/watch-tests.yml`): `audits` (unit tests, accessibility audits, heart rate, Always On), `scoring` (the SC-002 matches, the score-screen layout and audits, the workout) and `rest`. `rest` skips the classes the other two name, so a new UI test class always runs. Every PR still runs every test. When a shard grows past about 15 minutes, move a class to rebalance.
+- **The layout matrix:** every PR runs the worst case of `testUS6s2HeartRateFitsAndKeepsTheZones`, UK at XXXL with ♥ 205 in every phase. The full matrix (EN, PL and UK; ♥ 205 and "--") runs:
+  - in the **nightly** workflow (`.github/workflows/nightly.yml`, 02:00 UTC, also started by hand from the Actions tab);
+  - in **PRs that change header or layout files**, as listed in `scripts/layout-scope.sh`: `Score/`, `DesignSystem/`, `ScoreScreenModel.swift`, `HeartRateDisplay.swift`, `Localizable.xcstrings`, the layout test and the CI files;
+  - on pushes to `main`.
+- **Locally**, the test runs the worst case. `TEST_RUNNER_LAYOUT_MATRIX=full xcodebuild test …` runs the full matrix; run it before asking for review on any change to the files above.
+- **A nightly failure** is fixed in the next PR, which starts with a failing test, like any bug fix.
+
 ## Xcode project format
 - The project was created with Xcode 27 but is saved in **Xcode 26.3 format** (`objectVersion = 100`), because the CI runner image (`macos-26`) only has Xcode 26.x.
 - **In Xcode 27, do not re-enable strict project validation.** Also decline "Update to recommended settings" if it offers to. Either one writes the root key `validationLevel` into `project.pbxproj`, which forces format 110. Xcode 26 refuses to open that ("future Xcode project file format"), and every app build in CI fails.

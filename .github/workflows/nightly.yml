@@ -1,0 +1,20 @@
+name: Nightly
+
+# The full layout matrix every night (CI budget, Denys:
+# https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308): EN, PL and UK with
+# ♥ 205 and "--", with the rest of the watch tests. PRs run only the worst layout case unless
+# they change header or layout files (scripts/layout-scope.sh).
+
+on:
+  schedule:
+    - cron: "0 2 * * *"  # 02:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  watch-tests:
+    uses: ./.github/workflows/watch-tests.yml
+    with:
+      layout_matrix: full

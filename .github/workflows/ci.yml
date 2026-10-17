@@ -64,67 +64,35 @@ jobs:
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO
 
-  # Watch unit and UI tests (spec 002, research R12). Not a required check; Denys decides.
-  watch-tests:
-    runs-on: macos-26
-    timeout-minutes: 45
+  # Which layout matrix the watch UI tests run: "full" when the PR changes header or layout
+  # files (scripts/layout-scope.sh), "worst" otherwise; pushes to main run "full".
+  layout-scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.scope.outputs.matrix }}
     steps:
       - uses: actions/checkout@v4
-      - name: Select newest Xcode on the image
+        with:
+          fetch-depth: 0
+      - name: Layout scope
+        id: scope
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           set -euo pipefail
-          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
-          test -n "$xcode"
-          sudo xcode-select -s "$xcode/Contents/Developer"
-          xcodebuild -version
-      - name: Pick the 40 mm watchOS simulator
-        id: sim
-        run: |
-          set -euo pipefail
-          # The 40 mm watch is the layout target (spec 002, Q9). Fall back to the first
-          # available watchOS simulator only if the image has no 40 mm model.
-          udid="$(xcrun simctl list devices available -j | python3 -c '
-          import json, sys
-          devices = json.load(sys.stdin)["devices"]
-          def version(runtime):  # "…SimRuntime.watchOS-26-10" -> (26, 10), so 26.10 sorts after 26.2
-              return tuple(int(part) for part in runtime.rsplit("watchOS-", 1)[1].split("-") if part.isdigit())
-          runtimes = sorted((r for r in devices if "watchOS-" in r), key=version, reverse=True)
-          watches = [d for r in runtimes for d in devices[r]]  # newest runtime first
-          pinned = [d for d in watches if "(40mm)" in d["name"]]
-          chosen = pinned[:1] or watches[:1]  # a 40 mm watch on the newest runtime that has one
-          print(chosen[0]["udid"] if chosen else "")
-          ')"
-          echo "udid=$udid" >> "$GITHUB_OUTPUT"
-          if [ -z "$udid" ]; then echo "::warning::No watchOS simulator on this image; running build-for-testing only (R12 fallback)."; fi
-          xcrun simctl list devices available | grep -F "$udid" || true
-      - name: Boot the simulator
-        if: steps.sim.outputs.udid != ''
-        # A stuck boot fails here, not at the job timeout (#19 R1-3).
-        timeout-minutes: 10
-        run: |
-          set -euo pipefail
-          # UI tests tap only after the device has finished booting (#18 R1-1).
-          # Only "already booted" is ignored; any other boot error fails the step.
-          if ! out="$(xcrun simctl boot "${{ steps.sim.outputs.udid }}" 2>&1)"; then
-            echo "$out"
-            echo "$out" | grep -q "current state: Booted"
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            matrix="$(scripts/layout-scope.sh "$BASE" "$HEAD")"
+          else
+            matrix=full
           fi
-          xcrun simctl bootstatus "${{ steps.sim.outputs.udid }}" -b
-      - name: Watch tests
-        if: steps.sim.outputs.udid != ''
-        run: |
-          set -o pipefail
-          xcodebuild test \
-            -project TennisBeat/TennisBeat.xcodeproj \
-            -scheme "TennisBeat Watch App" \
-            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
-            CODE_SIGNING_ALLOWED=NO
-      - name: Build for testing (no watchOS simulator)
-        if: steps.sim.outputs.udid == ''
-        run: |
-          set -o pipefail
-          xcodebuild build-for-testing \
-            -project TennisBeat/TennisBeat.xcodeproj \
-            -scheme "TennisBeat Watch App" \
-            -destination "generic/platform=watchOS Simulator" \
-            CODE_SIGNING_ALLOWED=NO
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+          echo "Layout matrix: $matrix"
+
+  # Watch unit and UI tests in three shards (watch-tests.yml). Not a required check; Denys decides.
+  watch-tests:
+    needs: layout-scope
+    uses: ./.github/workflows/watch-tests.yml
+    with:
+      layout_matrix: ${{ needs.layout-scope.outputs.matrix }}
