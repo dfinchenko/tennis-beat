@@ -18,3 +18,23 @@ jobs:
     uses: ./.github/workflows/watch-tests.yml
     with:
       layout_matrix: full
+
+  # One issue for a failing nightly: opened or updated on failure, closed when a nightly passes
+  # (Denys: https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6241234335).
+  report:
+    needs: watch-tests
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Open, update or close the nightly issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RESULT: ${{ needs.watch-tests.result }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: scripts/nightly-issue.sh "$RESULT" "$RUN_URL"

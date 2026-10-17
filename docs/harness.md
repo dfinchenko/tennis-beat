@@ -58,7 +58,8 @@ Decided by Denys on 2026-10-17 ([relayed on #31](https://github.com/dfinchenko/t
   - in **PRs that change header or layout files**, as listed in `scripts/layout-scope.sh`: `Score/`, `DesignSystem/`, `ScoreScreenModel.swift`, `HeartRateDisplay.swift`, `Localizable.xcstrings`, the layout test and the CI files;
   - on pushes to `main`.
 - **Locally**, the test runs the worst case. `TEST_RUNNER_LAYOUT_MATRIX=full xcodebuild test …` runs the full matrix; run it before asking for review on any change to the files above.
-- **A nightly failure** is fixed in the next PR, which starts with a failing test, like any bug fix.
+- **A nightly failure** opens one issue, "Nightly layout matrix failing", with a link to the run; a later failure comments on it, and the next passing nightly closes it (`scripts/nightly-issue.sh`; Denys, [#32](https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6241234335)). The fix comes in the next PR, which starts with a failing test, like any bug fix.
+- **`review-gate` keeps `cancel-in-progress`**: only the latest PR body matters (Denys, [#32](https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6241234335)). Editing the body and marking the PR ready in one go starts two runs; the earlier one is cancelled and can show as a failing required check (#31). If the latest run passed on the head, rerun the cancelled one (`gh run rerun <id>`); it checks the same head and pushes nothing.
 
 ## Xcode project format
 - The project was created with Xcode 27 but is saved in **Xcode 26.3 format** (`objectVersion = 100`), because the CI runner image (`macos-26`) only has Xcode 26.x.
