@@ -20,6 +20,11 @@ struct ScoreView: View {
         header(model, clock: clock)
         ForEach(model.zones, id: \.player) { zone in
           Button {
+            #if DEBUG
+              TapLog.log(
+                "zone \(zone.player.rawValue) action ran: events \(session.match?.events.count ?? -1) accepts \(session.acceptsPoints) dimmed \(isLuminanceReduced) zonesAcceptTaps \(model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))"
+              )
+            #endif
             session.addPoint(for: zone.player)
           } label: {
             // One element in production: the drawn values are hidden and the button reads
@@ -49,6 +54,11 @@ struct ScoreView: View {
       .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
       // No animations in Always On (Story 6 s2).
       .transaction { if isLuminanceReduced { $0.animation = nil } }
+      #if DEBUG
+        .onAppear { TapLog.log("score view appeared, dimmed \(isLuminanceReduced)") }
+        .onDisappear { TapLog.log("score view disappeared") }
+        .onChange(of: isLuminanceReduced) { _, dimmed in TapLog.log("dimmed -> \(dimmed)") }
+      #endif
     }
   }
 
@@ -90,7 +100,14 @@ struct ScoreView: View {
   }
 
   private var undoButton: some View {
-    Button(action: session.undo) {
+    Button {
+      #if DEBUG
+        TapLog.log(
+          "undo action ran: events \(session.match?.events.count ?? -1) canUndo \(session.canUndo) dimmed \(isLuminanceReduced)"
+        )
+      #endif
+      session.undo()
+    } label: {
       Image(systemName: "arrow.uturn.backward")
         .font(.watchTitle)
         .foregroundStyle(Color.watchTextPrimary)

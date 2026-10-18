@@ -66,6 +66,9 @@ final class WatchHaptics: HapticPlaying {
     let sequence = Haptic.sequence(for: outcome)
     sink(Self.hapticType(for: sequence[0]))
     guard sequence.count > 1 else { return }
+    #if DEBUG
+      TapLog.log("change-of-ends haptic scheduled")
+    #endif
     pending?.cancel()
     pending = Task { [weak self, sleep] in
       do { try await sleep(Self.changeOfEndsDelay) } catch { return }
@@ -88,6 +91,9 @@ final class WatchHaptics: HapticPlaying {
   private func playPending() {
     guard pending != nil else { return }
     pending = nil
+    #if DEBUG
+      TapLog.log("change-of-ends haptic plays")
+    #endif
     sink(Self.hapticType(for: .changeOfEnds))
   }
 }
