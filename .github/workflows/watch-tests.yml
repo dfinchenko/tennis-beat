@@ -22,6 +22,10 @@ permissions:
 jobs:
   watch-tests:
     runs-on: macos-26
+    # issues: write only for the "Flaky test retries" comment; callers must grant it.
+    permissions:
+      contents: read
+      issues: write
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -138,6 +142,12 @@ jobs:
           # One retry per test that failed its first attempt (#33 R1-2).
           retries="$(grep -cE "^Test Case '.*' started \(Iteration 2 of 2\)" "$log" || true)"
           echo "retries=$retries" >> "$GITHUB_OUTPUT"
+          # The retried tests' names, for the tracking issue.
+          {
+            echo "tests<<EOF"
+            sed -nE "s/^Test Case '-\[[^ ]+ ([^]]+)\]' started \(Iteration 2 of 2\).*/\1/p" "$log"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
           if [ "$retries" -gt 0 ]; then
             { grep -E "^Test Case '.*' failed|error: -\[" "$log" || true; } | while IFS= read -r line; do
               echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$line"
@@ -145,6 +155,23 @@ jobs:
             echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$retries retried test(s)"
           fi
           exit "$status"
+      - name: Record the retries in "Flaky test retries"
+        # One comment per retried test with the run link, in PRs and the nightly; more than 2 in
+        # 7 days opens an investigation issue (Denys, relayed on #34:
+        # https://github.com/dfinchenko/tennis-beat/pull/34#issuecomment-6254956236). A token
+        # without issues: write (a fork's PR) must not fail the tests.
+        if: steps.sc002.outputs.retries > 0
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          TESTS: ${{ steps.sc002.outputs.tests }}
+        run: |
+          set -euo pipefail
+          tests=()
+          while IFS= read -r line; do [ -n "$line" ] && tests+=("$line"); done <<< "$TESTS"
+          scripts/flaky-retries.sh "$RUN_URL" "${tests[@]}"
       - name: Save the app's tap log
         # The DEBUG tap log, to tell where a lost tap went (#33). It runs for a failure in any
         # shard on purpose: every UI test drives the same zones (#33 R3-4).

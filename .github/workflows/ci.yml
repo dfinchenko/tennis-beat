@@ -105,5 +105,9 @@ jobs:
   watch-tests:
     needs: layout-scope
     uses: ./.github/workflows/watch-tests.yml
+    # issues: write for the "Flaky test retries" comment (#34).
+    permissions:
+      contents: read
+      issues: write
     with:
       layout_matrix: ${{ needs.layout-scope.outputs.matrix }}
