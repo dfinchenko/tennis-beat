@@ -58,6 +58,13 @@ struct ScoreView: View {
         .onAppear { TapLog.log("score view appeared, dimmed \(isLuminanceReduced)") }
         .onDisappear { TapLog.log("score view disappeared") }
         .onChange(of: isLuminanceReduced) { _, dimmed in TapLog.log("dimmed -> \(dimmed)") }
+        // What else can make the zones ignore a tap that reaches them (#33 R1-1).
+        .onChange(of: model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced)) { _, on in
+          TapLog.log("zonesAcceptTaps -> \(on)")
+        }
+        .onChange(of: session.acceptsPoints) { _, on in TapLog.log("acceptsPoints -> \(on)") }
+        .onChange(of: session.isPaused) { _, paused in TapLog.log("paused -> \(paused)") }
+        .onChange(of: session.route) { _, route in TapLog.log("route -> \(route)") }
       #endif
     }
   }

@@ -113,7 +113,8 @@ jobs:
             CODE_SIGNING_ALLOWED=NO
       - name: SC-002 match tie-break tests (one whole-test retry)
         # An environment flake drops a synthesized tap in these two tests about once in 200 runs:
-        # the app's DEBUG tap log shows the tap never reached the zone (#33). Each may run once
+        # the app's DEBUG tap log shows no zone action ran for it, with nothing blocking the zones
+        # (#33). Each may run once
         # more as a whole test, never a tap retry, and every retry is counted in the metrics
         # (Denys, relayed on #33: https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014).
         # Every other test runs once.
@@ -132,7 +133,8 @@ jobs:
             -retry-tests-on-failure -test-iterations 2 \
             -resultBundlePath "$RUNNER_TEMP/watch-tests-sc002.xcresult" \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$log" || status=$?
-          retries="$(grep -cE "^Test Case '.*' failed" "$log" || true)"
+          # One retry per test that failed its first attempt (#33 R1-2).
+          retries="$(grep -cE "^Test Case '.*' started \(Iteration 2 of 2\)" "$log" || true)"
           echo "retries=$retries" >> "$GITHUB_OUTPUT"
           if [ "$retries" -gt 0 ]; then
             grep -E "^Test Case '.*' failed|error: -\[" "$log" | while IFS= read -r line; do
