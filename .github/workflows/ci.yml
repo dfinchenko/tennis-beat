@@ -63,6 +63,17 @@ jobs:
             -destination "${{ matrix.destination }}" \
             -configuration Debug \
             CODE_SIGNING_ALLOWED=NO
+      - name: Build for simulator (Release)
+        # An archive builds Release; a Release-only compile error must not reach main again
+        # (Denys, relayed on #33: https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6254547417).
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project TennisBeat/TennisBeat.xcodeproj \
+            -scheme "${{ matrix.scheme }}" \
+            -destination "${{ matrix.destination }}" \
+            -configuration Release \
+            CODE_SIGNING_ALLOWED=NO
 
   # Which layout matrix the watch UI tests run: "full" when the PR changes header or layout
   # files (scripts/layout-scope.sh), "worst" otherwise; pushes to main run "full".
