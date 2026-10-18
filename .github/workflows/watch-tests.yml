@@ -115,9 +115,9 @@ jobs:
       - name: SC-002 match tie-break tests (one whole-test retry)
         # An environment flake drops a synthesized tap in these two tests about once in 200 runs:
         # the app's DEBUG tap log shows no zone action ran for it, with nothing blocking the zones
-        # (#33). Each may run once
-        # more as a whole test, never a tap retry, and every retry is counted in the metrics
-        # (Denys, relayed on #33: https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014).
+        # (#33). Each may run once more as a whole test, never a tap retry, and every retry is
+        # counted in the metrics (Denys, relayed on #33:
+        # https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014).
         # Every other test runs once.
         id: sc002
         if: steps.sim.outputs.udid != '' && matrix.shard == 'rest' && !cancelled()
@@ -146,7 +146,8 @@ jobs:
           fi
           exit "$status"
       - name: Save the app's tap log
-        # The DEBUG tap log, to tell where a lost tap went (#33).
+        # The DEBUG tap log, to tell where a lost tap went (#33). It runs for a failure in any
+        # shard on purpose: every UI test drives the same zones (#33 R3-4).
         if: (failure() || steps.sc002.outputs.retries > 0) && steps.sim.outputs.udid != ''
         run: |
           xcrun simctl spawn "${{ steps.sim.outputs.udid }}" log show --style compact --info --last 2h \
@@ -155,7 +156,9 @@ jobs:
       - name: Keep the result bundle of a failed run
         # Only when the tests fail or an SC-002 test was retried, for 14 days (Denys, relayed on
         # #32: https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6247378603): it
-        # holds the failing test's activity log and screenshots, with the app's tap log.
+        # holds the failing test's activity log and screenshots, with the app's tap log. The
+        # SC-002 bundle exists only in `rest`; elsewhere `if-no-files-found: ignore` skips it
+        # (#33 R3-4).
         if: (failure() || steps.sc002.outputs.retries > 0) && steps.sim.outputs.udid != ''
         uses: actions/upload-artifact@v4
         with:

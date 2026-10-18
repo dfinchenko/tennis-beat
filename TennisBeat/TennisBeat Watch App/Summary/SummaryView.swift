@@ -155,10 +155,12 @@ private struct FlowLayout: Layout {
   }
 }
 
-#Preview {
-  let session = MatchSession.preview
-  session.start(firstServer: .me)
-  session.addPoint(for: .me)
-  session.endEarly()
-  return SummaryView().environment(session)
-}
+#if DEBUG
+  #Preview {
+    let session = MatchSession.preview
+    session.start(firstServer: .me)
+    session.addPoint(for: .me)
+    session.endEarly()
+    return SummaryView().environment(session)
+  }
+#endif

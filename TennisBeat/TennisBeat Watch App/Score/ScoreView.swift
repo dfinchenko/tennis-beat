@@ -143,15 +143,17 @@ private struct ExposeChildren: ViewModifier {
   }
 }
 
-#Preview {
-  let session = MatchSession.preview
-  session.start(firstServer: .me)
-  return ScoreView().environment(session)
-}
+#if DEBUG
+  #Preview {
+    let session = MatchSession.preview
+    session.start(firstServer: .me)
+    return ScoreView().environment(session)
+  }
 
-#Preview("Always On") {
-  let session = MatchSession.preview
-  session.start(firstServer: .me)
-  session.addPoint(for: .me)
-  return ScoreView().environment(session).environment(\.isLuminanceReduced, true)
-}
+  #Preview("Always On") {
+    let session = MatchSession.preview
+    session.start(firstServer: .me)
+    session.addPoint(for: .me)
+    return ScoreView().environment(session).environment(\.isLuminanceReduced, true)
+  }
+#endif

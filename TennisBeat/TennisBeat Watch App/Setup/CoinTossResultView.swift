@@ -35,9 +35,11 @@ struct CoinTossResultView: View {
   }
 }
 
-#Preview {
-  NavigationStack {
-    CoinTossResultView(result: .opponent)
+#if DEBUG
+  #Preview {
+    NavigationStack {
+      CoinTossResultView(result: .opponent)
+    }
+    .environment(MatchSession.preview)
   }
-  .environment(MatchSession.preview)
-}
+#endif

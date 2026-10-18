@@ -29,8 +29,10 @@ struct RootView: View {
   }
 }
 
-#Preview {
-  RootView()
-    .environment(MatchSession.preview)
-    .environment(HealthOnboarding.preview)
-}
+#if DEBUG
+  #Preview {
+    RootView()
+      .environment(MatchSession.preview)
+      .environment(HealthOnboarding.preview)
+  }
+#endif

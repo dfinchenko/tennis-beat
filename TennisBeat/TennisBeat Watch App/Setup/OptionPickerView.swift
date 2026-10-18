@@ -32,9 +32,11 @@ struct OptionPickerView: View {
   }
 }
 
-#Preview {
-  NavigationStack {
-    OptionPickerView(row: .setLength)
+#if DEBUG
+  #Preview {
+    NavigationStack {
+      OptionPickerView(row: .setLength)
+    }
+    .environment(MatchSession.preview)
   }
-  .environment(MatchSession.preview)
-}
+#endif

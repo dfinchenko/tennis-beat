@@ -84,9 +84,11 @@ struct CapsuleButtonStyle: ButtonStyle {
   }
 }
 
-#Preview {
-  NavigationStack {
-    NewMatchView(path: .constant([]))
+#if DEBUG
+  #Preview {
+    NavigationStack {
+      NewMatchView(path: .constant([]))
+    }
+    .environment(MatchSession.preview)
   }
-  .environment(MatchSession.preview)
-}
+#endif

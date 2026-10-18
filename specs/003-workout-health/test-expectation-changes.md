@@ -41,3 +41,11 @@ No other expectation changed. The `latestHeartRate == nil` line added to `Workou
 ## `feat/003-ci-budget` (CI time budget)
 
 No expectation changed. `ScoreAccessibilityUITests.testUS6s2HeartRateFitsAndKeepsTheZones` checks the same things in every case it runs, but by default it now runs only the worst case, UK with ♥ 205 in every phase; `LAYOUT_MATRIX=full` runs EN, PL and UK with ♥ 205 and "--" as before (nightly, PRs that change header or layout files, pushes to `main`). Denys's decision, [relayed on #31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308).
+
+## `feat/003-lost-tap` (lost tap in the SC-002 UI tests)
+
+No expectation changed (#33 R3-1). The two SC-002 match tie-break tests check the same things; CI may run each once more as a whole test (Denys, [relayed on #33](https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014)).
+
+## `feat/003-release-build` (Release builds in CI)
+
+No test and no expectation changed. The new CI step builds both apps in Release (Denys, [relayed on #33](https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6254547417)).

@@ -215,3 +215,11 @@ No test is added and no expectation changes. The lost tap was diagnosed with the
 
 **The retry exits 0 when it passes** (#33 R1-3), checked locally on Apple Watch SE 3 40 mm before review 1. A throwaway UI test, never committed, failed on its first attempt only; `-retry-tests-on-failure -test-iterations 2` printed `failed`, `started (Iteration 2 of 2)`, `passed` and `** TEST SUCCEEDED **`, with exit 0.
 
+## `feat/003-release-build` (Release builds in CI, #33 R2-4)
+
+No test is added. The failing check is the new CI step `Build for simulator (Release)` in both `build (<scheme>)` jobs. It was committed alone in `1979471`, before the fix.
+
+- **Locally at `1979471`:** both `xcodebuild build -configuration Release` (iOS and watchOS Simulator) exit 65. The errors are `type 'MatchSession' has no member 'preview'` and `type 'HealthOnboarding' has no member 'preview'` in `RootView`, `HealthOnboardingView`, `CoinTossResultView`, `FirstServerView`, `NewMatchView` and `OptionPickerView`, plus "failed to produce diagnostic" at the `#Preview` blocks of `ScoreView` and `ControlsView`. The iOS app embeds the watch app, so it fails on the same errors.
+- **On CI at `1979471`:** [run 39162279294](https://github.com/dfinchenko/tennis-beat/actions/runs/39162279294). In both `build (TennisBeat)` and `build (TennisBeat Watch App)`, the Debug step passed and the Release step failed.
+- **After the fix** (the `#Preview` blocks that use the DEBUG-only helpers wrapped in `#if DEBUG`): both apps build locally in Release and in Debug.
+
