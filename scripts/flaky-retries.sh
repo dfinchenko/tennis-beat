@@ -45,7 +45,9 @@ Retried: \`$test_name\`
 Run: $run_url"
 done
 
-# Retries in the last 7 days, the ones just added included.
+# Retries in the last 7 days, the ones just added included. The loop ends with an `if`, so an
+# old last comment never fails it under pipefail (#34 R2-2). No comments inside the $( ): bash
+# 3.2, the macOS default, misparses quotes in them.
 week_ago=$((now - 7 * 24 * 3600))
 earlier=0
 if [[ "$tracking" != "NEW" ]]; then
@@ -53,7 +55,7 @@ if [[ "$tracking" != "NEW" ]]; then
     --jq ".[] | select(.body | startswith(\"$marker\")) | .created_at" |
     while IFS= read -r created; do
       epoch="$(date -u -d "$created" +%s 2>/dev/null || date -u -j -f '%Y-%m-%dT%H:%M:%SZ' "$created" +%s)"
-      [[ "$epoch" -ge "$week_ago" ]] && echo x
+      if [[ "$epoch" -ge "$week_ago" ]]; then echo x; fi
     done | wc -l | tr -d ' ')"
 fi
 # Comments made in this run are not listed yet in a dry run.

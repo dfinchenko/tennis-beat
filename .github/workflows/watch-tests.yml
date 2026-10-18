@@ -160,7 +160,8 @@ jobs:
         # 7 days opens an investigation issue (Denys, relayed on #34:
         # https://github.com/dfinchenko/tennis-beat/pull/34#issuecomment-6254956236). A token
         # without issues: write (a fork's PR) must not fail the tests.
-        if: steps.sc002.outputs.retries > 0
+        # Also when the job fails anyway (#34 R2-1).
+        if: ${{ !cancelled() && steps.sc002.outputs.retries > 0 }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
@@ -171,6 +172,8 @@ jobs:
           set -euo pipefail
           tests=()
           while IFS= read -r line; do [ -n "$line" ] && tests+=("$line"); done <<< "$TESTS"
+          # A retry is recorded even if no name was parsed (#34 R2-3).
+          [ "${#tests[@]}" -gt 0 ] || tests=("(unknown test, see the run)")
           scripts/flaky-retries.sh "$RUN_URL" "${tests[@]}"
       - name: Save the app's tap log
         # The DEBUG tap log, to tell where a lost tap went (#33). It runs for a failure in any
