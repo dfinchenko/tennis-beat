@@ -27,25 +27,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
+          # Balanced on #32's CI times (UI minutes, full / worst layout matrix):
+          # audits 13.6, layout 13.8 / 6.7, rest 11.6; each job adds about 5 minutes of setup.
           - shard: audits
             selection: |
               -only-testing:TennisBeat Watch AppTests
               -only-testing:TennisBeat Watch AppUITests/AccessibilityAuditUITests
-              -only-testing:TennisBeat Watch AppUITests/HeartRateUITests
-              -only-testing:TennisBeat Watch AppUITests/AlwaysOnUITests
-          - shard: scoring
+              -only-testing:TennisBeat Watch AppUITests/ControlsUITests
+              -only-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
+          - shard: layout
             selection: |
-              -only-testing:TennisBeat Watch AppUITests/ScoringUITests
               -only-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
+              -only-testing:TennisBeat Watch AppUITests/SummaryUITests
               -only-testing:TennisBeat Watch AppUITests/WorkoutUITests
           - shard: rest
             selection: |
               -skip-testing:TennisBeat Watch AppTests
               -skip-testing:TennisBeat Watch AppUITests/AccessibilityAuditUITests
-              -skip-testing:TennisBeat Watch AppUITests/HeartRateUITests
-              -skip-testing:TennisBeat Watch AppUITests/AlwaysOnUITests
-              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests
+              -skip-testing:TennisBeat Watch AppUITests/ControlsUITests
+              -skip-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
+              -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
               -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
     name: watch-tests (${{ matrix.shard }})
     steps:
