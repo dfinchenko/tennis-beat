@@ -46,6 +46,8 @@ final class ScoreAccessibilityUITests: XCTestCase {
   /// by default only the worst case runs, UK with ♥ 205, in every phase. `LAYOUT_MATRIX=full`
   /// (the nightly workflow, PRs that change header or layout files, or
   /// `TEST_RUNNER_LAYOUT_MATRIX=full` locally) runs EN, PL and UK with ♥ 205 and "--".
+  /// The check that the zones stay put when the reading changes (♥ 205 → "--") needs two
+  /// readings, so it runs only with the full matrix (#32 R1-2).
   @MainActor
   func testUS6s2HeartRateFitsAndKeepsTheZones() {
     let fullMatrix = ProcessInfo.processInfo.environment["LAYOUT_MATRIX"] == "full"

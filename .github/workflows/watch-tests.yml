@@ -49,6 +49,8 @@ jobs:
               -skip-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
               -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd
     name: watch-tests (${{ matrix.shard }})
     steps:
       - uses: actions/checkout@v4
@@ -102,12 +104,68 @@ jobs:
           set -euo pipefail
           selection=()
           while IFS= read -r line; do [ -n "$line" ] && selection+=("$line"); done <<< "$SELECTION"
+          rm -rf "$RUNNER_TEMP/watch-tests-${{ matrix.shard }}.xcresult"  # #33 R2-3
           xcodebuild test \
             -project TennisBeat/TennisBeat.xcodeproj \
             -scheme "TennisBeat Watch App" \
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             "${selection[@]}" \
+            -resultBundlePath "$RUNNER_TEMP/watch-tests-${{ matrix.shard }}.xcresult" \
             CODE_SIGNING_ALLOWED=NO
+      - name: SC-002 match tie-break tests (one whole-test retry)
+        # An environment flake drops a synthesized tap in these two tests about once in 200 runs:
+        # the app's DEBUG tap log shows no zone action ran for it, with nothing blocking the zones
+        # (#33). Each may run once
+        # more as a whole test, never a tap retry, and every retry is counted in the metrics
+        # (Denys, relayed on #33: https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014).
+        # Every other test runs once.
+        id: sc002
+        if: steps.sim.outputs.udid != '' && matrix.shard == 'rest' && !cancelled()
+        run: |
+          set -euo pipefail
+          log="$RUNNER_TEMP/sc002.log"
+          rm -rf "$RUNNER_TEMP/watch-tests-sc002.xcresult"  # #33 R2-3
+          status=0
+          xcodebuild test \
+            -project TennisBeat/TennisBeat.xcodeproj \
+            -scheme "TennisBeat Watch App" \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd" \
+            -retry-tests-on-failure -test-iterations 2 \
+            -resultBundlePath "$RUNNER_TEMP/watch-tests-sc002.xcresult" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$log" || status=$?
+          # One retry per test that failed its first attempt (#33 R1-2).
+          retries="$(grep -cE "^Test Case '.*' started \(Iteration 2 of 2\)" "$log" || true)"
+          echo "retries=$retries" >> "$GITHUB_OUTPUT"
+          if [ "$retries" -gt 0 ]; then
+            { grep -E "^Test Case '.*' failed|error: -\[" "$log" || true; } | while IFS= read -r line; do
+              echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$line"
+            done
+            echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$retries retried test(s)"
+          fi
+          exit "$status"
+      - name: Save the app's tap log
+        # The DEBUG tap log, to tell where a lost tap went (#33).
+        if: (failure() || steps.sc002.outputs.retries > 0) && steps.sim.outputs.udid != ''
+        run: |
+          xcrun simctl spawn "${{ steps.sim.outputs.udid }}" log show --style compact --info --last 2h \
+            --predicate 'subsystem == "com.dfinchenko.TennisBeat.watchkitapp" AND category == "tap"' \
+            > "$RUNNER_TEMP/taplog.txt" || true
+      - name: Keep the result bundle of a failed run
+        # Only when the tests fail or an SC-002 test was retried, for 14 days (Denys, relayed on
+        # #32: https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6247378603): it
+        # holds the failing test's activity log and screenshots, with the app's tap log.
+        if: (failure() || steps.sc002.outputs.retries > 0) && steps.sim.outputs.udid != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-tests-${{ matrix.shard }}-xcresult
+          path: |
+            ${{ runner.temp }}/watch-tests-${{ matrix.shard }}.xcresult
+            ${{ runner.temp }}/watch-tests-sc002.xcresult
+            ${{ runner.temp }}/taplog.txt
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Build for testing (no watchOS simulator)
         if: steps.sim.outputs.udid == ''
         run: |

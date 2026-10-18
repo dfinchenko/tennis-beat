@@ -20,6 +20,11 @@ struct ScoreView: View {
         header(model, clock: clock)
         ForEach(model.zones, id: \.player) { zone in
           Button {
+            #if DEBUG
+              TapLog.log(
+                "zone \(zone.player.rawValue) action ran: events \(session.match?.events.count ?? -1) accepts \(session.acceptsPoints) dimmed \(isLuminanceReduced) zonesAcceptTaps \(model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced))"
+              )
+            #endif
             session.addPoint(for: zone.player)
           } label: {
             // One element in production: the drawn values are hidden and the button reads
@@ -49,6 +54,18 @@ struct ScoreView: View {
       .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
       // No animations in Always On (Story 6 s2).
       .transaction { if isLuminanceReduced { $0.animation = nil } }
+      #if DEBUG
+        .onAppear { TapLog.log("score view appeared, dimmed \(isLuminanceReduced)") }
+        .onDisappear { TapLog.log("score view disappeared") }
+        .onChange(of: isLuminanceReduced) { _, dimmed in TapLog.log("dimmed -> \(dimmed)") }
+        // What else can make the zones ignore a tap that reaches them (#33 R1-1).
+        .onChange(of: model.zonesAcceptTaps(isLuminanceReduced: isLuminanceReduced)) { _, on in
+          TapLog.log("zonesAcceptTaps -> \(on)")
+        }
+        .onChange(of: session.acceptsPoints) { _, on in TapLog.log("acceptsPoints -> \(on)") }
+        .onChange(of: session.isPaused) { _, paused in TapLog.log("paused -> \(paused)") }
+        .onChange(of: session.route) { _, route in TapLog.log("route -> \(route)") }
+      #endif
     }
   }
 
@@ -90,7 +107,14 @@ struct ScoreView: View {
   }
 
   private var undoButton: some View {
-    Button(action: session.undo) {
+    Button {
+      #if DEBUG
+        TapLog.log(
+          "undo action ran: events \(session.match?.events.count ?? -1) canUndo \(session.canUndo) dimmed \(isLuminanceReduced)"
+        )
+      #endif
+      session.undo()
+    } label: {
       Image(systemName: "arrow.uturn.backward")
         .font(.watchTitle)
         .foregroundStyle(Color.watchTextPrimary)
