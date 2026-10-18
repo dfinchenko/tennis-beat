@@ -41,8 +41,16 @@ final class ScoreAccessibilityUITests: XCTestCase {
   /// leaves the screen. The zones stay at least 44 pt tall; they keep the spec 002 frames (no
   /// workout) unless the phase's status sits on its own line; and within a phase they don't move
   /// between points or when the reading changes ("--" or 205).
+  ///
+  /// CI budget ([Denys, relayed on #31](https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308)):
+  /// by default only the worst case runs, UK with ♥ 205, in every phase. `LAYOUT_MATRIX=full`
+  /// (the nightly workflow, PRs that change header or layout files, or
+  /// `TEST_RUNNER_LAYOUT_MATRIX=full` locally) runs EN, PL and UK with ♥ 205 and "--".
   @MainActor
   func testUS6s2HeartRateFitsAndKeepsTheZones() {
+    let fullMatrix = ProcessInfo.processInfo.environment["LAYOUT_MATRIX"] == "full"
+    let languages = fullMatrix ? ["en", "pl", "uk"] : ["uk"]
+    let readings: [String?] = fullMatrix ? ["205", nil] : ["205"]
     // Best of 3, sets of 4: 32 points reach 4–4 in set 1 (a tie-break, ITF: ST-07); Me wins
     // set 1 4–0 and the Opponent set 2 4–0 for the match tie-break (ITF: MT-03).
     func format(_ atFortyAll: String) -> String {
@@ -68,7 +76,7 @@ final class ScoreAccessibilityUITests: XCTestCase {
         name: "paused match tie-break", atFortyAll: "advantage", points: toMatchTieBreak,
         steps: [], pauses: true),
     ]
-    for language in ["en", "pl", "uk"] {
+    for language in languages {
       XCTContext.runActivity(named: language) { _ in
         @MainActor func launch(_ phase: Phase, _ health: [String]) -> XCUIApplication {
           let app = XCUIApplication.launched(
@@ -108,7 +116,7 @@ final class ScoreAccessibilityUITests: XCTestCase {
           XCTContext.runActivity(named: "\(language) \(phase.name)") { _ in
             var samples: [[CGRect]] = []
             var statusOnItsOwnLine = false
-            for reading in ["205", nil] {
+            for reading in readings {
               let app = launch(
                 phase,
                 ["-uiTestHealth", "granted"] + (reading.map { ["-uiTestHeartRate", $0] } ?? []))
@@ -125,7 +133,8 @@ final class ScoreAccessibilityUITests: XCTestCase {
                 XCTAssertTrue(app.frame.contains(heart), "\(context) \(heart)")
                 XCTAssertTrue(app.frame.contains(elapsed), "\(context) \(elapsed)")
                 XCTAssertGreaterThanOrEqual(
-                  heart.minY, elapsed.maxY - 1, "under the elapsed time: \(context) \(heart) \(elapsed)")
+                  heart.minY, elapsed.maxY - 1,
+                  "under the elapsed time: \(context) \(heart) \(elapsed)")
                 let status = app.element("status")
                 if status.exists, !status.label.isEmpty {
                   XCTAssertTrue(app.frame.contains(status.frame), "\(context) \(status.frame)")
