@@ -104,6 +104,7 @@ jobs:
           set -euo pipefail
           selection=()
           while IFS= read -r line; do [ -n "$line" ] && selection+=("$line"); done <<< "$SELECTION"
+          rm -rf "$RUNNER_TEMP/watch-tests-${{ matrix.shard }}.xcresult"  # #33 R2-3
           xcodebuild test \
             -project TennisBeat/TennisBeat.xcodeproj \
             -scheme "TennisBeat Watch App" \
@@ -123,6 +124,7 @@ jobs:
         run: |
           set -euo pipefail
           log="$RUNNER_TEMP/sc002.log"
+          rm -rf "$RUNNER_TEMP/watch-tests-sc002.xcresult"  # #33 R2-3
           status=0
           xcodebuild test \
             -project TennisBeat/TennisBeat.xcodeproj \
@@ -137,9 +139,10 @@ jobs:
           retries="$(grep -cE "^Test Case '.*' started \(Iteration 2 of 2\)" "$log" || true)"
           echo "retries=$retries" >> "$GITHUB_OUTPUT"
           if [ "$retries" -gt 0 ]; then
-            grep -E "^Test Case '.*' failed|error: -\[" "$log" | while IFS= read -r line; do
+            { grep -E "^Test Case '.*' failed|error: -\[" "$log" || true; } | while IFS= read -r line; do
               echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$line"
             done
+            echo "::warning title=SC-002 whole-test retry (count it in the metrics)::$retries retried test(s)"
           fi
           exit "$status"
       - name: Save the app's tap log
