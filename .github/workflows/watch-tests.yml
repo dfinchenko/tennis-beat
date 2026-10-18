@@ -107,7 +107,19 @@ jobs:
             -scheme "TennisBeat Watch App" \
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
             "${selection[@]}" \
+            -resultBundlePath "$RUNNER_TEMP/watch-tests-${{ matrix.shard }}.xcresult" \
             CODE_SIGNING_ALLOWED=NO
+      - name: Keep the result bundle of a failed run
+        # Only when the tests fail, for 14 days (Denys, relayed on #32:
+        # https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6247378603): it holds the
+        # failing test's activity log, screenshots and the app's log.
+        if: failure() && steps.sim.outputs.udid != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: watch-tests-${{ matrix.shard }}-xcresult
+          path: ${{ runner.temp }}/watch-tests-${{ matrix.shard }}.xcresult
+          retention-days: 14
+          if-no-files-found: ignore
       - name: Build for testing (no watchOS simulator)
         if: steps.sim.outputs.udid == ''
         run: |

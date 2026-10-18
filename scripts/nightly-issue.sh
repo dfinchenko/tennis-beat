@@ -25,7 +25,7 @@ case "$result" in
     else
       gh_do issue create --title "$title" --body "The nightly workflow failed: $run_url
 
-It runs the full layout matrix (EN, PL and UK; ♥ 205 and \"--\") with the other watch tests. Fix it in the next PR, starting with a failing test (docs/harness.md § CI time budget). This issue closes when a nightly passes."
+It runs the full layout matrix (EN, PL and UK; ♥ 205 and \"--\") with all the other watch tests, so the failure may be in any watch test, not only the layout test: check the failed job's log first. Fix it in the next PR, starting with a failing test (docs/harness.md § CI time budget). This issue closes when a nightly passes."
     fi
     ;;
   success)
