@@ -20,14 +20,19 @@ Black background.
 - **Unfinished chip** (changed by spec 002, Q5, Story 5 s5): after an early end during a set, a chip with the current games and an asterisk ("3:2*"); during a match tie-break, its points ("7:5*"). VoiceOver reads it as unfinished. No chip for a set in which no point was played.
 - **Title** for an early end: "Match ended early" («Матч перервано», «Mecz przerwany»), never Win or Loss (Story 5 s3).
 - **VoiceOver chips** (Story 5 s6, R2-4): "Set 2: 3–6, lost"; a match tie-break reads "Match tie-break: 10–7, won".
-- **Heart-rate and kcal rows are hidden** in spec 002 (changed by spec 002); spec 003 decides them with HealthKit. Duration is the only row.
 - The chips wrap at large text sizes, and the whole summary scrolls.
+
+## Changes by spec 003
+- **Heart-rate and energy rows** (changed by spec 003, FR-013, Story 4 s1–s3): under Duration, "Heart rate avg / max" · ♥ 138 / 171 (`status/heart` icon before the numbers) and "Active energy" · 612 kcal, laid out like Duration (label left, value right; stacked when they don't fit). The values are the workout's own statistics, the same as in Health. A row without a value is hidden; without a workout (no permission, or it failed) the summary shows Duration only, as in spec 002.
+- **"Active energy"** («Активна енергія», «Aktywna energia») replaces the mock-up's «Активні ккал» (Q5); the value is in kilocalories with the system's unit format ("612 kcal", «612 ккал»).
+- **VoiceOver**: each row is one element of at least 44 pt: "Heart rate: average 138, maximum 171 beats per minute", "Active energy: 612 kilocalories" (Story 4 s8).
+- Row order: title, chips, Duration, Heart rate, Active energy, Done, Undo (contract §3).
 
 ## Texts (UK)
 | Element | Text |
 | --- | --- |
 | Title | Перемога / Поразка |
-| Rows | Тривалість · Пульс сер. / макс. · Активні ккал |
+| Rows | Тривалість · Пульс сер. / макс. · Активна енергія (spec 003, Q5; the mock-up's «Активні ккал» is replaced) |
 | Buttons | Готово · Скасувати (spec 002) |
 
 ## Notes for the spec

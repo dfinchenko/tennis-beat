@@ -14,12 +14,7 @@ enum AppServices {
 
   /// HealthKit, or the fake for `-uiTestHealth` (contract §2).
   private static func makeWorkoutService() -> WorkoutService {
-    let options = LaunchOptions.current
-    guard let mode = options.healthMode else { return HealthKitWorkoutService() }
-    let fake = FakeWorkoutService(
-      mode: mode, now: Date.init, saveFails: options.saveFails, heartRate: options.heartRate)
-    if let stats = options.workoutStats { fake.stats = stats }
-    return fake
+    FakeWorkoutService.launched(LaunchOptions.current, now: Date.init) ?? HealthKitWorkoutService()
   }
 }
 

@@ -2,15 +2,16 @@ import SwiftUI
 import TennisCore
 
 /// Watch 6 — Summary: the result, a chip per set, the duration, Done and Undo (Story 5,
-/// FR-019, FR-020). It scrolls. Spec 003: Undo is hidden once the workout is being saved;
-/// the heart-rate and energy rows come in 003 PR 4.
+/// FR-019, FR-020). It scrolls. Spec 003: the heart-rate and energy rows after Duration
+/// (FR-013), and Undo hidden once the workout is being saved (FR-007).
 struct SummaryView: View {
   @Environment(MatchSession.self) private var session
   @Environment(\.locale) private var locale
 
   var body: some View {
     if let match = session.match, let clock = session.clock {
-      let model = SummaryModel(state: match.state, clock: clock, locale: locale)
+      let model = SummaryModel(
+        state: match.state, clock: clock, locale: locale, statistics: session.summaryStatistics)
       ScrollView {
         VStack(alignment: .leading, spacing: 10) {
           Text(model.title)
@@ -35,27 +36,19 @@ struct SummaryView: View {
             }
           }
 
-          ViewThatFits(in: .horizontal) {
-            HStack {
-              durationLabel
-              Spacer(minLength: 8)
-              durationValue(model.duration)
-            }
-            VStack(alignment: .leading, spacing: 2) {
-              durationLabel
-              durationValue(model.duration)
-            }
-          }
-          .accessibilityHidden(true)
-          .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-          .overlay {
-            // One VoiceOver element over the whole row, at least 44 pt (the audit's minimum,
-            // T074), read in spoken units, not the h:mm:ss digits (#23 R1-3).
-            Color.clear
-              .accessibilityElement()
-              .accessibilityLabel(Text("summary.duration"))
-              .accessibilityValue(model.spokenDuration)
-              .accessibilityIdentifier("summary.duration")
+          // One VoiceOver element over the whole row, read in spoken units, not the h:mm:ss
+          // digits (#23 R1-3).
+          SummaryRow(
+            label: Text("summary.duration"), value: Text(model.duration),
+            accessibilityLabel: Text("summary.duration"), accessibilityValue: model.spokenDuration,
+            identifier: "summary.duration")
+
+          // Spec 003: heart rate and active energy, each only with a value (Story 4 s1, s2).
+          ForEach(model.health.rows, id: \.kind) { row in
+            SummaryRow(
+              label: Text(row.label), value: Text(row.value), showsHeart: row.kind == .heartRate,
+              accessibilityLabel: Text(row.accessibilityLabel), accessibilityValue: nil,
+              identifier: row.kind == .heartRate ? "summary.heartRate" : "summary.energy")
           }
 
           Button(action: session.done) {
@@ -81,18 +74,62 @@ struct SummaryView: View {
       }
     }
   }
+}
 
-  private var durationLabel: some View {
-    Text("summary.duration")
-      .font(.watchBody)
-      .foregroundStyle(Color.watchTextSecondary)
+/// A label and a value (Watch 6 key–value rows): side by side when they fit, else stacked. One
+/// VoiceOver element over the whole row, at least 44 pt (the audit's minimum, T074).
+private struct SummaryRow: View {
+  let label: Text
+  let value: Text
+  /// The `status/heart` icon before the value (the heart-rate row).
+  var showsHeart = false
+  let accessibilityLabel: Text
+  let accessibilityValue: String?
+  let identifier: String
+
+  var body: some View {
+    ViewThatFits(in: .horizontal) {
+      HStack {
+        styledLabel
+        Spacer(minLength: 8)
+        styledValue
+      }
+      VStack(alignment: .leading, spacing: 2) {
+        styledLabel
+        styledValue
+      }
+    }
+    .accessibilityHidden(true)
+    .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+    .overlay {
+      Color.clear
+        .accessibilityElement()
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(accessibilityValue.map { Text($0) } ?? Text(verbatim: ""))
+        .accessibilityIdentifier(identifier)
+    }
   }
 
-  private func durationValue(_ duration: String) -> some View {
-    Text(duration)
-      .font(.watchNumber)
-      .monospacedDigit()
-      .foregroundStyle(Color.watchTextPrimary)
+  private var styledLabel: some View {
+    label
+      .font(.watchBody)
+      .foregroundStyle(Color.watchTextSecondary)
+      .fixedSize(horizontal: false, vertical: true)
+  }
+
+  private var styledValue: some View {
+    HStack(alignment: .firstTextBaseline, spacing: 4) {
+      if showsHeart {
+        // Always with the numbers and the label: never color-only meaning (US6).
+        Image(systemName: "heart.fill")
+          .font(.watchFootnote)
+          .foregroundStyle(Color.statusHeart)
+      }
+      value
+        .font(.watchNumber)
+        .monospacedDigit()
+        .foregroundStyle(Color.watchTextPrimary)
+    }
   }
 }
 

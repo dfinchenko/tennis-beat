@@ -165,10 +165,15 @@ struct SummaryModelTests {
     #expect(model.spokenDuration == expected)
   }
 
-  @Test("US5 s8 the summary has no heart-rate or calorie field")
+  /// Changed by spec 003 (FR-013, Story 4 s3): the model has the Health rows, and without a
+  /// workout's statistics they are empty, so the spec 002 summary shows Duration only.
+  @Test(
+    "US5 s8, spec 003 US4 s3 without workout statistics the summary has no heart-rate or energy row"
+  )
   func noHealthFields() throws {
     let model = try summary(g(6, .me), format: PointOutcomeTests.format(.oneSet))
     let fields = Set(Mirror(reflecting: model).children.compactMap(\.label))
-    #expect(fields == ["title", "chips", "duration", "spokenDuration"])
+    #expect(fields == ["title", "chips", "duration", "spokenDuration", "health"])
+    #expect(model.health.rows.isEmpty)
   }
 }

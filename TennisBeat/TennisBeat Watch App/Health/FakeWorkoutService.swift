@@ -44,7 +44,12 @@ final class FakeWorkoutService: WorkoutService {
   var beforeSaveReturns: (() async -> Void)?
   /// The statistics `statistics()` and `save` report (`-uiTestWorkoutStats`).
   var stats = WorkoutStatistics()
+  /// What `save` reports instead of `stats`, as Health's finished workout may differ from the
+  /// live snapshot (research R7).
+  var savedStats: WorkoutStatistics?
   var saveFails: Bool
+  /// With `saveFails`: only the next save fails; later saves work (`-uiTestSaveFails`).
+  var saveFailsOnce = false
   /// Replaces the mode's answer to `authorizationRequestStatus()`.
   var statusOverride: AuthorizationRequestStatus?
   /// Runs before `authorizationRequestStatus()` answers, so tests can hold the answer back.
@@ -112,14 +117,42 @@ final class FakeWorkoutService: WorkoutService {
     calls.append(.save(endingAt: date))
     let end = WorkoutEndDate.effective(requested: date, eventDates: eventDates)
     await beforeSaveReturns?()
-    if saveFails { throw SaveFailed() }
+    if saveFails {
+      if saveFailsOnce { saveFails = false }
+      throw SaveFailed()
+    }
     savedEndDates.append(end)
-    return SavedWorkout(uuid: UUID(), statistics: stats)
+    return SavedWorkout(uuid: UUID(), statistics: savedStats ?? stats)
   }
 
   func discard() { calls.append(.discard(at: now())) }
 
   func recoverAndSave() async { calls.append(.recoverAndSave) }
+
+  /// How long the failing save of `-uiTestSaveFails` takes: long enough for New match to show
+  /// first, so a UI test sees the notice come to it (research R5, T050).
+  static let launchedSaveFailureDelay: Duration = .seconds(2)
+
+  /// The fake for the DEBUG launch arguments (contract §2), or `nil` without `-uiTestHealth`.
+  /// `-uiTestSaveFails`: the first save fails, `launchedSaveFailureDelay` after it starts;
+  /// later saves work, so a second Done shows no notice.
+  static func launched(
+    _ options: LaunchOptions, now: @escaping () -> Date,
+    sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
+  ) -> FakeWorkoutService? {
+    guard let mode = options.healthMode else { return nil }
+    let fake = FakeWorkoutService(
+      mode: mode, now: now, saveFails: options.saveFails, heartRate: options.heartRate)
+    if let stats = options.workoutStats { fake.stats = stats }
+    if options.saveFails {
+      fake.saveFailsOnce = true
+      fake.beforeSaveReturns = { [weak fake] in
+        guard fake?.saveFails == true else { return }
+        try? await sleep(launchedSaveFailureDelay)
+      }
+    }
+    return fake
+  }
 
   /// Sends `event` as the workout with `token` (tests).
   func emit(_ event: WorkoutEvent, token: WorkoutToken) { onEvent?(token, event) }

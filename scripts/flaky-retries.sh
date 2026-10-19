@@ -22,9 +22,11 @@ gh_do() {
   if [[ "${DRY_RUN:-}" == 1 ]]; then printf 'would run: gh'; printf ' %q' "$@"; echo; else gh "$@"; fi
 }
 
-# The open issue with exactly this title, or nothing.
+# The open issue with exactly this title, or nothing. It lists the open issues instead of
+# searching: the search index can lag, so two retries close together could each create the
+# issue and split the 7-day count (#34 R3-2).
 find_issue() {
-  gh issue list --state open --search "in:title \"$1\"" --json number,title \
+  gh issue list --state open --limit 1000 --json number,title \
     --jq "map(select(.title == \"$1\")) | first | .number // empty"
 }
 

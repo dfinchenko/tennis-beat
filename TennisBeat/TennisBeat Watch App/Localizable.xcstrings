@@ -481,6 +481,54 @@
         }
       }
     },
+    "health.saveFailed.ok": {
+      "comment": "Button that dismisses the save-failure notice (spec 003 FR-015)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "health.saveFailed.title": {
+      "comment": "One-time notice on New match: saving the workout to Health failed (spec 003 FR-015)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout not saved to Health"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trening nie został zapisany w Zdrowiu"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Тренування не збережено в «Здоров’ї»"
+          }
+        }
+      }
+    },
     "player.me": {
       "comment": "The person wearing the watch",
       "extractionState": "manual",
@@ -2013,6 +2061,192 @@
           "stringUnit": {
             "state": "translated",
             "value": "Матч перервано"
+          }
+        }
+      }
+    },
+    "summary.energy": {
+      "comment": "Summary row label: the workout's active energy (spec 003 Story 4 s1, Q5)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active energy"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktywna energia"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Активна енергія"
+          }
+        }
+      }
+    },
+    "summary.energy.accessibility %@": {
+      "comment": "VoiceOver: the summary's energy row; %@ is the energy in full units, e.g. 612 kilocalories (spec 003 Story 4 s8)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active energy: %@"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktywna energia: %@"
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Активна енергія: %@"
+          }
+        }
+      }
+    },
+    "summary.heartRate": {
+      "comment": "Summary row label: the workout's average and maximum heart rate (spec 003 Story 4 s1)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart rate avg / max"
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tętno śr. / maks."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульс сер. / макс."
+          }
+        }
+      }
+    },
+    "summary.heartRate.accessibility %lld %lld": {
+      "comment": "VoiceOver: the summary's heart-rate row; %1$lld is the average, %2$lld the maximum, in beats per minute; the plural is on the maximum (spec 003 Story 4 s8)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart rate: average %1$lld, maximum %2$#@max@"
+          },
+          "substitutions": {
+            "max": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg beat per minute"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg beats per minute"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tętno: średnio %1$lld, maksymalnie %2$#@max@"
+          },
+          "substitutions": {
+            "max": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg uderzenie na minutę"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg uderzenia na minutę"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg uderzeń na minutę"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg uderzenia na minutę"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Пульс: середній %1$lld, максимальний %2$#@max@"
+          },
+          "substitutions": {
+            "max": {
+              "argNum": 2,
+              "formatSpecifier": "lld",
+              "variations": {
+                "plural": {
+                  "one": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg удар на хвилину"
+                    }
+                  },
+                  "few": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg удари на хвилину"
+                    }
+                  },
+                  "many": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg ударів на хвилину"
+                    }
+                  },
+                  "other": {
+                    "stringUnit": {
+                      "state": "translated",
+                      "value": "%arg удару на хвилину"
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       }

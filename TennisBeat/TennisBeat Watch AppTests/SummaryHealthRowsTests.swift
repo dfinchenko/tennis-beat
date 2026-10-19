@@ -1,5 +1,6 @@
 import Foundation
 import HealthKit
+import TennisCore
 import Testing
 
 @testable import TennisBeat_Watch_App
