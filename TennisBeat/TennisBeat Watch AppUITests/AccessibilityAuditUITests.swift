@@ -111,6 +111,39 @@ final class AccessibilityAuditUITests: XCTestCase {
     }
   }
 
+  /// Spec 003 final audit (SC-006, US6 s1–s4; T051): the summary with both Health rows in EN,
+  /// PL and UK at the largest standard size and the largest accessibility size; every row is
+  /// one element of at least 44 pt, and the audit's clipped-text check covers truncation. The
+  /// onboarding and the score header are audited in testUS6s1s2AuditHealthOnboarding and
+  /// ScoreAccessibilityUITests.
+  @MainActor
+  func testSC006AuditSummaryWithHealthRows() throws {
+    let sizes = [
+      ScoreAccessibilityUITests.largestStandard, ScoreAccessibilityUITests.largestAccessibility,
+    ]
+    for language in ["en", "pl", "uk"] {
+      for size in sizes {
+        try XCTContext.runActivity(named: "summary with Health rows \(language) \(size)") { _ in
+          let app = XCUIApplication.launched(
+            [
+              "-lastFormat.v1", SummaryHealthUITests.format, "-uiTestHealth", "granted",
+              "-uiTestWorkoutStats", "138,171,612", "-uiTestPoints",
+              SummaryHealthUITests.winningPoints, "-UIPreferredContentSizeCategoryName", size,
+            ], language: language)
+          app.tap("setup.start", until: "firstServer.me")
+          app.tap("firstServer.me", until: "summary.done")
+          for id in ["summary.duration", "summary.heartRate", "summary.energy"] {
+            let row = app.element(id)
+            XCTAssertTrue(row.exists, "\(id) \(language) \(size)")
+            XCTAssertGreaterThanOrEqual(row.frame.height, 44, "\(id) \(language) \(size)")
+          }
+          try app.auditNamingElements()
+          app.terminate()
+        }
+      }
+    }
+  }
+
   @MainActor func testSC005AuditNewMatch() throws { try audit(.newMatch) }
   @MainActor func testSC005AuditPicker() throws { try audit(.picker) }
   @MainActor func testSC005AuditFirstServer() throws { try audit(.firstServer) }

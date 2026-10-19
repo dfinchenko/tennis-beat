@@ -371,4 +371,119 @@ struct WorkoutSaveTests {
     #expect(h.session.match == match)
     #expect(h.fake.calls == calls)
   }
+
+  // MARK: The summary snapshot (FR-013, research R7; T048)
+
+  static let atOpening = WorkoutStatistics(
+    averageHeartRate: 138, maximumHeartRate: 171, activeEnergy: 612)
+  static let later = WorkoutStatistics(
+    averageHeartRate: 140, maximumHeartRate: 180, activeEnergy: 650)
+  static let saved = WorkoutStatistics(
+    averageHeartRate: 139, maximumHeartRate: 171, activeEnergy: 615)
+
+  @Test("FR-013 the summary snapshot is statistics() at the summary opening")
+  func snapshotAtOpening() async {
+    let h = WorkoutHarness()
+    h.fake.stats = Self.atOpening
+    h.start()
+    h.tap("M")
+    #expect(h.session.summaryStatistics == nil)  // none during the match
+    h.win()
+    h.fake.stats = Self.later  // a later sample doesn't change the summary
+    await settle()
+    #expect(h.session.summaryStatistics == Self.atOpening)
+  }
+
+  @Test("FR-013 an early end with a point takes the snapshot too, also while paused")
+  func snapshotAtEarlyEnd() {
+    for paused in [false, true] {
+      let h = WorkoutHarness()
+      h.fake.stats = Self.atOpening
+      h.start()
+      h.tap("M")
+      if paused { h.session.pause() }
+      h.session.endEarly()
+      #expect(h.session.summaryStatistics == Self.atOpening, "paused: \(paused)")
+    }
+  }
+
+  @Test("FR-013, R7 after the timeout save the summary shows the saved workout's statistics")
+  func snapshotAfterTimeoutSave() async {
+    let h = WorkoutHarness()
+    h.fake.stats = Self.atOpening
+    h.fake.savedStats = Self.saved
+    h.start()
+    h.win()
+    #expect(h.session.summaryStatistics == Self.atOpening)
+    await h.fireTimeout()
+    #expect(h.session.workoutState == .saved)
+    #expect(h.session.summaryStatistics == Self.saved)
+  }
+
+  @Test("FR-013 Undo from the summary drops the snapshot; the next opening takes a new one")
+  func undoDropsSnapshot() async {
+    let h = WorkoutHarness()
+    h.fake.stats = Self.atOpening
+    h.start()
+    h.win()
+    #expect(h.session.summaryStatistics == Self.atOpening)
+    h.session.undo()
+    #expect(h.session.summaryStatistics == nil)
+    h.fake.stats = Self.later
+    h.tap("M")
+    #expect(h.session.route == .summary)
+    #expect(h.session.summaryStatistics == Self.later)
+  }
+
+  @Test("US4 s3, R3-2 a failed timeout save drops the snapshot: Duration only")
+  func failedTimeoutSaveDropsSnapshot() async {
+    let h = WorkoutHarness(saveFails: true)
+    h.fake.stats = Self.atOpening
+    h.start()
+    h.win()
+    #expect(h.session.summaryStatistics == Self.atOpening)  // positive control
+    await h.fireTimeout()
+    #expect(h.session.workoutState == .failed)
+    #expect(h.session.summaryStatistics == nil)
+  }
+
+  @Test("US4 s3 the workout failing or ending unexpectedly on the summary drops the snapshot")
+  func failureOnSummaryDropsSnapshot() async throws {
+    for event in [WorkoutEvent.failed, .endedUnexpectedly] {
+      let h = WorkoutHarness()
+      h.fake.stats = Self.atOpening
+      h.start()
+      h.win()
+      #expect(h.session.summaryStatistics == Self.atOpening)
+      h.fake.emit(event, token: try #require(h.token))
+      await settle()
+      #expect(h.session.workoutState == .failed, "\(event)")
+      #expect(h.session.summaryStatistics == nil, "\(event)")
+    }
+  }
+
+  @Test("US4 s3 without a workout, or after it failed to start, there is no snapshot")
+  func noWorkoutNoSnapshot() async {
+    for mode in [FakeHealthMode.denied, .failing] {
+      let h = WorkoutHarness(mode)
+      h.fake.stats = Self.atOpening
+      h.start()
+      await settle()  // `failing` reports the failure after start
+      h.win()
+      #expect(h.session.summaryStatistics == nil, "\(mode)")
+    }
+  }
+
+  @Test("FR-013, FR-014 Done clears the snapshot; the next match starts without one")
+  func doneClearsSnapshot() async {
+    let h = WorkoutHarness()
+    h.fake.stats = Self.atOpening
+    h.start()
+    h.win()
+    #expect(h.session.summaryStatistics == Self.atOpening)
+    h.session.done()
+    #expect(h.session.summaryStatistics == nil)
+    await settle()
+    #expect(h.session.summaryStatistics == nil)  // the save's result doesn't bring it back
+  }
 }

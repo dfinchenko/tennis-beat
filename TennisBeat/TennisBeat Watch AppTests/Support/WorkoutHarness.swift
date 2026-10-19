@@ -12,14 +12,17 @@ final class WorkoutHarness {
   let sleeper = ManualSleep()
   let fake: FakeWorkoutService
   let session: MatchSession
+  /// The session's format store (HealthStorageTests searches it).
+  let store: UserDefaults
 
   init(
     _ mode: FakeHealthMode = .granted, saveFails: Bool = false,
     format: MatchFormat = PointOutcomeTests.format(.oneSet, .four)
   ) {
     fake = FakeWorkoutService(mode: mode, now: clock.now, saveFails: saveFails)
+    store = UserDefaults(suiteName: "WorkoutHarness.\(UUID().uuidString)")!
     session = MatchSession(
-      store: FormatStore(defaults: UserDefaults(suiteName: "WorkoutHarness.\(UUID().uuidString)")!),
+      store: FormatStore(defaults: store),
       haptics: RecordingHaptics(), announcer: RecordingAnnouncer(), workout: fake,
       now: clock.now, makeFormat: { _ in format }, sleep: sleeper.sleep)
   }

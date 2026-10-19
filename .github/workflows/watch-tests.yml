@@ -43,6 +43,7 @@ jobs:
             selection: |
               -only-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryUITests
+              -only-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
               -only-testing:TennisBeat Watch AppUITests/WorkoutUITests
           - shard: rest
             selection: |
@@ -52,6 +53,7 @@ jobs:
               -skip-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
+              -skip-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
               -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd

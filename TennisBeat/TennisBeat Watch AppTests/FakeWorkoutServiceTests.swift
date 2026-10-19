@@ -96,4 +96,54 @@ struct FakeWorkoutServiceTests {
     let fake = FakeWorkoutService(mode: .granted, now: clock.now)
     #expect(fake.start(at: clock.current) != fake.start(at: clock.current))
   }
+
+  @Test("Contract §2: the launch arguments build the fake; without -uiTestHealth, none")
+  func launched() throws {
+    #expect(FakeWorkoutService.launched(LaunchOptions(arguments: []), now: clock.now) == nil)
+    let fake = try #require(
+      FakeWorkoutService.launched(
+        LaunchOptions(arguments: [
+          "-uiTestHealth", "granted", "-uiTestHeartRate", "142", "-uiTestWorkoutStats",
+          "138,171,612",
+        ]), now: clock.now))
+    #expect(fake.mode == .granted)
+    #expect(fake.heartRate == 142)
+    #expect(
+      fake.stats
+        == WorkoutStatistics(averageHeartRate: 138, maximumHeartRate: 171, activeEnergy: 612))
+    #expect(!fake.saveFails)
+  }
+
+  @Test(
+    "Contract §2: -uiTestSaveFails at launch: the first save fails 2 s after it starts; the next one works"
+  )
+  func launchedSaveFails() async throws {
+    let sleeper = ManualSleep()
+    let fake = try #require(
+      FakeWorkoutService.launched(
+        LaunchOptions(arguments: ["-uiTestHealth", "granted", "-uiTestSaveFails"]),
+        now: clock.now, sleep: sleeper.sleep))
+    _ = fake.start(at: clock.current)
+    let first = Task { try await fake.save(endingAt: clock.current) }
+    await sleeper.untilWaiting()
+    #expect(sleeper.requested == [.seconds(2)])  // a New match shows before the failure
+    sleeper.release()
+    await #expect(throws: (any Error).self) { try await first.value }
+    _ = fake.start(at: clock.current)
+    let second = try await fake.save(endingAt: clock.current)
+    #expect(second.statistics == fake.stats)
+    #expect(sleeper.requested == [.seconds(2)])  // the working save doesn't wait
+  }
+
+  @Test("FR-013 the saved workout's statistics can differ from the live ones (savedStats)")
+  func savedStats() async throws {
+    let fake = FakeWorkoutService(mode: .granted, now: clock.now)
+    fake.stats = WorkoutStatistics(averageHeartRate: 138, maximumHeartRate: 171, activeEnergy: 612)
+    _ = fake.start(at: clock.current)
+    #expect(try await fake.save(endingAt: clock.current).statistics == fake.stats)
+    let saved = WorkoutStatistics(averageHeartRate: 139, maximumHeartRate: 171, activeEnergy: 615)
+    fake.savedStats = saved
+    _ = fake.start(at: clock.current)
+    #expect(try await fake.save(endingAt: clock.current).statistics == saved)
+  }
 }
