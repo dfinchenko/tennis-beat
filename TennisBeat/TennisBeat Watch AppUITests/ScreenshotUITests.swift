@@ -217,7 +217,18 @@ final class ScreenshotUITests: XCTestCase {
       app.tap("firstServer.me", until: "zone.me")
       for _ in 0..<16 { app.element("zone.me").tap() }
       XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
-      if health == "granted" { attach(app, "\(name)-rows") }
+      if health == "granted" {
+        // Both Health rows on screen: short, slow drags without momentum (a swipe scrolls
+        // a whole page, past the heart-rate row).
+        let heartRate = app.element("summary.heartRate")
+        for _ in 0..<8 where heartRate.frame.maxY > app.frame.maxY {
+          let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+          let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+          start.press(
+            forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        attach(app, "\(name)-rows")
+      }
       app.reveal(app.element("summary.undo"))
       attach(app, name)
       app.terminate()
