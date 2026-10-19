@@ -48,9 +48,9 @@ check_not() {
     echo "FAIL: $1: unexpected '$2' in:"; echo "$3"; failures=$((failures + 1))
   else echo "ok: $1"; fi
 }
-run() {  # run <issues json> <comments json> <test>...
+run() {  # run <issues json> <comments json> <test>...; a failing run prints its exit status
   ISSUES_JSON="$1" COMMENTS_JSON="$2" PATH="$stub:$PATH" DRY_RUN=1 NOW="$now" \
-    bash "$script" https://run/1 "${@:3}"
+    bash "$script" https://run/1 "${@:3}" || echo "script exited $?"
 }
 
 tracking='[{"number":40,"title":"Flaky test retries"}]'
@@ -80,8 +80,9 @@ out="$(run "$investigating" "$three" testA)"
 check "an open investigation gets a comment" "issue comment 50" "$out"
 check_not "an open investigation: no second one" "--title Investigate" "$out"
 
-out="$(run "$tracking" "[$(comment $((now - 30 * day)))]" testA)" || out="exit $?"
+out="$(run "$tracking" "[$(comment $((now - 30 * day)))]" testA)"
 check "an old last comment does not fail the run (#34 R2-2)" "Retries in the last 7 days: 1" "$out"
+check_not "an old last comment: the script exits 0" "script exited" "$out"
 
 out="$(run "$tracking" '[]' testA testB)"
 check "one comment per retried test" "Retried: \`testB\`" "$out"
