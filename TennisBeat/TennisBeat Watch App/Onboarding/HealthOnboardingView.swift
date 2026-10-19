@@ -79,9 +79,11 @@ struct HealthOnboardingView: View {
   }
 }
 
-#Preview {
-  let onboarding = HealthOnboarding.preview
-  HealthOnboardingView()
-    .environment(onboarding)
-    .task { await onboarding.load() }
-}
+#if DEBUG
+  #Preview {
+    let onboarding = HealthOnboarding.preview
+    HealthOnboardingView()
+      .environment(onboarding)
+      .task { await onboarding.load() }
+  }
+#endif

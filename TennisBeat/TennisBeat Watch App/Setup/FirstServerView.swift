@@ -49,9 +49,11 @@ struct FirstServerView: View {
   }
 }
 
-#Preview {
-  NavigationStack {
-    FirstServerView(path: .constant([]))
+#if DEBUG
+  #Preview {
+    NavigationStack {
+      FirstServerView(path: .constant([]))
+    }
+    .environment(MatchSession.preview)
   }
-  .environment(MatchSession.preview)
-}
+#endif

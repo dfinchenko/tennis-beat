@@ -169,8 +169,10 @@ private struct ControlButtonStyle: ButtonStyle {
   }
 }
 
-#Preview {
-  let session = MatchSession.preview
-  session.start(firstServer: .me)
-  return ControlsView().environment(session)
-}
+#if DEBUG
+  #Preview {
+    let session = MatchSession.preview
+    session.start(firstServer: .me)
+    return ControlsView().environment(session)
+  }
+#endif
