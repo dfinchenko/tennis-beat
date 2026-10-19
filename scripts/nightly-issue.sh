@@ -15,7 +15,8 @@ gh_do() {
   if [[ "${DRY_RUN:-}" == 1 ]]; then printf 'would run: gh'; printf ' %q' "$@"; echo; else gh "$@"; fi
 }
 
-open_issue="$(gh issue list --state open --search "in:title \"$title\"" --json number,title \
+# The open issues are listed, not searched: the search index can lag (#34 R3-2).
+open_issue="$(gh issue list --state open --limit 1000 --json number,title \
   --jq "map(select(.title == \"$title\")) | first | .number // empty")"
 
 case "$result" in

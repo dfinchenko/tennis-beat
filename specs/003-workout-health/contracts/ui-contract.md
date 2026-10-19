@@ -11,7 +11,7 @@ Additions to the [002 UI contract](../../002-watch-match/contracts/ui-contract.m
 | Health onboarding | `health.onboarding.continue`, `health.onboarding.notNow` | Buttons |
 | Score | `heartRate`, `heartRate.value`, `status` | With `-uiTestExposeValues` only: the heart rate on the line under the elapsed time (absent without a workout, Story 3 s4, and in Always On), its label the VoiceOver text (Story 3 s6), the drawn number `heartRate.value` ("142" or "--"); and the status line `status`. In production VoiceOver reads the heart rate as the value of `elapsed` and the status inside `score.summary`, so neither is its own element |
 | Summary | `summary.heartRate`, `summary.energy` | The rows, each one VoiceOver element of at least 44 pt (as `summary.duration`); absent when hidden (Story 4 s2, s3) |
-| New match | `health.saveFailed`, `health.saveFailed.ok` | The one-time notice and its OK (FR-015). The alert button is found by its label if watchOS drops the identifier, as for `confirm.end` |
+| New match | `health.saveFailed`, `health.saveFailed.ok` | The one-time notice and its OK (FR-015). An alert's title takes no identifier, so the notice is found by its title, "Workout not saved to Health"; the OK button by its label if watchOS drops the identifier, as for `confirm.end`. The alert belongs to the whole setup flow, so a save that fails after the player has moved on to First server or the coin-toss result shows it there; it never blocks the flow (PR 4, #35 R1-4) |
 
 `summary.undo` is absent while the workout is saving and once it is saved (Story 2 s7; the plan's reading of FR-007, data-model § WorkoutState); after a failed timeout save it is shown again (R3-2).
 
@@ -25,7 +25,7 @@ Additions to the [002 UI contract](../../002-watch-match/contracts/ui-contract.m
 | `-uiTestHealth failing` | As `granted`, but the workout fails to start (Story 2 s9) |
 | `-uiTestHeartRate 142` | With `granted`: one reading of 142 when the match starts; `--` after 30 s as normal |
 | `-uiTestWorkoutStats 138,171,612` | With `granted`: the statistics the summary gets (average, maximum, kcal); an empty field hides its row (`138,171,` → no energy row) |
-| `-uiTestSaveFails` | With `granted`: the save fails, so New match after Done shows the notice |
+| `-uiTestSaveFails` | With `granted`: the first save fails, 2 s after it starts, so New match after Done shows the notice, coming to the New match already showing (research R5); later saves work, so a second Done shows none (PR 4, T050) |
 
 Without `-uiTestHealth` the app uses `HealthKitWorkoutService`, also in DEBUG builds.
 

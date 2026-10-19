@@ -49,3 +49,16 @@ No expectation changed (#33 R3-1). The two SC-002 match tie-break tests check th
 ## `feat/003-release-build` (Release builds in CI)
 
 No test and no expectation changed. The new CI step builds both apps in Release (Denys, [relayed on #33](https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6254547417)).
+
+## `feat/003-summary` (PR 4)
+
+| Test | Old → new expectation | Source |
+| --- | --- | --- |
+| `SummaryModelTests` "US5 s8 the summary has no heart-rate or calorie field" → "US5 s8, spec 003 US4 s3 without workout statistics the summary has no heart-rate or energy row" | The model's fields `title, chips, duration, spokenDuration` → the same plus `health`, and `health.rows` is empty for a summary without statistics. Spec 003 adds the rows; without a workout the spec 002 summary is unchanged (Duration only). Spec 002 Story 5 s8 now carries a "changed by spec 003" note. | Spec 003 FR-013, US4-S1, US4-S3 (spec 002 US5-S8) |
+
+No other expectation changed. Helper and test-support changes that leave every expectation as it was, and so are not listed above:
+- `WorkoutHarness.store` exposes the session's format-store defaults (searched by `HealthStorageTests`);
+- `StringCatalogTests.everyKeyTranslated` also checks the plural categories of substitutions (an added check; every existing key still passes);
+- `ScreenshotUITests.testWorkoutSummaryScreens` launches with `-uiTestWorkoutStats 138,171,612` and takes two more screenshots (the rows, the notice); it asserts nothing new;
+- `-uiTestSaveFails` fails only the first save, 2 s after it starts (contract §2); no existing test used it.
+

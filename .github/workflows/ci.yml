@@ -32,6 +32,10 @@ jobs:
         run: scripts/gates/check-infoplist-strings.sh
       - name: Project format gate (Xcode 26 must open the project)
         run: scripts/gates/check-project-format.sh
+      # The "Flaky test retries" script's 7-day window and threshold, dry run, under the macOS
+      # bash 3.2 (#34 R3-3).
+      - name: Flaky-retries script checks
+        run: /bin/bash scripts/tests/flaky-retries-test.sh
 
   app-builds:
     runs-on: macos-26

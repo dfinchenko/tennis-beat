@@ -218,29 +218,29 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 
 ### Tests
 
-- [ ] T046 PR checklist step 1 for PR 4: worktree `.worktrees/003-summary`, branch `feat/003-summary`.
-- [ ] T047 [P] [US4] `UnitTests/SummaryHealthRowsTests.swift` (data-model § SummaryHealthRows):
+- [X] T046 PR checklist step 1 for PR 4: worktree `.worktrees/003-summary`, branch `feat/003-summary`.
+- [X] T047 [P] [US4] `UnitTests/SummaryHealthRowsTests.swift` (data-model § SummaryHealthRows):
   - "US4 s1": `138/171/612` → "Heart rate avg / max" · "138 / 171", "Active energy" · "612 kcal" (EN), «612 ккал» (UK), PL per system format; order after Duration;
   - "US4 s2": no heart rate → no heart-rate row; average without maximum → no row; no energy → no energy row; Duration always;
   - "US4 s3": `nil` statistics → no rows;
   - "US4 s8": VoiceOver "Heart rate: average 138, maximum 171 beats per minute", "Active energy: 612 kilocalories", plural on the maximum in PL and UK (positive control: PL differs from EN);
   - "Edge: rounding": 137.6 → 138; 611.5 kcal → whole kilocalories as the formatter rounds.
-- [ ] T048 [P] [US4] `UnitTests/WorkoutSaveTests.swift` additions: "FR-013" the summary snapshot is `statistics()` at the summary opening; after the timeout save it becomes the `SavedWorkout.statistics`; Undo drops it; a failed timeout save drops it, so the summary shows Duration only (Story 4 s3, R3-2, data-model § WorkoutState).
-- [ ] T049 [P] [US4] `UnitTests/HealthStorageTests.swift` ("SC-007", "FR-014"): run a scripted match with a fake reading of 187 bpm and statistics 181/197/733, Done; then search `UserDefaults.standard.dictionaryRepresentation()` and every file under the app container's `Library` and `Documents` for "187", "197" and "733". Positive control: a value written on purpose to a test suite is found by the same search.
-- [ ] T050 [P] [US4] `UITests/SummaryHealthUITests.swift`:
+- [X] T048 [P] [US4] `UnitTests/WorkoutSaveTests.swift` additions: "FR-013" the summary snapshot is `statistics()` at the summary opening; after the timeout save it becomes the `SavedWorkout.statistics`; Undo drops it; a failed timeout save drops it, so the summary shows Duration only (Story 4 s3, R3-2, data-model § WorkoutState).
+- [X] T049 [P] [US4] `UnitTests/HealthStorageTests.swift` ("SC-007", "FR-014"): run a scripted match with a fake reading of 187 bpm and statistics 181/197/733, Done; then search `UserDefaults.standard.dictionaryRepresentation()` and every file under the app container's `Library` and `Documents` for "187", "197" and "733". Positive control: a value written on purpose to a test suite is found by the same search.
+- [X] T050 [P] [US4] `UITests/SummaryHealthUITests.swift`:
   - "US4 s1": `granted -uiTestWorkoutStats 138,171,612` → `summary.heartRate`, `summary.energy` with their labels;
   - "US4 s2": `138,171,` → no `summary.energy`; `,,612` → no `summary.heartRate`;
   - "US4 s3": `denied` → neither; "US2 s9": `failing` → neither, Duration only;
   - "US4 s7": `granted -uiTestSaveFails` → Done → `health.saveFailed` on New match; OK → gone; a second Done of a new match without failure → no notice; with a fake save that fails 1 s after Done, the notice appears on the already-showing New match.
-- [ ] T051 [P] [US6] Final audit (SC-006): the summary with both rows, the onboarding and the score header in the accessibility audits and screenshots in EN, PL and UK at XXXL and an accessibility size on 40 mm; rows ≥ 44 pt; no truncation; the heart icon always with text (US6 s1–s4).
+- [X] T051 [P] [US6] Final audit (SC-006): the summary with both rows, the onboarding and the score header in the accessibility audits and screenshots in EN, PL and UK at XXXL and an accessibility size on 40 mm; rows ≥ 44 pt; no truncation; the heart icon always with text (US6 s1–s4).
 
 ### Code
 
-- [ ] T052 [US4] Add `summary.heartRate.*`, `summary.energy.*` and `health.saveFailed.*` to `App/Localizable.xcstrings` (copy table; plural on `%2$lld`; research R13).
-- [ ] T053 [US4] Create `App/Health/SummaryHealthRows.swift` (`nonisolated`, pure, research R7, R13: `Measurement<UnitEnergy>` in kilocalories, `.abbreviated` shown, `.wide` spoken, `usage: .asProvided`); `HealthKitWorkoutService.statistics()` and the saved workout's statistics (`averageQuantity`, `maximumQuantity`, `sumQuantity`); `summaryStatistics` in `MatchSession`; rows in `SummaryModel` after Duration.
-- [ ] T054 [US4] `App/Summary/SummaryView.swift`: the two rows like the Duration row (one VoiceOver element ≥ 44 pt each, `ViewThatFits`), `status/heart` icon, identifiers `summary.heartRate`, `summary.energy`.
-- [ ] T055 [US4] `App/RootView.swift` / setup flow: the one-time alert "Workout not saved to Health" · OK on New match after Done when `pendingSaveFailureNotice` is true, observed, so it also appears when the flag turns true while New match is showing; cleared on OK; whichever match the failed save belongs to, and several failed saves give one notice ([#30 P2-2](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428); research R5, contract §1).
-- [ ] T056 [US4] `docs/design/screens/watch-6-summary.md`: record the two rows, "Active energy" replacing «Активні ккал» (Q5), and remove "Heart-rate and kcal rows are hidden".
+- [X] T052 [US4] Add `summary.heartRate.*`, `summary.energy.*` and `health.saveFailed.*` to `App/Localizable.xcstrings` (copy table; plural on `%2$lld`; research R13).
+- [X] T053 [US4] Create `App/Health/SummaryHealthRows.swift` (`nonisolated`, pure, research R7, R13: `Measurement<UnitEnergy>` in kilocalories, `.abbreviated` shown, `.wide` spoken, `usage: .asProvided`); `HealthKitWorkoutService.statistics()` and the saved workout's statistics (`averageQuantity`, `maximumQuantity`, `sumQuantity`); `summaryStatistics` in `MatchSession`; rows in `SummaryModel` after Duration.
+- [X] T054 [US4] `App/Summary/SummaryView.swift`: the two rows like the Duration row (one VoiceOver element ≥ 44 pt each, `ViewThatFits`), `status/heart` icon, identifiers `summary.heartRate`, `summary.energy`.
+- [X] T055 [US4] `App/RootView.swift` / setup flow: the one-time alert "Workout not saved to Health" · OK on New match after Done when `pendingSaveFailureNotice` is true, observed, so it also appears when the flag turns true while New match is showing; cleared on OK; whichever match the failed save belongs to, and several failed saves give one notice ([#30 P2-2](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428); research R5, contract §1).
+- [X] T056 [US4] `docs/design/screens/watch-6-summary.md`: record the two rows, "Active energy" replacing «Активні ккал» (Q5), and remove "Heart-rate and kcal rows are hidden".
 - [ ] T057 [US4] PR checklist steps 2–8 for PR 4. Device checks for Denys: **5, 9** (summary part).
 
 **Checkpoint**: spec 003 complete; every device check 1–15 is in `docs/harness.md`.

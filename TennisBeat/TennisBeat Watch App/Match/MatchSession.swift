@@ -25,6 +25,10 @@ final class MatchSession {
   /// memory only, and cleared with the match (FR-014). It is kept while the summary is open:
   /// after Undo within 30 s the header shows it again, as Q3's freshness allows (#31 R2-4).
   private(set) var latestHeartRate: HeartRateReading?
+  /// The workout's statistics the summary shows (FR-013, research R7): taken when the summary
+  /// opens, replaced by the saved workout's after the 10-minute save, dropped on Undo, Done or
+  /// a failure (Duration only, Story 4 s3). In memory only (FR-014).
+  private(set) var summaryStatistics: WorkoutStatistics?
 
   @ObservationIgnored let haptics: HapticPlaying
   @ObservationIgnored let announcer: Announcing
@@ -78,6 +82,7 @@ final class MatchSession {
     self.clock = clock
     isPaused = false
     latestHeartRate = nil
+    summaryStatistics = nil
     route = .playing
     // Permission is read at every start (Story 5 s4, research R3).
     if workout.canStartWorkout {
@@ -167,6 +172,7 @@ final class MatchSession {
       isPaused = false
       route = .playing
       cancelSummaryTimeout()
+      summaryStatistics = nil
       if case .summary = workoutState {
         workout.resume()
         workoutState = .running
@@ -260,6 +266,7 @@ final class MatchSession {
     isPaused = false
     formatChoice = store.load()
     latestHeartRate = nil
+    summaryStatistics = nil
     route = .setup
   }
 
@@ -291,6 +298,7 @@ final class MatchSession {
     default: return
     }
     workoutState = .summary(openedAt: stoppedAt)
+    summaryStatistics = workout.statistics()
     summaryTimeout = Task { [weak self, sleep] in
       do { try await sleep(Self.summaryTimeoutDuration) } catch { return }
       guard !Task.isCancelled, let self, self.route == .summary,
@@ -313,14 +321,17 @@ final class MatchSession {
     let token = workoutToken
     Task.immediate { [weak self, workout] in
       do {
-        _ = try await workout.save(endingAt: date)
+        let saved = try await workout.save(endingAt: date)
         guard let self, self.workoutToken == token, self.workoutState == .saving else { return }
         self.workoutState = .saved
+        // Still on the summary (the 10-minute save): show exactly Health's values (R7).
+        if self.route == .summary { self.summaryStatistics = saved.statistics }
       } catch {
         guard let self else { return }
         self.pendingSaveFailureNotice = true  // also after Done and a new match (R5)
         guard self.workoutToken == token, self.workoutState == .saving else { return }
         self.workoutState = .failed  // Undo returns on the summary (R3-2)
+        self.summaryStatistics = nil  // Duration only (Story 4 s3)
       }
     }
   }
@@ -339,6 +350,7 @@ final class MatchSession {
         cancelSummaryTimeout()
         workoutState = .failed
         latestHeartRate = nil
+        summaryStatistics = nil
         workout.discard()  // ends the failed session, so it can't stay active (#30 R1-1)
       default: break
       }
@@ -354,6 +366,7 @@ final class MatchSession {
       cancelSummaryTimeout()
       workoutState = .failed
       latestHeartRate = nil
+      summaryStatistics = nil
       Task.immediate { [weak self, workout] in
         do {
           _ = try await workout.save(endingAt: end)

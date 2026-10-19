@@ -21,8 +21,12 @@ nonisolated struct SummaryModel: Hashable, Sendable {
   /// The same time in spoken units for VoiceOver: "1 hour, 24 minutes, 10 seconds"
   /// (#23 R1-3).
   let spokenDuration: String
+  /// Spec 003: heart rate and energy from the summary snapshot, after Duration (FR-013).
+  let health: SummaryHealthRows
 
-  init(state: MatchState, clock: MatchClock, locale: Locale) {
+  init(
+    state: MatchState, clock: MatchClock, locale: Locale, statistics: WorkoutStatistics? = nil
+  ) {
     func text(_ resource: LocalizedStringResource) -> String {
       ScoreScreenModel.text(resource, locale: locale)
     }
@@ -90,6 +94,7 @@ nonisolated struct SummaryModel: Hashable, Sendable {
     duration = elapsed.formatted(.time(pattern: .hourMinuteSecond).locale(locale))
     spokenDuration = elapsed.formatted(
       .units(allowed: [.hours, .minutes, .seconds], width: .wide).locale(locale))
+    health = SummaryHealthRows(statistics: statistics, locale: locale)
   }
 
   private static func tieBreakPoints(_ display: PointDisplay) -> Int {

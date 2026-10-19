@@ -191,8 +191,9 @@ final class ScreenshotUITests: XCTestCase {
     attach(app, "19-summary-match-tie-break")
   }
 
-  /// Spec 003 PR 2: the summary of a won match with a workout (paused, not yet saved, so Undo
-  /// shows), and with a workout that failed to start (as in spec 002).
+  /// Spec 003: the summary of a won match with a workout and its Health rows (paused, not yet
+  /// saved, so Undo shows), with a workout that failed to start (as in spec 002), and the
+  /// save-failure notice on New match (PR 4).
   @MainActor
   func testWorkoutSummaryScreens() throws {
     let environment = ProcessInfo.processInfo.environment
@@ -208,15 +209,42 @@ final class ScreenshotUITests: XCTestCase {
       ("granted", "20-summary-workout"), ("failing", "21-summary-workout-failed"),
     ] {
       let app = XCUIApplication.launched(
-        ["-lastFormat.v1", oneSetOfFour, "-uiTestHealth", health] + size, language: language)
+        [
+          "-lastFormat.v1", oneSetOfFour, "-uiTestHealth", health, "-uiTestWorkoutStats",
+          "138,171,612",
+        ] + size, language: language)
       app.tap("setup.start", until: "firstServer.me")
       app.tap("firstServer.me", until: "zone.me")
       for _ in 0..<16 { app.element("zone.me").tap() }
       XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
+      if health == "granted" {
+        // Both Health rows on screen: short, slow drags without momentum (a swipe scrolls
+        // a whole page, past the heart-rate row).
+        let heartRate = app.element("summary.heartRate")
+        for _ in 0..<8 where heartRate.frame.maxY > app.frame.maxY {
+          let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.7))
+          let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55))
+          start.press(
+            forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
+        }
+        attach(app, "\(name)-rows")
+      }
       app.reveal(app.element("summary.undo"))
       attach(app, name)
       app.terminate()
     }
+    let app = XCUIApplication.launched(
+      [
+        "-lastFormat.v1", oneSetOfFour, "-uiTestHealth", "granted", "-uiTestSaveFails",
+        "-uiTestPoints", String(repeating: "M", count: 16),
+      ] + size, language: language)
+    app.tap("setup.start", until: "firstServer.me")
+    app.tap("firstServer.me", until: "summary.done")
+    app.tap("summary.done", until: "setup.format")
+    // The save fails 2 s after Done; the alert's parts may have no identifier, so the
+    // screenshot follows a fixed wait and is checked by eye.
+    _ = app.element("health.saveFailed.ok").waitForExistence(timeout: 5)
+    attach(app, "26-save-failed-notice")
   }
 
   /// Spec 003 Story 3, US6 s2 (T040, #31 L1): the score header at deuce with a three-digit

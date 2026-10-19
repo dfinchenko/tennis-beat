@@ -43,6 +43,7 @@ jobs:
             selection: |
               -only-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryUITests
+              -only-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
               -only-testing:TennisBeat Watch AppUITests/WorkoutUITests
           - shard: rest
             selection: |
@@ -52,6 +53,7 @@ jobs:
               -skip-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
+              -skip-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
               -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd
@@ -142,11 +144,13 @@ jobs:
           # One retry per test that failed its first attempt (#33 R1-2).
           retries="$(grep -cE "^Test Case '.*' started \(Iteration 2 of 2\)" "$log" || true)"
           echo "retries=$retries" >> "$GITHUB_OUTPUT"
-          # The retried tests' names, for the tracking issue.
+          # The retried tests' names, for the tracking issue. A random delimiter, so no log line
+          # can end the list early (#34 R3-4).
+          delimiter="tests_$(uuidgen)"
           {
-            echo "tests<<EOF"
+            echo "tests<<$delimiter"
             sed -nE "s/^Test Case '-\[[^ ]+ ([^]]+)\]' started \(Iteration 2 of 2\).*/\1/p" "$log"
-            echo "EOF"
+            echo "$delimiter"
           } >> "$GITHUB_OUTPUT"
           if [ "$retries" -gt 0 ]; then
             { grep -E "^Test Case '.*' failed|error: -\[" "$log" || true; } | while IFS= read -r line; do
