@@ -250,3 +250,27 @@ Tests committed alone in `8f07518` (T047–T051), before the code in `02356ce`.
 - **At `02356ce`**: all 248 watch unit tests pass; the full watch UI suite runs 91 tests, 83 passed, 8 skipped (the opt-in screenshot tests), 0 failures; the 119 engine tests pass; both apps build in Debug and Release.
 - **`HealthStorageTests.nothingStored`** failed in the reviewer's clean run at `64f346f`: a binary Metal shader cache under `Library/Caches` matched a 3-digit value once decoded as UTF-8 (#35 R1-2). That run is the failing evidence for the fix. The search now reads only property lists and valid UTF-8 text, and counts only matches that are new or changed against a snapshot taken before the match. The positive control also checks that an unchanged match isn't counted, a changed one is, and a non-UTF-8 file is skipped. Its probe preference sits in the in-memory registration domain, and the suite is serialized: the first local run of the fix failed because the control's suite file reached `Library/Preferences` while the other test was searching.
 
+
+## `feat/003-haptic-tap` (lost-tap check: the pending change-of-ends haptic; #35 R2-1, R2-3)
+
+Tests committed alone in `851399c`, before the code in `6780555`.
+
+- **Every recorded lost tap, checked** (Denys, after #35): each failing test's steps replayed through the engine (same seeds and setup as `ScoringUITests`), against CI's failure messages and, where one exists, the tap log. A change-of-ends haptic was pending at **2 of the 4**:
+
+  | Lost tap | Step before it | Haptic pending? |
+  | --- | --- | --- |
+  | `main` [run 39208688165](https://github.com/dfinchenko/tennis-beat/actions/runs/39208688165), `testSC002OneSetOfFourAdvantage`, step 4 (Me) | step 3 won game 1: change of ends | yes (scheduled 0.33 s before the tap; the log shows it played on its own 0.8 s later) |
+  | #30, `testSC002BestOfThreeMatchTieBreakAdvantage`, step 54 (Undo) | step 53, the 6th match tie-break point: change of ends | yes (no tap log then) |
+  | #32 [run 39070518470](https://github.com/dfinchenko/tennis-beat/actions/runs/39070518470), `testSC002BestOfThreeMatchTieBreakNoAd`, step 74 (Me) | last change of ends at step 67 | no |
+  | #33 repro [run 39154763078](https://github.com/dfinchenko/tennis-beat/actions/runs/39154763078), `testSC002BestOfThreeMatchTieBreakNoAd`, step 40 (Me) | last change of ends at step 35; the log shows it played 1.6 s before the tap | no |
+
+- **`ChangeOfEndsTapUITests.testTapsCountWhileTheChangeOfEndsHapticIsPending`** is a test of existing code: with the haptic held pending (`-uiTestHoldChangeOfEnds`), it taps a zone at once, a zone after 2 s and Undo after 2 s. It **passes on the unchanged app**: 10 runs on Apple Watch SE 3 40 mm, 323 zone and Undo actions, 40 of them while a held haptic was pending, none lost. The tap log shows each held haptic pending for 2.35–2.52 s until the next point played it, and Undo dropping it. So a pending change-of-ends haptic does not block or intercept a tap, and there is no app fix for it. The test stays as a regression check; its evidence is two recorded mutations (40 mm and 44 mm simulators), each failing it:
+
+  | Mutation | Diff | Fails at |
+  | --- | --- | --- |
+  | M1 the first tap after a change of ends is eaten | `MatchSession.addPoint`, after `guard acceptsPoints, var match else { return }`:<br>`+    if (haptics as? WatchHaptics)?.isPending == true {`<br>`+      haptics.flushPending()`<br>`+      return`<br>`+    }`<br>(`WatchHaptics`: `+  var isPending: Bool { pending != nil }`) | step 5 (Opponent): 0–0 shown, 15–0 (Opponent serving) expected |
+  | M2 Undo is ignored while the haptic is pending | `MatchSession.undo`, first line:<br>`+    if (haptics as? WatchHaptics)?.isPending == true {`<br>`+      haptics.cancelPending()`<br>`+      return`<br>`+    }` | "undo after game 5": games 3–2 at 0–0 shown, 2–2 at 40–0 expected |
+
+- **Unit tests at `851399c`** (`-only-testing:"TennisBeat Watch AppTests"`, 40 mm simulator): the target doesn't compile, because the API didn't exist yet (`SessionFeedbackTests.launchedHoldsTheChangeOfEnds`, `launchedWithoutHold`: `WatchHaptics` has no member `launched`, `LaunchOptions` has no member `holdChangeOfEnds`). The UI tests can't build at that commit either (the scheme builds the unit-test target).
+- **`SummaryHealthRowsTests.heartRateNumberFormat`** (#35 R2-1): in a scratch checkout of `851399c` with only the hold code of `6780555` added (`Feedback.swift`, `LaunchOptions.swift`, `TennisBeatApp.swift`), so the target compiles, it is the only watch unit test that fails: the value is `138 / 171` for a locale with Arabic-Indic digits, `١٣٨ / ١٧١` expected.
+- **The DEBUG tap log** (`View.touchLog`) adds a simultaneous `SpatialTapGesture` to the score screen and each zone. A first version with a zero-distance `DragGesture`, and then one with a never-ending `LongPressGesture`, took the page swipe: every `ControlsUITests` test failed with "Controls did not appear", and passed with the log removed. The spatial tap drops out when the finger moves; with it all 13 `ControlsUITests` pass.
