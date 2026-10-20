@@ -62,3 +62,13 @@ No other expectation changed. Helper and test-support changes that leave every e
 - `ScreenshotUITests.testWorkoutSummaryScreens` launches with `-uiTestWorkoutStats 138,171,612` and takes two more screenshots (the rows, the notice); it asserts nothing new;
 - `-uiTestSaveFails` fails only the first save, 2 s after it starts (contract §2); no existing test used it.
 
+
+## `feat/003-haptic-tap` (lost-tap check, #35 minors)
+
+| Test | Old → new expectation | Source |
+| --- | --- | --- |
+| `ScoringUITests` SC-002 scripted sequences (all seven `testSC002…`) | Every step of each sequence was a real tap, Undo or correction, with the screen compared with the engine after each → the same seeded steps, but all except the last 12 before the match ends are played at launch (`-uiTestPoints` with `U` and `S`); the screen is compared with the engine once after the launch steps, and after each of the last 12 real steps, which always hold at least one Undo and one correction (asserted). Each comparison is unchanged; fewer intermediate states are reached by taps. | SC-002; Denys, [relayed on #36](https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874) (reduce exposure after the [repro](https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6303150923)) |
+
+No other expectation changed. Helper and wait changes that leave every expectation as it was, and so are not listed above:
+- `ScreenshotUITests.testWorkoutSummaryScreens` waits for the save-failure notice by its title (#35 R2-3) instead of a fixed wait;
+- `-uiTestPoints` reads `U` and `S` too; the existing tests pass only `M` and `O`, which play as before.
