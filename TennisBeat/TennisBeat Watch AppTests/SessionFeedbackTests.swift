@@ -190,6 +190,29 @@ struct SessionFeedbackTests {
     #expect(played == [.directionUp, .retry])
   }
 
+  @Test("-uiTestHoldChangeOfEnds: the change of ends stays pending until the next command")
+  func launchedHoldsTheChangeOfEnds() async {
+    var played: [WKHapticType] = []
+    let options = LaunchOptions(arguments: ["-uiTestHoldChangeOfEnds"])
+    #expect(options.holdChangeOfEnds)
+    let watch = WatchHaptics.launched(options, sink: { played.append($0) })
+    watch.play(changeOfEndsGame())
+    await settle(200)
+    #expect(played == [.directionUp])  // still pending
+    watch.flushPending()
+    #expect(played == [.directionUp, .retry])
+
+    watch.play(changeOfEndsGame())
+    watch.cancelPending()
+    await settle()
+    #expect(played == [.directionUp, .retry, .directionUp])
+  }
+
+  @Test("-uiTestHoldChangeOfEnds is off by default: the launched haptics wait the usual delay")
+  func launchedWithoutHold() {
+    #expect(LaunchOptions(arguments: []).holdChangeOfEnds == false)
+  }
+
   @Test("FR-013 game, set, match and change of ends are four different patterns")
   func fourPatterns() {
     let types = [Haptic.game, .set, .match, .changeOfEnds].map(WatchHaptics.hapticType)
