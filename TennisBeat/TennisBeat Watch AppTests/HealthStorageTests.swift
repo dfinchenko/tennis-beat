@@ -7,6 +7,9 @@ import Testing
 /// IX; T049): after a match with distinctive values, neither the preferences nor any file in
 /// the app container's `Library` and `Documents` holds them.
 /// Serialized: the positive control writes probe files that the other test must not see.
+/// The search reads preferences, property lists and text files, which is all the app writes
+/// today. When the persistence spec adds a database (SwiftData or SQLite), the search must
+/// read that store too (#35 R2-2).
 @MainActor
 @Suite(.serialized)
 struct HealthStorageTests {

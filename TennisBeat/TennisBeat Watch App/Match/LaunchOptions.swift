@@ -25,6 +25,9 @@ nonisolated struct LaunchOptions: Sendable {
   var workoutStats: WorkoutStatistics?
   /// `-uiTestSaveFails`: saving the workout fails.
   var saveFails = false
+  /// `-uiTestHoldChangeOfEnds`: a scheduled change-of-ends haptic stays pending until the
+  /// next command plays or drops it.
+  var holdChangeOfEnds = false
 
   static let current = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
 
@@ -47,6 +50,7 @@ nonisolated struct LaunchOptions: Sendable {
       heartRate = Self.value(after: "-uiTestHeartRate", in: arguments).flatMap { Int($0) }
       workoutStats = Self.value(after: "-uiTestWorkoutStats", in: arguments).flatMap(Self.stats)
       saveFails = arguments.contains("-uiTestSaveFails")
+      holdChangeOfEnds = arguments.contains("-uiTestHoldChangeOfEnds")
       if let index = arguments.firstIndex(of: "-coinToss"), index + 1 < arguments.count {
         switch arguments[index + 1] {
         case "me": coinToss = .me

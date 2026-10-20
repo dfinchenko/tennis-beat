@@ -61,7 +61,8 @@ struct TennisBeat_Watch_AppApp: App {
     let coinToss: () -> Player =
       if let fixed = options.coinToss { { fixed } } else { CoinToss.systemToss }
     return MatchSession(
-      store: store, haptics: WatchHaptics(), announcer: VoiceOverAnnouncer(), workout: workout,
+      store: store, haptics: WatchHaptics.launched(options), announcer: VoiceOverAnnouncer(),
+      workout: workout,
       now: Date.init,
       coinToss: coinToss)
   }

@@ -45,8 +45,10 @@ struct ScoreView: View {
           .accessibilityLabel(zone.accessibilityLabel)
           .accessibilityHint(zone.accessibilityHint)
           .accessibilityIdentifier("zone.\(zone.player.rawValue)")
+          .touchLog("zone \(zone.player.rawValue)")
         }
       }
+      .touchLog("score screen")
       // The header shares the top row with the system clock, as in Watch 3, so the zones
       // keep at least 44 pt each on the 40 mm watch.
       .ignoresSafeArea(edges: .top)
@@ -129,6 +131,39 @@ struct ScoreView: View {
     .accessibilityIdentifier("undo")
   }
 }
+
+extension View {
+  /// DEBUG only: logs each tap that reaches this view and where, so a lost tap shows whether
+  /// it reached the zone without its action running, or never reached the app (Denys, after
+  /// #35). Release builds return the view unchanged.
+  func touchLog(_ name: String) -> some View {
+    #if DEBUG
+      modifier(TouchLogging(name: name))
+    #else
+      self
+    #endif
+  }
+}
+
+#if DEBUG
+  /// A simultaneous spatial tap: it logs every tap that reaches the view and takes nothing from
+  /// the button. It drops out as soon as the finger moves, so the page swipe to Controls is
+  /// untouched; a drag or a never-ending long press here took that swipe.
+  private struct TouchLogging: ViewModifier {
+    let name: String
+
+    func body(content: Content) -> some View {
+      content.simultaneousGesture(
+        SpatialTapGesture(coordinateSpace: .global).onEnded { value in
+          TapLog.log("tap reached \(name) at \(Self.point(value.location))")
+        })
+    }
+
+    private static func point(_ point: CGPoint) -> String {
+      "\(Int(point.x.rounded())),\(Int(point.y.rounded()))"
+    }
+  }
+#endif
 
 /// `-uiTestExposeValues`: the zone becomes a container, so UI tests can read its values.
 private struct ExposeChildren: ViewModifier {

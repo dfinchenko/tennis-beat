@@ -3,7 +3,8 @@
 
   /// DEBUG only: every zone and Undo action, and every change of what can make the zones
   /// ignore a tap (the dimmed state, `zonesAcceptTaps`, `acceptsPoints`, pause, the route), the
-  /// scene phase, page changes and the change-of-ends haptic. Kept so the next lost tap in the SC-002 UI tests
+  /// scene phase, page changes, the change-of-ends haptic and every tap that reaches the
+  /// score screen or a zone (`View.touchLog`, after #35). Kept so the next lost tap in the SC-002 UI tests
   /// can be diagnosed from CI's saved log (Denys, relayed on #33:
   /// https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014). Release builds
   /// have none of it. Read with

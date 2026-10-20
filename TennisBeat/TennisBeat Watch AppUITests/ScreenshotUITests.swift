@@ -241,9 +241,16 @@ final class ScreenshotUITests: XCTestCase {
     app.tap("setup.start", until: "firstServer.me")
     app.tap("firstServer.me", until: "summary.done")
     app.tap("summary.done", until: "setup.format")
-    // The save fails 2 s after Done; the alert's parts may have no identifier, so the
-    // screenshot follows a fixed wait and is checked by eye.
-    _ = app.element("health.saveFailed.ok").waitForExistence(timeout: 5)
+    // The save fails 2 s after Done. watchOS may drop the identifiers of an alert's parts,
+    // so the notice is found by its title in the screenshot's language (#35 R2-3).
+    let title = [
+      "en": "Workout not saved to Health", "pl": "Trening nie został zapisany w Zdrowiu",
+      "uk": "Тренування не збережено в «Здоров’ї»",
+    ][language, default: "Workout not saved to Health"]
+    let notice = app.descendants(matching: .any).matching(
+      NSPredicate(format: "identifier == 'health.saveFailed' OR label == %@", title)
+    ).firstMatch
+    XCTAssertTrue(notice.waitForExistence(timeout: 10), "the notice \(title) did not appear")
     attach(app, "26-save-failed-notice")
   }
 
