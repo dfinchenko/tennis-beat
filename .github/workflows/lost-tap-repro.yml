@@ -1,0 +1,88 @@
+name: Lost-tap repro (TEMPORARY)
+
+# TEMPORARY, removed before review: runs every SC-002 scripted test 30 times on the CI runner,
+# with the DEBUG-only tap and touch log, to tell whether a lost tap reaches the app (Denys,
+# after #35; relayed on the lost-tap check PR). The decision rule is fixed in advance:
+# a lost tap that never reaches the app is an environment flake; a touch that reaches the zone
+# with no point counted is an app bug.
+
+on:
+  push:
+    branches: [feat/003-haptic-tap]
+
+permissions:
+  contents: read
+
+jobs:
+  repro:
+    runs-on: macos-26
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix:
+        test:
+          - testSC002OneSetOfFourAdvantage
+          - testSC002OneSetOfSixNoAd
+          - testSC002OneSetOfEightAdvantage
+          - testSC002BestOfThreeFullThirdSetNoAd
+          - testSC002BestOfThreeMatchTieBreakAdvantage
+          - testSC002BestOfThreeMatchTieBreakNoAd
+          - testSC002TieBreakSetAdvantage
+    name: repro (${{ matrix.test }})
+    steps:
+      - uses: actions/checkout@v4
+      - name: Select newest Xcode on the image
+        run: |
+          set -euo pipefail
+          xcode="$(ls -d /Applications/Xcode_2[6-9]*.app | grep -vi beta | sort -V | tail -n 1)"
+          sudo xcode-select -s "$xcode/Contents/Developer"
+          xcodebuild -version
+      - name: Pick and boot the 40 mm watchOS simulator
+        id: sim
+        run: |
+          set -euo pipefail
+          udid="$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          def version(runtime):
+              return tuple(int(part) for part in runtime.rsplit("watchOS-", 1)[1].split("-") if part.isdigit())
+          runtimes = sorted((r for r in devices if "watchOS-" in r), key=version, reverse=True)
+          watches = [d for r in runtimes for d in devices[r]]
+          pinned = [d for d in watches if "(40mm)" in d["name"]]
+          print((pinned[:1] or watches[:1])[0]["udid"])
+          ')"
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$udid" || true
+          xcrun simctl bootstatus "$udid" -b
+      - name: ${{ matrix.test }}, 30 iterations until failure
+        run: |
+          set -euo pipefail
+          xcodebuild test \
+            -project TennisBeat/TennisBeat.xcodeproj \
+            -scheme "TennisBeat Watch App" \
+            -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/${{ matrix.test }}" \
+            -test-iterations 30 -run-tests-until-failure \
+            -resultBundlePath "$RUNNER_TEMP/repro.xcresult" \
+            CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$RUNNER_TEMP/repro.log"
+      - name: Count the runs
+        if: always()
+        run: |
+          echo "passed: $(grep -cE "^Test Case '.*' passed" "$RUNNER_TEMP/repro.log" || true)"
+          echo "failed: $(grep -cE "^Test Case '.*' failed" "$RUNNER_TEMP/repro.log" || true)"
+      - name: Save the app's tap and touch log
+        if: failure()
+        run: |
+          mkdir -p "$RUNNER_TEMP/repro"
+          xcrun simctl spawn "${{ steps.sim.outputs.udid }}" log show --style compact --info --last 2h \
+            --predicate 'subsystem == "com.dfinchenko.TennisBeat.watchkitapp" AND category == "tap"' \
+            > "$RUNNER_TEMP/repro/taplog.txt" || true
+          mv "$RUNNER_TEMP/repro.xcresult" "$RUNNER_TEMP/repro.log" "$RUNNER_TEMP/repro/" || true
+      - name: Keep the result bundle and the logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lost-tap-repro-${{ matrix.test }}
+          path: ${{ runner.temp }}/repro
+          retention-days: 14
+          if-no-files-found: ignore
