@@ -30,7 +30,7 @@ struct MatchPagesView: View {
     .task {
       guard !Self.playedLaunchPoints else { return }
       Self.playedLaunchPoints = true
-      for player in LaunchOptions.current.points { session.addPoint(for: player) }
+      for step in LaunchOptions.current.points { session.play(step) }
     }
   }
 }

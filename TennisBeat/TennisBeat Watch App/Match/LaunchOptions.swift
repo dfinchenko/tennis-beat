@@ -1,6 +1,13 @@
 import Foundation
 import TennisCore
 
+/// One step of `-uiTestPoints`: a point, Undo or a server correction (spec 002 contract §2).
+nonisolated enum LaunchStep: Hashable, Sendable {
+  case point(Player)
+  case undo
+  case correctServer
+}
+
 /// UI-test launch arguments (contract §2). A Release build ignores them all.
 nonisolated struct LaunchOptions: Sendable {
   /// `-resetFormat`: forget the stored format, so New match shows the first-use defaults.
@@ -12,9 +19,10 @@ nonisolated struct LaunchOptions: Sendable {
   /// `-uiTestAlwaysOn`: the match screens render as in Always On (luminance reduced), for UI
   /// tests and screenshots (PR 5).
   var alwaysOn = false
-  /// `-uiTestPoints MMO…`: points played as soon as the match opens (M = Me, O = Opponent),
-  /// so UI tests reach a score that Always On, where the zones take no taps, can show.
-  var points: [Player] = []
+  /// `-uiTestPoints MMOUS…`: steps played as soon as the match opens (M = Me, O = Opponent,
+  /// U = Undo, S = server correction), so UI tests reach a score that Always On, where the
+  /// zones take no taps, can show, and SC-002 taps only the last steps of a sequence (#36).
+  var points: [LaunchStep] = []
   /// `-uiTestHealth denied|shouldRequest|granted|failing`: the fake workout service instead
   /// of HealthKit (spec 003, contract §2).
   var healthMode: FakeHealthMode?
@@ -39,8 +47,10 @@ nonisolated struct LaunchOptions: Sendable {
       if let index = arguments.firstIndex(of: "-uiTestPoints"), index + 1 < arguments.count {
         points = arguments[index + 1].compactMap {
           switch $0 {
-          case "M": .me
-          case "O": .opponent
+          case "M": .point(.me)
+          case "O": .point(.opponent)
+          case "U": .undo
+          case "S": .correctServer
           default: nil
           }
         }
