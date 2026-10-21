@@ -216,8 +216,12 @@ struct SessionFeedbackTests {
     let watch = WatchHaptics.launched(options, sink: { played.append($0) })
     watch.play(changeOfEndsGame())
     #expect(played == [.directionUp])
-    // The real 0.8 s sleep: the change of ends plays on its own (#36 R1-3).
-    try? await Task.sleep(for: WatchHaptics.changeOfEndsDelay * 3)
+    // The real 0.8 s sleep: the change of ends plays on its own (#36 R1-3). Polled up to 5 s,
+    // so a loaded runner doesn't fail it (#36 R2-3).
+    let deadline = ContinuousClock.now + .seconds(5)
+    while played.count < 2 && ContinuousClock.now < deadline {
+      try? await Task.sleep(for: .milliseconds(50))
+    }
     #expect(played == [.directionUp, .retry])
   }
 

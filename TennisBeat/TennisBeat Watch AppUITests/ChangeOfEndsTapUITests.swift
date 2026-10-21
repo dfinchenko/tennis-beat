@@ -59,7 +59,7 @@ final class ChangeOfEndsTapUITests: XCTestCase {
       }
     }
     XCTAssertEqual(changes, 4)
-    try point(.me)  // the first point of the tie-break, after a 2 s hold
+    try point(.me)  // the first point of game 8 (4–3), after a 2 s hold (#36 R2-1)
   }
 
   /// Waits up to 3 s for the screen to show the engine's state, then compares.
