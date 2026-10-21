@@ -243,6 +243,8 @@ final class ScreenshotUITests: XCTestCase {
     app.tap("summary.done", until: "setup.format")
     // The save fails 2 s after Done. watchOS may drop the identifiers of an alert's parts,
     // so the notice is found by its title in the screenshot's language (#35 R2-3).
+    // These are the catalog's `health.saveFailed.title` values, which `StringCatalogTests`
+    // pins, so a catalog change fails there first (#36 R1-4).
     let title = [
       "en": "Workout not saved to Health", "pl": "Trening nie został zapisany w Zdrowiu",
       "uk": "Тренування не збережено в «Здоров’ї»",
