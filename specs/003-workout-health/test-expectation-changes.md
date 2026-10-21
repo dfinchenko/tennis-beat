@@ -75,7 +75,10 @@ No other expectation changed. Helper and wait changes that leave every expectati
 
 ## `feat/003-sc002-nightly` (SC-002 as decided after #36, nightly full taps, shards)
 
-No expectation changed. SC-002 itself was changed by Denys ([relayed on #37](https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479)) to what `ScoringUITests` already checks on PRs since #36 (the final 12 tapped steps). Helper and wait changes that leave every expectation as it was:
+| Test | Old → new expectation | Source |
+| --- | --- | --- |
+| `HealthStorageTests` "SC-007 positive control: a value written on purpose is found by the same search" | Before the probe is registered, the search found nothing at all (`empty.isEmpty`) → the search doesn't find the probe's key yet (`empty["defaults energy.<UUID>"] == nil`). The registration domain is shared by the whole process, so a repeated run finds the last run's probe; the probe key is now new each run. The check that the probe is then found, and nothing else is new (`newOrChanged(empty, stored) == ["defaults energy.<UUID>"]`), is unchanged. Reviewer finding #37 R1-1. | SC-007 (spec 003) |
+
+SC-002 itself was changed by Denys ([relayed on #37](https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479)) to what `ScoringUITests` already checks on PRs since #36 (the final 12 tapped steps); no SC-002 expectation changed in this branch. Helper and wait changes that leave every expectation as it was:
 - `ScoringUITests.realSteps` is every step when `SC002_TAPS=all` (the nightly), which restores the tap-by-tap run SC-002 now asks for nightly;
 - `SessionFeedbackTests.launchedWithoutHold` ends the change-of-ends delay by hand (`ManualSleep` through `WatchHaptics.launched(…, sleep:)`) instead of waiting 2.4 s of real time (#36 R2-3); it still checks the delay asked for and the change of ends playing after it;
-- `HealthStorageTests.searchFindsWrittenValues` uses a probe key that is new each run, so a repeated run doesn't find the last run's probe in the shared registration domain.

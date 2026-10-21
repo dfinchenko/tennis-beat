@@ -2,8 +2,9 @@ name: Nightly
 
 # The full layout matrix every night (CI budget, Denys:
 # https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308): EN, PL and UK with
-# ♥ 205 and "--", with the rest of the watch tests, and the SC-002 sequences with every step tapped. PRs run only the worst layout case unless
-# they change header or layout files (scripts/layout-scope.sh).
+# ♥ 205 and "--", with the rest of the watch tests, and the SC-002 sequences with every step
+# tapped. PRs run only the worst layout case unless they change header or layout files
+# (scripts/layout-scope.sh), and tap only the final 12 steps of each SC-002 sequence.
 
 on:
   schedule:

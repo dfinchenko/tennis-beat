@@ -177,8 +177,9 @@ final class ScoringUITests: XCTestCase {
 
   /// `setup`, then `taps` seeded random steps: a header Undo every 7th step and a server
   /// correction on Controls every 11th. All but the last `realSteps` steps before the match
-  /// ends are played at launch (none with `SC002_TAPS=all`); the screen is compared with a replayed engine `Match` once
-  /// after them, and after each real tap, Undo and correction.  ITF: CE-02
+  /// ends are played at launch (none with `SC002_TAPS=all`); the screen is compared with a
+  /// replayed engine `Match` once after them, and after each real tap, Undo and correction.
+  /// ITF: CE-02
   @MainActor
   private func play(
     length: String, setLength: String, atFortyAll: String, thirdSet: String = "fullSet",
