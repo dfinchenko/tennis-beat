@@ -70,5 +70,11 @@ No other expectation changed. Helper and test-support changes that leave every e
 | `ScoringUITests` SC-002 scripted sequences (all seven `testSC002…`) | Every step of each sequence was a real tap, Undo or correction, with the screen compared with the engine after each → the same seeded steps, but all except the last 12 before the match ends are played at launch (`-uiTestPoints` with `U` and `S`); the screen is compared with the engine once after the launch steps, and after each of the last 12 real steps, which always hold at least one Undo and one correction (asserted). Each comparison is unchanged; fewer intermediate states are reached by taps. | SC-002; Denys, [relayed on #36](https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874) (reduce exposure after the [repro](https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6303150923)) |
 
 No other expectation changed. Helper and wait changes that leave every expectation as it was, and so are not listed above:
-- `ScreenshotUITests.testWorkoutSummaryScreens` waits for the save-failure notice by its title (#35 R2-3) instead of a fixed wait;
+- `ScreenshotUITests.testWorkoutSummaryScreens` waits for the save-failure notice by its title (#35 R2-3) instead of a fixed wait, and asserts that it appears: an added check in an opt-in test, no existing expectation changed (its recorded mutation is in `test-first-evidence.md` § `feat/003-sc002-nightly`, #36 R2-2);
 - `-uiTestPoints` reads `U` and `S` too; the existing tests pass only `M` and `O`, which play as before.
+
+## `feat/003-sc002-nightly` (SC-002 as decided after #36, nightly full taps, shards)
+
+No expectation changed. SC-002 itself was changed by Denys ([relayed on #37](https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479)) to what `ScoringUITests` already checks on PRs since #36 (the final 12 tapped steps). Helper and wait changes that leave every expectation as it was:
+- `ScoringUITests.realSteps` is every step when `SC002_TAPS=all` (the nightly), which restores the tap-by-tap run SC-002 now asks for nightly;
+- `SessionFeedbackTests.launchedWithoutHold` polls up to 5 s for the change of ends instead of one check after 2.4 s (#36 R2-3).

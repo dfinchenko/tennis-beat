@@ -1,7 +1,7 @@
 name: Watch tests
 
 # Watch unit and UI tests (spec 002, research R12), called by CI on every PR and by the nightly
-# workflow. Three shards run in parallel to keep PR CI under about 20 minutes (CI budget, Denys:
+# workflow. Four shards run in parallel to keep PR CI under about 20 minutes (CI budget, Denys:
 # https://github.com/dfinchenko/tennis-beat/pull/31#issuecomment-6238799308 and
 # https://github.com/dfinchenko/tennis-beat/pull/32#issuecomment-6240987129). Every PR still runs
 # every test; only the layout matrix of testUS6s2HeartRateFitsAndKeepsTheZones is cut to its
@@ -15,6 +15,10 @@ on:
         description: '"worst" (UK, XXXL, ♥ 205, all phases) or "full" (EN, PL, UK; ♥ 205 and "--")'
         type: string
         default: worst
+      sc002_taps:
+        description: '"last12" (PRs: the long part of each SC-002 sequence played at launch) or "all" (the nightly: every step tapped, SC-002)'
+        type: string
+        default: last12
 
 permissions:
   contents: read
@@ -31,30 +35,37 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Balanced on #32's CI times (UI minutes, full / worst layout matrix):
-          # audits 13.6, layout 13.8 / 6.7, rest 11.6; each job adds about 5 minutes of setup.
+          # Balanced on #36's CI times with the full layout matrix (UI minutes): audits 11.4,
+          # layout 11.8, flows 11.5, rest 4.7 + the SC-002 step (3.3 minutes with the last 12
+          # steps tapped); each job adds about 5 to 6 minutes of setup and build. Four shards, so
+          # a PR that runs the full matrix stays under about 20 minutes (Denys, relayed on #37:
+          # https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479).
           - shard: audits
             selection: |
               -only-testing:TennisBeat Watch AppTests
               -only-testing:TennisBeat Watch AppUITests/AccessibilityAuditUITests
-              -only-testing:TennisBeat Watch AppUITests/ControlsUITests
               -only-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
           - shard: layout
             selection: |
               -only-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
+              -only-testing:TennisBeat Watch AppUITests/WorkoutUITests
+          - shard: flows
+            selection: |
+              -only-testing:TennisBeat Watch AppUITests/ControlsUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
-              -only-testing:TennisBeat Watch AppUITests/WorkoutUITests
+              -only-testing:TennisBeat Watch AppUITests/SetupFlowUITests
           - shard: rest
             selection: |
               -skip-testing:TennisBeat Watch AppTests
               -skip-testing:TennisBeat Watch AppUITests/AccessibilityAuditUITests
-              -skip-testing:TennisBeat Watch AppUITests/ControlsUITests
               -skip-testing:TennisBeat Watch AppUITests/HealthOnboardingUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoreAccessibilityUITests
+              -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
+              -skip-testing:TennisBeat Watch AppUITests/ControlsUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
-              -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
+              -skip-testing:TennisBeat Watch AppUITests/SetupFlowUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfFourAdvantage
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfSixNoAd
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfEightAdvantage
@@ -111,6 +122,8 @@ jobs:
           SELECTION: ${{ matrix.selection }}
           # Reaches the UI test process as LAYOUT_MATRIX.
           TEST_RUNNER_LAYOUT_MATRIX: ${{ inputs.layout_matrix }}
+          # Reaches the UI test process as SC002_TAPS.
+          TEST_RUNNER_SC002_TAPS: ${{ inputs.sc002_taps }}
         run: |
           set -euo pipefail
           selection=()
@@ -133,6 +146,8 @@ jobs:
         # Every other test runs once.
         id: sc002
         if: steps.sim.outputs.udid != '' && matrix.shard == 'rest' && !cancelled()
+        env:
+          TEST_RUNNER_SC002_TAPS: ${{ inputs.sc002_taps }}
         run: |
           set -euo pipefail
           log="$RUNNER_TEMP/sc002.log"

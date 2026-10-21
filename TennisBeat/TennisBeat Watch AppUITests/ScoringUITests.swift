@@ -164,16 +164,20 @@ final class ScoringUITests: XCTestCase {
     }
   }
 
-  /// How many of the last steps of each sequence are real taps (Denys, relayed on #36:
-  /// https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874). The rest is
+  /// How many of the last steps of each sequence are real taps (SC-002; Denys, relayed on #36:
+  /// https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874 and on #37:
+  /// https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479). The rest is
   /// played at launch: a synthesized tap is lost about once in 200 runs before it reaches the
   /// app (#36 repro), so fewer taps means fewer such failures. 12 steps always hold an Undo
-  /// (every 7th) and a server correction (every 11th).
-  static let realSteps = 12
+  /// (every 7th) and a server correction (every 11th). `SC002_TAPS=all` (the nightly, or
+  /// `TEST_RUNNER_SC002_TAPS=all` locally) taps every step: the full tap-by-tap coverage.
+  static var realSteps: Int {
+    ProcessInfo.processInfo.environment["SC002_TAPS"] == "all" ? .max : 12
+  }
 
   /// `setup`, then `taps` seeded random steps: a header Undo every 7th step and a server
   /// correction on Controls every 11th. All but the last `realSteps` steps before the match
-  /// ends are played at launch; the screen is compared with a replayed engine `Match` once
+  /// ends are played at launch (none with `SC002_TAPS=all`); the screen is compared with a replayed engine `Match` once
   /// after them, and after each real tap, Undo and correction.  ITF: CE-02
   @MainActor
   private func play(
