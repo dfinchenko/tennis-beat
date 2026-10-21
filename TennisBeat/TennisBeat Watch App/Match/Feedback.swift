@@ -53,11 +53,14 @@ final class WatchHaptics: HapticPlaying {
   /// The production haptics, or, with `-uiTestHoldChangeOfEnds`, haptics whose change of ends
   /// stays pending until the next command plays or drops it (contract §2): UI tests tap while
   /// it is pending as long as they like, with no race against the 0.8 s.
+  /// `sleep` is used only without the hold flag; with it the change of ends waits for the
+  /// next command.
   static func launched(
     _ options: LaunchOptions,
-    sink: @escaping (WKHapticType) -> Void = { WKInterfaceDevice.current().play($0) }
+    sink: @escaping (WKHapticType) -> Void = { WKInterfaceDevice.current().play($0) },
+    sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
   ) -> WatchHaptics {
-    guard options.holdChangeOfEnds else { return WatchHaptics(sink: sink) }
+    guard options.holdChangeOfEnds else { return WatchHaptics(sink: sink, sleep: sleep) }
     return WatchHaptics(sink: sink, sleep: { _ in try await Task.sleep(for: .seconds(86_400)) })
   }
 

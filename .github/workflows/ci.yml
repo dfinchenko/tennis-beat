@@ -105,7 +105,7 @@ jobs:
           echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
           echo "Layout matrix: $matrix"
 
-  # Watch unit and UI tests in three shards (watch-tests.yml). Not a required check; Denys decides.
+  # Watch unit and UI tests in four shards (watch-tests.yml). Not a required check; Denys decides.
   watch-tests:
     needs: layout-scope
     uses: ./.github/workflows/watch-tests.yml

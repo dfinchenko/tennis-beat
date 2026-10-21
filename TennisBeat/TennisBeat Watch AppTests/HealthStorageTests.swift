@@ -93,13 +93,15 @@ struct HealthStorageTests {
   @Test("SC-007 positive control: a value written on purpose is found by the same search")
   func searchFindsWrittenValues() throws {
     // The registration domain is in memory only, so the probe never reaches a preferences
-    // file that another search could see.
+    // file that another search could see. It is shared by the whole process, so the key is new
+    // each run: a repeated run would otherwise find the last run's probe (#37).
     let defaults = try #require(UserDefaults(suiteName: "HealthStorageTests.\(UUID().uuidString)"))
+    let key = "energy.\(UUID().uuidString)"
     let empty = Self.search(["733"], defaults: [defaults], directories: [])
-    #expect(empty.isEmpty)
-    defaults.register(defaults: ["energy": 733])  // an integer, not text
+    #expect(empty["defaults \(key)"] == nil)
+    defaults.register(defaults: [key: 733])  // an integer, not text
     let stored = Self.search(["733"], defaults: [defaults], directories: [])
-    #expect(Self.newOrChanged(empty, stored) == ["defaults energy"])
+    #expect(Self.newOrChanged(empty, stored) == ["defaults \(key)"])
 
     let documents = try #require(
       FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first)

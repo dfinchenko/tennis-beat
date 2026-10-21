@@ -213,11 +213,16 @@ struct SessionFeedbackTests {
     var played: [WKHapticType] = []
     let options = LaunchOptions(arguments: [])
     #expect(options.holdChangeOfEnds == false)
-    let watch = WatchHaptics.launched(options, sink: { played.append($0) })
+    // The delay through a sleep the test ends by hand (#36 R1-3, R2-3): a real 0.8 s wait
+    // passed alone but not under the whole suite's load.
+    let sleep = ManualSleep()
+    let watch = WatchHaptics.launched(options, sink: { played.append($0) }, sleep: sleep.sleep)
     watch.play(changeOfEndsGame())
+    await sleep.untilWaiting()
+    #expect(sleep.requested == [WatchHaptics.changeOfEndsDelay])
     #expect(played == [.directionUp])
-    // The real 0.8 s sleep: the change of ends plays on its own (#36 R1-3).
-    try? await Task.sleep(for: WatchHaptics.changeOfEndsDelay * 3)
+    sleep.release()
+    await settle()
     #expect(played == [.directionUp, .retry])
   }
 
