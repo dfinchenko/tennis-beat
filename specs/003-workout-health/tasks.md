@@ -241,7 +241,7 @@ US6 (accessibility and languages) is cross-cutting: each PR meets it for its own
 - [X] T054 [US4] `App/Summary/SummaryView.swift`: the two rows like the Duration row (one VoiceOver element ≥ 44 pt each, `ViewThatFits`), `status/heart` icon, identifiers `summary.heartRate`, `summary.energy`.
 - [X] T055 [US4] `App/RootView.swift` / setup flow: the one-time alert "Workout not saved to Health" · OK on New match after Done when `pendingSaveFailureNotice` is true, observed, so it also appears when the flag turns true while New match is showing; cleared on OK; whichever match the failed save belongs to, and several failed saves give one notice ([#30 P2-2](https://github.com/dfinchenko/tennis-beat/pull/30#issuecomment-6222095428); research R5, contract §1).
 - [X] T056 [US4] `docs/design/screens/watch-6-summary.md`: record the two rows, "Active energy" replacing «Активні ккал» (Q5), and remove "Heart-rate and kcal rows are hidden".
-- [ ] T057 [US4] PR checklist steps 2–8 for PR 4. Device checks for Denys: **5, 9** (summary part).
+- [X] T057 [US4] PR checklist steps 2–8 for PR 4. Device checks for Denys: **5, 9** (summary part).
 
 **Checkpoint**: spec 003 complete; every device check 1–15 is in `docs/harness.md`.
 

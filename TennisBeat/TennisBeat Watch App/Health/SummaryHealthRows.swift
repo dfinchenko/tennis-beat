@@ -30,8 +30,11 @@ nonisolated struct SummaryHealthRows: Hashable, Sendable {
     }
 
     if let average = statistics?.averageHeartRate, let maximum = statistics?.maximumHeartRate {
+      // The system number format, like every other number on the summary (FR-016, #35 R2-1).
+      func number(_ value: Int) -> String { value.formatted(.number.locale(locale)) }
       heartRate = Row(
-        kind: .heartRate, label: text("summary.heartRate"), value: "\(average) / \(maximum)",
+        kind: .heartRate, label: text("summary.heartRate"),
+        value: "\(number(average)) / \(number(maximum))",
         accessibilityLabel: text("summary.heartRate.accessibility \(average) \(maximum)"))
     } else {
       heartRate = nil

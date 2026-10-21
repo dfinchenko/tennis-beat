@@ -55,8 +55,13 @@ jobs:
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
               -skip-testing:TennisBeat Watch AppUITests/WorkoutUITests
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfFourAdvantage
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfSixNoAd
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfEightAdvantage
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeFullThirdSetNoAd
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd
+              -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002TieBreakSetAdvantage
     name: watch-tests (${{ matrix.shard }})
     steps:
       - uses: actions/checkout@v4
@@ -118,12 +123,13 @@ jobs:
             "${selection[@]}" \
             -resultBundlePath "$RUNNER_TEMP/watch-tests-${{ matrix.shard }}.xcresult" \
             CODE_SIGNING_ALLOWED=NO
-      - name: SC-002 match tie-break tests (one whole-test retry)
-        # An environment flake drops a synthesized tap in these two tests about once in 200 runs:
-        # the app's DEBUG tap log shows no zone action ran for it, with nothing blocking the zones
-        # (#33). Each may run once more as a whole test, never a tap retry, and every retry is
-        # counted in the metrics (Denys, relayed on #33:
-        # https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014).
+      - name: SC-002 scripted tests (one whole-test retry)
+        # An environment flake drops a synthesized tap about once in 200 runs before it reaches
+        # the app: the DEBUG tap log shows the tap reaching neither the score screen nor a zone
+        # (#33, #36). Each of these tests may run once more as a whole test, never a tap retry,
+        # and every retry is counted in the metrics (Denys, relayed on #33:
+        # https://github.com/dfinchenko/tennis-beat/pull/33#issuecomment-6253707014, extended
+        # to all seven on #36: https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874).
         # Every other test runs once.
         id: sc002
         if: steps.sim.outputs.udid != '' && matrix.shard == 'rest' && !cancelled()
@@ -136,8 +142,13 @@ jobs:
             -project TennisBeat/TennisBeat.xcodeproj \
             -scheme "TennisBeat Watch App" \
             -destination "platform=watchOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfFourAdvantage" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfSixNoAd" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfEightAdvantage" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeFullThirdSetNoAd" \
             "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakAdvantage" \
             "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002BestOfThreeMatchTieBreakNoAd" \
+            "-only-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002TieBreakSetAdvantage" \
             -retry-tests-on-failure -test-iterations 2 \
             -resultBundlePath "$RUNNER_TEMP/watch-tests-sc002.xcresult" \
             CODE_SIGNING_ALLOWED=NO 2>&1 | tee "$log" || status=$?

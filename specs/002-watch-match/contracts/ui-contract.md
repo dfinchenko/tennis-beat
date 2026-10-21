@@ -26,7 +26,8 @@ The surfaces that tests, the reviewer and later specs (003 HealthKit, persistenc
 | `-coinToss me` / `-coinToss opponent` | Fixes the coin-toss result (Story 1 s9) |
 | `-uiTestExposeValues` | Zones use `.accessibilityElement(children: .contain)` so their child values are visible to XCUITest (R3-1). Never used for accessibility audits or VoiceOver checks |
 | `-uiTestAlwaysOn` | The match screens render as in Always On (`isLuminanceReduced` is true), for the US6 UI tests and the Watch 5 screenshots; the simulator can't lower the wrist on demand (PR 5) |
-| `-uiTestPoints MMO…` | Plays these points (M = Me, O = Opponent) once when the first match opens, so Always On tests and screenshots reach a score; Always On zones take no taps (PR 5) |
+| `-uiTestPoints MMOUS…` | Plays these steps once when the first match opens (M = Me, O = Opponent, U = Undo, S = server correction), so Always On tests and screenshots reach a score (Always On zones take no taps, PR 5), and the SC-002 sequences tap only their last steps (U and S added on #36) |
+| `-uiTestHoldChangeOfEnds` | A scheduled change-of-ends haptic stays pending until the next command plays it (a point) or drops it (Undo and the other commands), instead of playing after 0.8 s, so a UI test can tap while it is pending (lost-tap check after #35) |
 
 Without these arguments the app behaves as in production. None of these arguments exists in a Release build (`#if DEBUG`).
 

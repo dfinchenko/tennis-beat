@@ -225,6 +225,15 @@ final class MatchSession {
         .compactMap(\.self))
   }
 
+  /// A `-uiTestPoints` step, through the same command as its tap (spec 002 contract §2).
+  func play(_ step: LaunchStep) {
+    switch step {
+    case .point(let player): addPoint(for: player)
+    case .undo: undo()
+    case .correctServer: correctServer()
+    }
+  }
+
   /// Ends the match early after the confirmation (Story 4 s12, s13). With a point played it
   /// records the early end and opens the summary; with none the match is discarded and New
   /// match opens, so a 0-point match is never kept. No haptic.  ITF: MT-08

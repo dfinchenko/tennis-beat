@@ -1,6 +1,13 @@
 import Foundation
 import TennisCore
 
+/// One step of `-uiTestPoints`: a point, Undo or a server correction (spec 002 contract §2).
+nonisolated enum LaunchStep: Hashable, Sendable {
+  case point(Player)
+  case undo
+  case correctServer
+}
+
 /// UI-test launch arguments (contract §2). A Release build ignores them all.
 nonisolated struct LaunchOptions: Sendable {
   /// `-resetFormat`: forget the stored format, so New match shows the first-use defaults.
@@ -12,9 +19,10 @@ nonisolated struct LaunchOptions: Sendable {
   /// `-uiTestAlwaysOn`: the match screens render as in Always On (luminance reduced), for UI
   /// tests and screenshots (PR 5).
   var alwaysOn = false
-  /// `-uiTestPoints MMO…`: points played as soon as the match opens (M = Me, O = Opponent),
-  /// so UI tests reach a score that Always On, where the zones take no taps, can show.
-  var points: [Player] = []
+  /// `-uiTestPoints MMOUS…`: steps played as soon as the match opens (M = Me, O = Opponent,
+  /// U = Undo, S = server correction), so UI tests reach a score that Always On, where the
+  /// zones take no taps, can show, and SC-002 taps only the last steps of a sequence (#36).
+  var points: [LaunchStep] = []
   /// `-uiTestHealth denied|shouldRequest|granted|failing`: the fake workout service instead
   /// of HealthKit (spec 003, contract §2).
   var healthMode: FakeHealthMode?
@@ -25,6 +33,9 @@ nonisolated struct LaunchOptions: Sendable {
   var workoutStats: WorkoutStatistics?
   /// `-uiTestSaveFails`: saving the workout fails.
   var saveFails = false
+  /// `-uiTestHoldChangeOfEnds`: a scheduled change-of-ends haptic stays pending until the
+  /// next command plays or drops it.
+  var holdChangeOfEnds = false
 
   static let current = LaunchOptions(arguments: ProcessInfo.processInfo.arguments)
 
@@ -36,8 +47,10 @@ nonisolated struct LaunchOptions: Sendable {
       if let index = arguments.firstIndex(of: "-uiTestPoints"), index + 1 < arguments.count {
         points = arguments[index + 1].compactMap {
           switch $0 {
-          case "M": .me
-          case "O": .opponent
+          case "M": .point(.me)
+          case "O": .point(.opponent)
+          case "U": .undo
+          case "S": .correctServer
           default: nil
           }
         }
@@ -47,6 +60,7 @@ nonisolated struct LaunchOptions: Sendable {
       heartRate = Self.value(after: "-uiTestHeartRate", in: arguments).flatMap { Int($0) }
       workoutStats = Self.value(after: "-uiTestWorkoutStats", in: arguments).flatMap(Self.stats)
       saveFails = arguments.contains("-uiTestSaveFails")
+      holdChangeOfEnds = arguments.contains("-uiTestHoldChangeOfEnds")
       if let index = arguments.firstIndex(of: "-coinToss"), index + 1 < arguments.count {
         switch arguments[index + 1] {
         case "me": coinToss = .me

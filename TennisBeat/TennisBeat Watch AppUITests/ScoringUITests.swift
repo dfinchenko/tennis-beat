@@ -3,7 +3,8 @@ import TennisCore
 import XCTest
 
 /// SC-002, User Story 2: every value on the score screen equals the engine's state after
-/// every tap and every header Undo, in every format.
+/// every tap, header Undo and server correction, in every format. Each scripted sequence
+/// plays its long part at launch and its last steps with real taps (#36).
 /// ITF: GM-01, GM-02, NA-01, NA-02, TB-01, TB-04, MT-03
 final class ScoringUITests: XCTestCase {
   override func setUp() {
@@ -12,15 +13,17 @@ final class ScoringUITests: XCTestCase {
 
   /// Opens the score screen with `format` preselected through the `lastFormat.v1`
   /// defaults key (the argument domain overrides the stored value) and Me serving first.
+  /// `launchSteps` are played as the match opens (`-uiTestPoints`), with no taps.
   @MainActor
   private func startMatch(
     length: String = "bestOfThree", setLength: String = "six", atFortyAll: String = "advantage",
-    thirdSet: String = "fullSet", exposeValues: Bool = true
+    thirdSet: String = "fullSet", exposeValues: Bool = true, launchSteps: String = ""
   ) -> XCUIApplication {
     let format =
       "{length=\(length);setLength=\(setLength);atFortyAll=\(atFortyAll);thirdSet=\(thirdSet);}"
     let app = XCUIApplication.launched(
-      ["-lastFormat.v1", format] + (exposeValues ? ["-uiTestExposeValues"] : []))
+      ["-lastFormat.v1", format] + (exposeValues ? ["-uiTestExposeValues"] : [])
+        + (launchSteps.isEmpty ? [] : ["-uiTestPoints", launchSteps]))
     app.tap("setup.start", until: "firstServer.me")
     app.tap("firstServer.me", until: "zone.me")
     return app
@@ -150,11 +153,28 @@ final class ScoringUITests: XCTestCase {
       case .correctServer: "server"
       }
     }
+
+    /// The step in `-uiTestPoints` (spec 002 contract §2).
+    var launchCode: Character {
+      switch self {
+      case .point(let player): player == .me ? "M" : "O"
+      case .undo: "U"
+      case .correctServer: "S"
+      }
+    }
   }
 
-  /// Taps `setup` checking every step, then `taps` seeded random steps: a header Undo every
-  /// 7th step and a server correction on Controls every 11th, comparing the screen with a
-  /// replayed engine `Match` after each step.  ITF: CE-02
+  /// How many of the last steps of each sequence are real taps (Denys, relayed on #36:
+  /// https://github.com/dfinchenko/tennis-beat/pull/36#issuecomment-6301821874). The rest is
+  /// played at launch: a synthesized tap is lost about once in 200 runs before it reaches the
+  /// app (#36 repro), so fewer taps means fewer such failures. 12 steps always hold an Undo
+  /// (every 7th) and a server correction (every 11th).
+  static let realSteps = 12
+
+  /// `setup`, then `taps` seeded random steps: a header Undo every 7th step and a server
+  /// correction on Controls every 11th. All but the last `realSteps` steps before the match
+  /// ends are played at launch; the screen is compared with a replayed engine `Match` once
+  /// after them, and after each real tap, Undo and correction.  ITF: CE-02
   @MainActor
   private func play(
     length: String, setLength: String, atFortyAll: String, thirdSet: String = "fullSet",
@@ -165,39 +185,62 @@ final class ScoringUITests: XCTestCase {
       setLength: SetLength(rawValue: ["four": 4, "six": 6, "eight": 8][setLength]!)!,
       gameScoring: atFortyAll == "advantage" ? .advantage : .noAd,
       matchTieBreak: length == "bestOfThree" && thirdSet == "tieBreakToTen")
-    let app = startMatch(
-      length: length, setLength: setLength, atFortyAll: atFortyAll, thirdSet: thirdSet)
-    var match = Match(setup: MatchSetup(format: format, firstServer: .me))
-    try check(app, match, step: "start")
-
     var generator = SeededGenerator(seed: seed)
     let random = (0..<taps).map { index -> Step in
       if index % 11 == 10 { return .correctServer }
       if index % 7 == 6 { return .undo }
       return .point(Bool.random(using: &generator) ? .me : .opponent)
     }
-    for (index, step) in (setup.map(Step.point) + random).enumerated() {
+
+    // The steps that run, as the taps would: an Undo with nothing to undo is skipped, and
+    // nothing runs after the winning point.
+    var match = Match(setup: MatchSetup(format: format, firstServer: .me))
+    var steps: [Step] = []
+    for step in setup.map(Step.point) + random {
       guard match.state.status == .inProgress else { break }
+      if case .undo = step, match.events.count <= 1 { continue }
+      try Self.apply(step, to: &match)
+      steps.append(step)
+    }
+    let real = steps.suffix(Self.realSteps)
+    XCTAssertTrue(real.contains { if case .undo = $0 { true } else { false } }, "no Undo")
+    XCTAssertTrue(
+      real.contains { if case .correctServer = $0 { true } else { false } }, "no correction")
+
+    let launched = steps.dropLast(real.count)
+    let app = startMatch(
+      length: length, setLength: setLength, atFortyAll: atFortyAll, thirdSet: thirdSet,
+      launchSteps: String(launched.map(\.launchCode)))
+    match = Match(setup: MatchSetup(format: format, firstServer: .me))
+    for step in launched { try Self.apply(step, to: &match) }
+    try check(app, match, step: "after \(launched.count) launch steps")
+
+    for (offset, step) in real.enumerated() {
       switch step {
       case .point(let player):
         app.element("zone.\(player.rawValue)").tap()
-        try match.recordPoint(wonBy: player, at: Date())
       case .undo:
-        guard match.events.count > 1 else { continue }
         app.element("undo").tap()
-        match.undo()
       case .correctServer:
         app.showControls()
         app.tap("controls.server")
         app.showScore()
-        try match.correctFirstServer(to: match.effectiveFirstServer.other)
       }
+      try Self.apply(step, to: &match)
       if match.state.status != .inProgress {
-        // The match is won: the summary opens (US5 s1); its content is PR 4.
+        // The match is won: the summary opens (US5 s1).
         XCTAssertTrue(app.element("summary.done").waitForExistence(timeout: 5))
         return
       }
-      try check(app, match, step: "step \(index) (\(step.name))")
+      try check(app, match, step: "step \(launched.count + offset) (\(step.name))")
+    }
+  }
+
+  private static func apply(_ step: Step, to match: inout Match) throws {
+    switch step {
+    case .point(let player): try match.recordPoint(wonBy: player, at: Date())
+    case .undo: match.undo()
+    case .correctServer: try match.correctFirstServer(to: match.effectiveFirstServer.other)
     }
   }
 

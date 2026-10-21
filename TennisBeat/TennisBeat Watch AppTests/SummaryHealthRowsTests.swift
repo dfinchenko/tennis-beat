@@ -46,6 +46,17 @@ struct SummaryHealthRowsTests {
     #expect(energy.value == "612 kcal")
   }
 
+  @Test("FR-016 the drawn heart-rate values use the system number format (#35 R2-1)")
+  func heartRateNumberFormat() {
+    // A locale whose digits are not ASCII shows that the values go through the system format.
+    let arabic = Locale(identifier: "en@numbers=arab")
+    let expected =
+      "\(138.formatted(.number.locale(arabic))) / \(171.formatted(.number.locale(arabic)))"
+    #expect(expected == "١٣٨ / ١٧١")
+    #expect(Self.rows(locale: arabic).heartRate?.value == expected)
+    #expect(Self.rows(locale: Self.en).heartRate?.value == "138 / 171")
+  }
+
   @Test("US4 s1 the labels and the energy value in PL and UK")
   func translated() throws {
     let pl = Self.rows(locale: Self.pl)
