@@ -35,10 +35,11 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Balanced on #36's CI times with the full layout matrix (UI minutes): audits 11.4,
-          # layout 11.8, flows 11.5, rest 4.7 + the SC-002 step (3.3 minutes with the last 12
-          # steps tapped); each job adds about 5 to 6 minutes of setup and build. Four shards, so
-          # a PR that runs the full matrix stays under about 20 minutes (Denys, relayed on #37:
+          # Balanced on CI times with the full layout matrix (UI minutes, #36): audits 11.4,
+          # layout 11.8, flows 8.3, rest 7.9 + the SC-002 step (3.3 minutes with the last 12 steps
+          # tapped); each job adds about 5 to 6 minutes of setup and build, and one job may start
+          # about 2 minutes late when no runner is free (#37: flows). Four shards, so a PR that
+          # runs the full matrix stays under about 20 minutes (Denys, relayed on #37:
           # https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479).
           - shard: audits
             selection: |
@@ -54,7 +55,6 @@ jobs:
               -only-testing:TennisBeat Watch AppUITests/ControlsUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryUITests
               -only-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
-              -only-testing:TennisBeat Watch AppUITests/SetupFlowUITests
           - shard: rest
             selection: |
               -skip-testing:TennisBeat Watch AppTests
@@ -65,7 +65,6 @@ jobs:
               -skip-testing:TennisBeat Watch AppUITests/ControlsUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryUITests
               -skip-testing:TennisBeat Watch AppUITests/SummaryHealthUITests
-              -skip-testing:TennisBeat Watch AppUITests/SetupFlowUITests
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfFourAdvantage
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfSixNoAd
               -skip-testing:TennisBeat Watch AppUITests/ScoringUITests/testSC002OneSetOfEightAdvantage
