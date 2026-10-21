@@ -77,4 +77,5 @@ No other expectation changed. Helper and wait changes that leave every expectati
 
 No expectation changed. SC-002 itself was changed by Denys ([relayed on #37](https://github.com/dfinchenko/tennis-beat/pull/37#issuecomment-6310232479)) to what `ScoringUITests` already checks on PRs since #36 (the final 12 tapped steps). Helper and wait changes that leave every expectation as it was:
 - `ScoringUITests.realSteps` is every step when `SC002_TAPS=all` (the nightly), which restores the tap-by-tap run SC-002 now asks for nightly;
-- `SessionFeedbackTests.launchedWithoutHold` polls up to 5 s for the change of ends instead of one check after 2.4 s (#36 R2-3).
+- `SessionFeedbackTests.launchedWithoutHold` ends the change-of-ends delay by hand (`ManualSleep` through `WatchHaptics.launched(…, sleep:)`) instead of waiting 2.4 s of real time (#36 R2-3); it still checks the delay asked for and the change of ends playing after it;
+- `HealthStorageTests.searchFindsWrittenValues` uses a probe key that is new each run, so a repeated run doesn't find the last run's probe in the shared registration domain.

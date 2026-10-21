@@ -55,9 +55,10 @@ final class WatchHaptics: HapticPlaying {
   /// it is pending as long as they like, with no race against the 0.8 s.
   static func launched(
     _ options: LaunchOptions,
-    sink: @escaping (WKHapticType) -> Void = { WKInterfaceDevice.current().play($0) }
+    sink: @escaping (WKHapticType) -> Void = { WKInterfaceDevice.current().play($0) },
+    sleep: @escaping @Sendable (Duration) async throws -> Void = { try await Task.sleep(for: $0) }
   ) -> WatchHaptics {
-    guard options.holdChangeOfEnds else { return WatchHaptics(sink: sink) }
+    guard options.holdChangeOfEnds else { return WatchHaptics(sink: sink, sleep: sleep) }
     return WatchHaptics(sink: sink, sleep: { _ in try await Task.sleep(for: .seconds(86_400)) })
   }
 
